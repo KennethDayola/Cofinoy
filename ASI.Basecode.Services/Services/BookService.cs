@@ -40,5 +40,20 @@ namespace ASI.Basecode.Services.Services
 
             _bookRepository.AddBook(newBook);
         }
+
+        public Book GetBookById(int id)
+        {
+            return _bookRepository.GetBookById(id);
+        }
+
+        public void UpdateBook(Book book)
+        {
+            _bookRepository.UpdateBook(book);
+        }
+
+        public Book DeleteBookById(int id)
+        {
+            return _bookRepository.DeleteBookById(id);
+        }
     }
 }
