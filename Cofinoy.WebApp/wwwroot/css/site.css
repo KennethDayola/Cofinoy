@@ -1,0 +1,110 @@
+html {
+  font-size: 14px;
+}
+
+@media (min-width: 768px) {
+  html {
+    font-size: 16px;
+  }
+}
+
+.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
+  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+}
+
+html {
+  position: relative;
+  min-height: 100%;
+}
+
+body {
+    font-family: "Poppins", sans-serif;
+    font-style: normal;
+    background-color: #EDEFF1;
+}
+
+.bg-tertiary {
+    background-color: #92400E !important;
+}
+
+.bg-primary {
+    background-color: #322708 !important;
+}
+
+.btn-primary {
+    background-color: #322708 !important;
+    padding-left: 24px;
+    padding-right: 24px;
+    border-bottom-color: none !important;
+    border-color: transparent;
+}
+    .btn-primary:hover {
+        background-color: #3B3422 !important;
+        border-color: transparent;
+    }
+
+.btn-primary2 {
+    background-color: white !important;
+    padding-left: 24px;
+    padding-right: 24px;
+    color: #322708; border-bottom-color: none !important;
+    border-color: transparent;
+}
+
+    .btn-primary2:hover {
+        background-color: #3B3422 !important;
+        border-color: white solid;
+        color: white;
+        border-width: 2px;
+    }
+
+.btn-secondary {
+    background-color: #EDEFF1;
+    padding-left:24px;
+    padding-right:24px;
+    border-radius: 50px;
+    border-width: 2px;
+    border-color: #322708;
+    color: #322708;
+}
+
+.btn-secondary:hover {
+    background-color: #322708 !important;
+    border-color: transparent;
+}
+
+.btn-icon {
+    background-color: #EDEFF1;
+    border-radius: 50px;
+}
+
+.btn-icon:hover {
+    background-color: #322708 !important;
+    border-color: transparent;
+    color: white;
+}
+
+.card {
+    border-radius: 10px;
+}
+
+.material-symbols-rounded.filled {
+    font-variation-settings: "FILL" 1, "wght" 400, "GRAD" 0, "opsz" 24;
+}
+
+.nav-underline .nav-link {
+    padding:14px;
+    border-bottom: 3px solid white;
+}
+
+    .nav-underline .nav-link.active {
+        border-bottom: 3px solid #322708;
+    }
+
+.text-primary {
+    color: #322708 !important;
+}
+
+.text-tertiary {
+    color: #92400E !important;
+}

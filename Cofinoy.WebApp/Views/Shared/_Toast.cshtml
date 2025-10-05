@@ -1,0 +1,64 @@
+﻿@{
+    var toastMessage = TempData["ToastMessage"] ?? ViewData["ToastMessage"];
+    var toastTitle = ViewData["ToastTitle"] ?? "Cofinoy";
+    var toastTime = ViewData["ToastTime"] ?? DateTime.Now.ToShortTimeString();
+}
+<div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastStackContainer">
+    @if (toastMessage != null)
+    {
+        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <img src="~/images/Cofinoy.png" class="rounded me-2" alt="Logo" width="20" height="20">
+                <strong class="me-auto">@toastTitle</strong>
+                <small>@toastTime</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">
+                @toastMessage
+            </div>
+        </div>
+    }
+</div>
+
+<script>
+    // Auto-show server-side toasts
+    window.addEventListener('DOMContentLoaded', function () {
+        var container = document.getElementById('toastStackContainer');
+        var toasts = container.querySelectorAll('.toast');
+        toasts.forEach(function (toastEl) {
+            var toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 4000 });
+            toastBootstrap.show();
+        });
+    });
+
+    // 🔧 Dynamic toast helper for client-side messages
+    function showToast(message, type = "info", title = "Cofinoy") {
+        let container = document.getElementById("toastStackContainer");
+
+        // Create toast element
+        const toastEl = document.createElement("div");
+        toastEl.className = "toast align-items-center text-bg-" + type + " border-0";
+        toastEl.role = "alert";
+        toastEl.ariaLive = "assertive";
+        toastEl.ariaAtomic = "true";
+
+        toastEl.innerHTML = `
+            <div class="toast-header">
+                <img src="/images/Cofinoy.png" class="rounded me-2" alt="Logo" width="20" height="20">
+                <strong class="me-auto">${title}</strong>
+                <small>${new Date().toLocaleTimeString()}</small>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">${message}</div>
+        `;
+
+        container.appendChild(toastEl);
+
+        // Show toast
+        const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 4000 });
+        toastBootstrap.show();
+
+        // Remove from DOM when hidden
+        toastEl.addEventListener("hidden.bs.toast", () => toastEl.remove());
+    }
+</script>

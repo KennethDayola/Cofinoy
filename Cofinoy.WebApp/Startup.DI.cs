@@ -1,0 +1,48 @@
+﻿using Cofinoy.Data;
+using Cofinoy.Data.Interfaces;
+using Cofinoy.Data.Repositories;
+using Cofinoy.Services.Interfaces;
+using Cofinoy.Services.ServiceModels;
+using Cofinoy.Services.Services;
+using Cofinoy.WebApp.Authentication;
+using Cofinoy.WebApp.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc.Infrastructure;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+
+namespace Cofinoy.WebApp
+{
+    // Other services configuration
+    internal partial class StartupConfigurer
+    {
+        /// <summary>
+        /// Configures the other services.
+        /// </summary>
+        private void ConfigureOtherServices()
+        {
+            // Framework
+            this._services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+            this._services.TryAddSingleton<IActionContextAccessor, ActionContextAccessor>();
+
+            // Common
+            this._services.AddScoped<TokenProvider>();
+            this._services.TryAddSingleton<TokenProviderOptionsFactory>();
+            this._services.TryAddSingleton<TokenValidationParametersFactory>();
+            this._services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+            // Services
+            this._services.TryAddSingleton<TokenValidationParametersFactory>();
+            this._services.AddScoped<IUserService, UserService>();
+
+            // Repositories
+            this._services.AddScoped<IUserRepository, UserRepository>();
+
+            // Manager Class
+            this._services.AddScoped<SignInManager>();
+
+            this._services.AddHttpClient();
+        }
+    }
+}
