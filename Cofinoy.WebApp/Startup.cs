@@ -87,7 +87,11 @@ namespace Cofinoy.WebApp
             {
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection"),
-                    sqlServerOptions => sqlServerOptions.CommandTimeout(120));
+                    sqlServerOptions =>
+                    {
+                        sqlServerOptions.CommandTimeout(120);
+                        sqlServerOptions.MigrationsAssembly("Cofinoy.Data");
+                    });
             });
 
             services.AddControllersWithViews();

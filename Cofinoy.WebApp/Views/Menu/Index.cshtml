@@ -1,0 +1,65 @@
+﻿@{
+    ViewData["Title"] = "Coffee Menu";
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/menu.css" asp-append-version="true">
+</head>
+<body>
+    <header class="hero">
+        <h1>From the Highlands to Your Cup</h1>
+    </header>
+
+    <main class="main-container">
+        <aside class="sidebar">
+            <h2>MENU</h2>
+            <ul>
+                <li><strong>Drinks</strong></li>
+                <li><a href="#">Featured Drinks</a></li>
+                <li><a href="#">Luzon Drinks</a></li>
+                <li><a href="#">Visayas Drinks</a></li>
+                <li><a href="#">Mindanao Drinks</a></li>
+                <li><a href="#">Foreign Blends</a></li>
+                <li><a href="#">Non-coffee</a></li>
+            </ul>
+        </aside>
+
+        <section class="content">
+            <div class="search-filter-container">
+                <div class="search-box">
+                    <input type="text" placeholder="What coffee are you craving?" />
+                    <button class="search-btn">
+                        <img src="~/images/search.png" asp-append-version="true" alt="Search" />
+                    </button>
+                </div>
+                <button class="filter-btn">
+                    <img src="~/images/filter.png" asp-append-version="true" alt="Filter" />
+                    Filter
+                </button>
+            </div>
+
+            <div class="products">
+                @for (int i = 0; i < 1; i++) // FOR TESTING PURPOSES ONLY KAY INGON SILA DI NA DAW MAG FIREBASE, SQL NA DAW WTF IM LIBOGINGS
+                {
+                    <div class="product-card">
+                        <img src="~/images/thumbnail.png" alt="Coffee" />
+                        <div class="product-info">
+                            <h3>Kapeng Barako</h3>
+                            <p>Bold, rich, earthy, smoky, Filipino.</p>
+                            <div class="price-row">
+                                <span class="price">₱100.00</span>
+                                <button class="add-btn">+</button>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </section>
+    </main>
+</body>
+</html>
