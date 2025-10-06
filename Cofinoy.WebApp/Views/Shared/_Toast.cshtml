@@ -1,12 +1,13 @@
 ﻿@{
     var toastMessage = TempData["ToastMessage"] ?? ViewData["ToastMessage"];
+    var toastType = TempData["ToastType"] ?? "info";
     var toastTitle = ViewData["ToastTitle"] ?? "Cofinoy";
     var toastTime = ViewData["ToastTime"] ?? DateTime.Now.ToShortTimeString();
 }
 <div class="toast-container position-fixed bottom-0 end-0 p-3" id="toastStackContainer">
     @if (toastMessage != null)
     {
-        <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast align-items-center text-bg-@toastType border-0" role="alert" aria-live="assertive" aria-atomic="true">
             <div class="toast-header">
                 <img src="~/images/Cofinoy.png" class="rounded me-2" alt="Logo" width="20" height="20">
                 <strong class="me-auto">@toastTitle</strong>
@@ -21,21 +22,17 @@
 </div>
 
 <script>
-    // Auto-show server-side toasts
     window.addEventListener('DOMContentLoaded', function () {
-        var container = document.getElementById('toastStackContainer');
-        var toasts = container.querySelectorAll('.toast');
-        toasts.forEach(function (toastEl) {
-            var toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 4000 });
+        const container = document.getElementById('toastStackContainer');
+        const toasts = container.querySelectorAll('.toast');
+        toasts.forEach(toastEl => {
+            const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 4000 });
             toastBootstrap.show();
         });
     });
 
-    // 🔧 Dynamic toast helper for client-side messages
     function showToast(message, type = "info", title = "Cofinoy") {
-        let container = document.getElementById("toastStackContainer");
-
-        // Create toast element
+        const container = document.getElementById("toastStackContainer");
         const toastEl = document.createElement("div");
         toastEl.className = "toast align-items-center text-bg-" + type + " border-0";
         toastEl.role = "alert";
@@ -53,12 +50,8 @@
         `;
 
         container.appendChild(toastEl);
-
-        // Show toast
         const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 4000 });
         toastBootstrap.show();
-
-        // Remove from DOM when hidden
         toastEl.addEventListener("hidden.bs.toast", () => toastEl.remove());
     }
 </script>

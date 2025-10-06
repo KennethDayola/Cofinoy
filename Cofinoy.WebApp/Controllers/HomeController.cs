@@ -1,5 +1,6 @@
-﻿using Cofinoy.WebApp.Mvc;
-using AutoMapper;
+﻿using AutoMapper;
+using Cofinoy.WebApp.Mvc;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -32,6 +33,8 @@ namespace Cofinoy.WebApp.Controllers
         /// Returns Home View.
         /// </summary>
         /// <returns> Home View </returns>
+
+        [AllowAnonymous]
         public IActionResult Index()
         {
             return View();

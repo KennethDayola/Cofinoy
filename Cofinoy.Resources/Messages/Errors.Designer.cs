@@ -70,7 +70,7 @@ namespace Cofinoy.Resources.Messages {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to UserId already exists!.
+        ///   Looks up a localized string similar to User already exists!.
         /// </summary>
         public static string UserExists {
             get {

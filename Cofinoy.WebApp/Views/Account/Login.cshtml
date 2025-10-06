@@ -1,75 +1,73 @@
 ﻿@model LoginViewModel
 @using static Cofinoy.Resources.Views.Screen
-@section styles {
-    <link rel="stylesheet" href="~/css/auth.css" />
+@section AuthStyles {
 }
-@{
-    ViewBag.LoginView = true;
-    ViewData["Title"] = "Login Page";
-}
-<div>
-    @Html.AntiForgeryToken()
-</div>
-<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-0">
-    <div class="row w-100">
-        <div class="col-lg-6 auth-bg col-md-12 col-sm-12 d-flex flex-column justify-content-center align-items-center py-5">
-            <a class="position-absolute top-0 start-0 m-4 bg-primary rounded-2" href="javascript:history.back()">
-                <i class="material-symbols-rounded p-2 text-white icon-top-left-bs">
-                    arrow_back
-                </i>
-            </a>
-            <div class="card shadow p-4 w-100" style="max-width: 400px;">
-                <div class="card-body mt-3 mb-3">
-                    <div class="text-center mb-4">
-                        <h3 class="mt-2 mb-0 fw-bold">Welcome Back!</h3>
-                        <p class="fs-7 mt-1">Enter your credentials to continue</p>
-                    </div>
-                    <form asp-action="Login" asp-controller="Account" method="post" class="mt-5" novalidate>
-                        @Html.AntiForgeryToken()
-                        <div class="mb-3">
-                            <label asp-for="Email" class="form-label fs-7">Email</label>
-                            <input asp-for="Email" type="text" class="form-control" placeholder="Enter your email address" required />
-                            <span asp-validation-for="Email" class="text-danger fs-8 mt-1"></span>
+@section AuthBody {
+    <div>
+        @Html.AntiForgeryToken()
+    </div>
+    <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-0">
+        <div class="row w-100">
+            <div class="col-lg-6 auth-bg col-md-12 col-sm-12 d-flex flex-column justify-content-center align-items-center py-5">
+                <a class="position-absolute top-0 start-0 m-4 bg-primary rounded-2" href="javascript:history.back()">
+                    <i class="material-symbols-rounded p-2 text-white icon-top-left-bs">
+                        arrow_back
+                    </i>
+                </a>
+                <div class="card shadow p-4 w-100" style="max-width: 400px;">
+                    <div class="card-body mt-3 mb-3">
+                        <div class="text-center mb-4">
+                            <h3 class="mt-2 mb-0 fw-bold">Welcome Back!</h3>
+                            <p class="fs-7 mt-1">Enter your credentials to continue</p>
                         </div>
-                        <div class="mb-3">
-                            <label asp-for="Password" class="form-label fs-7">Password</label>
-                            <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" required />
-                            <span asp-validation-for="Password" class="text-danger fs-8 mt-1"></span>
+                        <form asp-action="Login" asp-controller="Account" method="post" class="mt-5" novalidate>
+                            @Html.AntiForgeryToken()
+                            <div class="mb-3">
+                                <label asp-for="Email" class="form-label fs-7">Email</label>
+                                <input asp-for="Email" type="text" class="form-control" placeholder="Enter your email address" required />
+                                <span asp-validation-for="Email" class="text-danger fs-8 mt-1"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label asp-for="Password" class="form-label fs-7">Password</label>
+                                <input asp-for="Password" type="password" class="form-control" placeholder="Enter your password" required />
+                                <span asp-validation-for="Password" class="text-danger fs-8 mt-1"></span>
+                            </div>
+                            <div class="text-end">
+                                <a class="fs-7 text-tertiary text-decoration-none" asp-area="" asp-controller="Auth" asp-action="RequestReset">Forgot password?</a>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 rounded-pill mt-4">Login</button>
+                        </form>
+                        <div class="d-flex mt-3 justify-content-center flex-wrap">
+                            <p class="fs-7 mb-0 me-2">Don't have an account?</p>
+                            <a class="fs-7 text-tertiary text-decoration-none" asp-area="" asp-controller="Account" asp-action="Register">Register</a>
                         </div>
-                        <div class="text-end">
-                            <a class="fs-7 text-tertiary text-decoration-none" asp-area="" asp-controller="Auth" asp-action="RequestReset">Forgot password?</a>
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100 rounded-pill mt-4">Login</button>
-                    </form>
-                    @await Html.PartialAsync("_Toast")
-                    <div class="d-flex mt-3 justify-content-center flex-wrap">
-                        <p class="fs-7 mb-0">Don't have an account?</p>
-                        <a class="fs-7 ms-1 text-tertiary text-decoration-none" asp-area="" asp-controller="Account" asp-action="Register"> Register</a>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-center py-5">
-            <div class="container">
-                <div class="text-tertiary fw-bold mb-5">
-                    <img src="~/images/Cofinoy.png" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
-                    Cofinoy
+            <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-center py-5">
+                <div class="container">
+                    <div class="text-tertiary fw-bold mb-5">
+                        <img src="~/images/Cofinoy.png" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+                        Cofinoy
+                    </div>
+                    <h1>Good day starts with</h1>
+                    <h1 class="display-1 text-tertiary fw-bold">COFINOY</h1>
+                    <h4>Brewing connections, one cup at a time</h4>
+
                 </div>
-                <h1>Good day starts with</h1>
-                <h1 class="display-1 text-tertiary fw-bold">COFINOY</h1>
-                <h4>Brewing connections, one cup at a time</h4>
-
             </div>
         </div>
     </div>
-</div>
-@section scripts {
-    <script>
-        // Check for error message and display Toastr notification
-        var errorMessage = '@TempData["ErrorMessage"]';
-        if (errorMessage) {
-            toastr.error(errorMessage);
-        }
-    </script>
 }
+
+<script>
+    (() => {
+        var toastMessage = '@TempData["ToastMessage"]';
+        var toastType = '@TempData["ToastType"]' || 'info';
+
+        if (toastMessage) {
+            showToast(toastMessage, toastType);
+        }
+    })();
+</script>
