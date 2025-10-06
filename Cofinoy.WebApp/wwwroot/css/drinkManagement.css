@@ -129,7 +129,7 @@
     grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
     width: 100%;
-    justify-content: start !important; 
+    justify-content: start !important;
     align-items: start !important;
     margin: 0;
     padding: 0;
@@ -144,7 +144,7 @@
     width: 100%;
     max-width: 260px;
     margin: 0;
-    justify-self: start; 
+    justify-self: start;
 }
 
     .drink-card:hover {
@@ -153,9 +153,10 @@
 
 .drink-stock {
     font-size: 12px;
-    color:gray;
+    color: gray;
     margin-top: -1000px;
 }
+
 .drink-image {
     width: 100%;
     aspect-ratio: 1/1;
@@ -205,6 +206,62 @@
     line-height: 1.4;
     display: inline-block;
 }
+
+.filter-modal .modal-container {
+    max-width: 500px;
+}
+
+.filter-content {
+    padding: 10px 0;
+}
+
+.filter-group {
+    margin-bottom: 20px;
+}
+
+    .filter-group:last-child {
+        margin-bottom: 0;
+    }
+
+    .filter-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 500;
+        color: #2d3748;
+        margin-bottom: 8px;
+    }
+
+    .filter-group select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid #e2e8f0;
+        border-radius: 7px;
+        font-size: 13px;
+        background-color: white;
+        outline: none;
+        transition: border-color 0.2s ease;
+        cursor: pointer;
+    }
+
+        .filter-group select:focus {
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .filter-group select:hover {
+            border-color: #cbd5e0;
+        }
+
+.clear-filters-btn {
+    background-color: #f7fafc;
+    color: #4a5568;
+    border: 1px solid #e2e8f0;
+}
+
+    .clear-filters-btn:hover {
+        background-color: #edf2f7;
+        border-color: #cbd5e0;
+    }
 
 .drink-footer {
     display: flex;
@@ -519,6 +576,7 @@
         justify-content: center;
     }
 }
+
 .no-drinks-message {
     text-align: center;
     color: #718096;
@@ -539,8 +597,8 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    opacity: 0.2; 
-    background-color: rgba(255, 255, 255, 0.2); 
+    opacity: 0.2;
+    background-color: rgba(255, 255, 255, 0.2);
 }
 
 .no-drinks-text {
@@ -617,7 +675,7 @@
 
 .form-row {
     display: grid;
-    grid-template-columns: 1fr 1fr; 
+    grid-template-columns: 1fr 1fr;
     gap: 15px;
     margin-bottom: 20px;
 }

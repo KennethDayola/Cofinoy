@@ -28,10 +28,8 @@ namespace Cofinoy.Data.Models
         [Range(0, 1000)]
         public decimal PricePerUnit { get; set; } = 0;
 
-        // One-to-many with options
         public ICollection<CustomizationOption> Options { get; set; } = new List<CustomizationOption>();
 
-        // Many-to-many with products
         public ICollection<ProductCustomization> ProductCustomizations { get; set; } = new List<ProductCustomization>();
     }
 }

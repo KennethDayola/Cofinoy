@@ -21,7 +21,7 @@
         }
     },
 
-   
+
 
     async deleteImage(path) {
         try {
@@ -242,6 +242,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadCustomizationsFromAPI()
             ]);
 
+            populateFilterCategories();
             setupEventListeners();
 
             setInterval(async () => {
@@ -407,7 +408,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return;
             }
 
-            const maxSize = 5 * 1024 * 1024; 
+            const maxSize = 5 * 1024 * 1024;
             if (file.size > maxSize) {
                 showToastMessage('Please select an image smaller than 5MB.', 'File Too Large');
                 e.target.value = '';
@@ -431,7 +432,7 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-   
+
     function populateCategoriesAndCustomizations() {
         console.log('=== DEBUG: populateCategoriesAndCustomizations called ===');
 
@@ -496,52 +497,52 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function applyFilters() {
-    const searchTerm = searchInput.value.toLowerCase().trim();
-    const statusFilter = document.getElementById('statusFilter')?.value || '';
-    const categoryFilter = document.getElementById('categoryFilter')?.value || '';
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const statusFilter = document.getElementById('statusFilter')?.value || '';
+        const categoryFilter = document.getElementById('categoryFilter')?.value || '';
 
-    const allCards = document.querySelectorAll('.drink-card');
-    let visibleCount = 0;
+        const allCards = document.querySelectorAll('.drink-card');
+        let visibleCount = 0;
 
-    allCards.forEach(card => {
-        const firebaseId = card.getAttribute('data-firebase-id');
-        const drink = allDrinks.find(d => d.id === firebaseId);
+        allCards.forEach(card => {
+            const firebaseId = card.getAttribute('data-firebase-id');
+            const drink = allDrinks.find(d => d.id === firebaseId);
 
-        if (!drink) {
-            card.style.display = 'none';
-            return;
-        }
+            if (!drink) {
+                card.style.display = 'none';
+                return;
+            }
 
-        const drinkName = drink.name.toLowerCase();
-        const drinkDescription = (drink.description || '').toLowerCase();
+            const drinkName = drink.name.toLowerCase();
+            const drinkDescription = (drink.description || '').toLowerCase();
 
-        const matchesSearch = !searchTerm ||
-            drinkName.includes(searchTerm) ||
-            drinkDescription.includes(searchTerm);
+            const matchesSearch = !searchTerm ||
+                drinkName.includes(searchTerm) ||
+                drinkDescription.includes(searchTerm);
 
-        const matchesStatus = !statusFilter || drink.status === statusFilter;
+            const matchesStatus = !statusFilter || drink.status === statusFilter;
 
-        const matchesCategory = !categoryFilter || drink.categories.includes(categoryFilter);
+            const matchesCategory = !categoryFilter || drink.categories.includes(categoryFilter);
 
-        if (matchesSearch && matchesStatus && matchesCategory) {
-            card.style.display = 'block';
-            visibleCount++;
+            if (matchesSearch && matchesStatus && matchesCategory) {
+                card.style.display = 'block';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        updateDrinksCount(visibleCount);
+
+        if (visibleCount === 0) {
+            updateNoDrinksMessage();
         } else {
-            card.style.display = 'none';
-        }
-    });
-
-    updateDrinksCount(visibleCount);
-    
-    if (visibleCount === 0) {
-        updateNoDrinksMessage();
-    } else {
-        const existingMessage = document.querySelector('.no-drinks-message');
-        if (existingMessage) {
-            existingMessage.remove();
+            const existingMessage = document.querySelector('.no-drinks-message');
+            if (existingMessage) {
+                existingMessage.remove();
+            }
         }
     }
-}
     async function handleFormSubmit(e) {
         e.preventDefault();
 
@@ -699,7 +700,21 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Error loading customizations:', error);
         }
-    } 
+    }
+
+    function populateFilterCategories() {
+        const categoryFilter = document.getElementById('categoryFilter');
+        if (categoryFilter && allCategories.length > 0) {
+            categoryFilter.innerHTML = '<option value="">All Categories</option>';
+
+            allCategories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.id;
+                option.textContent = category.name;
+                categoryFilter.appendChild(option);
+            });
+        }
+    }
 
     function displayDrinks(drinks) {
         const drinksGrid = document.querySelector('.drinks-grid');

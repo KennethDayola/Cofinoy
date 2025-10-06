@@ -23,7 +23,7 @@ public class Product
 
     public string ImageUrl { get; set; }
 
-    public string ImagePath { get; set; } // Add this for Firebase Storage path
+    public string ImagePath { get; set; } 
 
     public int Stock { get; set; }
 

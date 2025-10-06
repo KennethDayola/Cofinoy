@@ -18,7 +18,6 @@ namespace Cofinoy.Data.Models
 
         public bool Default { get; set; } = false;
 
-        // Simple foreign key - no junction needed
         public string CustomizationId { get; set; }
         public Customization Customization { get; set; }
     }
