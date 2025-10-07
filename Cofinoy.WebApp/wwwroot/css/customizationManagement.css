@@ -328,7 +328,7 @@
     width: 120px;
     height: 120px;
     position: relative;
-    left: 50px; 
+    left: 120px; /* Increase this value to move it more to the right */
     margin-bottom: 30px;
     background-image: url('https://cdn-icons-png.flaticon.com/512/3152/3152343.png');
     background-size: cover;

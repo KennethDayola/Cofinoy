@@ -115,23 +115,32 @@ namespace Cofinoy.WebApp.Controllers
             try
             {
                 _userService.AddUser(model);
+                TempData["ToastMessage"] = "Registration successful! You can now log in.";
+                TempData["ToastType"] = "success";
                 return RedirectToAction("Login", "Account");
             }
             catch(InvalidDataException ex)
             {
+                TempData["ToastMessage"] = ex.Message;
+                TempData["ToastType"] = "danger";
                 TempData["ErrorMessage"] = ex.Message;
             }
             catch(Exception ex)
             {
+                TempData["ToastMessage"] = Resources.Messages.Errors.ServerError;
+                TempData["ToastType"] = "danger";
                 TempData["ErrorMessage"] = Resources.Messages.Errors.ServerError;
             }
             return View();
         }
 
-        /// <summary>
-        /// Sign Out current account and return login view.
-        /// </summary>
-        /// <returns>Created response view</returns>
+        [AllowAnonymous]
+        public IActionResult LoginRequired()
+        {
+            
+            return View();
+        }
+
         [AllowAnonymous]
         public async Task<IActionResult> SignOutUser()
         {

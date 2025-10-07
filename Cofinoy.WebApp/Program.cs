@@ -32,7 +32,7 @@ configurer.ConfigureApp(app, app.Environment);
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Menu}/{action=DrinkManagement}");
+    pattern: "{controller=Home}/{action=Index}");
 app.MapControllers();
 app.MapRazorPages();
 

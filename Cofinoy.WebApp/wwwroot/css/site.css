@@ -1,20 +1,20 @@
 html {
-  font-size: 14px;
+    font-size: 14px;
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
+    html {
+        font-size: 16px;
+    }
 }
 
 .btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
+    box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
 }
 
 html {
-  position: relative;
-  min-height: 100%;
+    position: relative;
+    min-height: 100%;
 }
 
 body {
@@ -38,6 +38,7 @@ body {
     border-bottom-color: none !important;
     border-color: transparent;
 }
+
     .btn-primary:hover {
         background-color: #3B3422 !important;
         border-color: transparent;
@@ -47,7 +48,8 @@ body {
     background-color: white !important;
     padding-left: 24px;
     padding-right: 24px;
-    color: #322708; border-bottom-color: none !important;
+    color: #322708;
+    border-bottom-color: none !important;
     border-color: transparent;
 }
 
@@ -60,29 +62,29 @@ body {
 
 .btn-secondary {
     background-color: #EDEFF1;
-    padding-left:24px;
-    padding-right:24px;
+    padding-left: 24px;
+    padding-right: 24px;
     border-radius: 50px;
     border-width: 2px;
     border-color: #322708;
     color: #322708;
 }
 
-.btn-secondary:hover {
-    background-color: #322708 !important;
-    border-color: transparent;
-}
+    .btn-secondary:hover {
+        background-color: #322708 !important;
+        border-color: transparent;
+    }
 
 .btn-icon {
     background-color: #EDEFF1;
     border-radius: 50px;
 }
 
-.btn-icon:hover {
-    background-color: #322708 !important;
-    border-color: transparent;
-    color: white;
-}
+    .btn-icon:hover {
+        background-color: #322708 !important;
+        border-color: transparent;
+        color: white;
+    }
 
 .card {
     border-radius: 10px;
@@ -93,12 +95,16 @@ body {
 }
 
 .nav-underline .nav-link {
-    padding:14px;
-    border-bottom: 3px solid white;
+    padding: 14px;
+    border-bottom: 3px solid transparent;
 }
 
     .nav-underline .nav-link.active {
         border-bottom: 3px solid #322708;
+    }
+
+    .nav-underline .nav-link:hover {
+        border-bottom: 3px solid #EDEFF1;
     }
 
 .text-primary {

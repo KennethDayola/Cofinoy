@@ -40,7 +40,6 @@ namespace Cofinoy.Services.Services
                 _mapper.Map(model, user);
                 user.Password = PasswordManager.EncryptPassword(model.Password);
 
- 
 
                 _repository.AddUser(user);
             }

@@ -15,7 +15,6 @@ using System.Linq;
 
 namespace Cofinoy.WebApp.Controllers
 {
-    [AllowAnonymous]
     public class MenuController : ControllerBase<MenuController>
     {
         private readonly ICategoryService _categoryService;

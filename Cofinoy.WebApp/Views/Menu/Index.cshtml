@@ -32,7 +32,7 @@
         <section class="content">
             <div class="search-filter-container">
                 <div class="search-box">
-                    <input type="text" placeholder="What coffee are you craving?" />
+                    <input type="text" id="searchInput" placeholder="What coffee are you craving?" />
                     <button class="search-btn">
                         <img src="~/images/search.png" asp-append-version="true" alt="Search" />
                     </button>
@@ -43,23 +43,13 @@
                 </button>
             </div>
 
-            <div class="products">
-                @for (int i = 0; i < 1; i++) // FOR TESTING PURPOSES ONLY KAY INGON SILA DI NA DAW MAG FIREBASE, SQL NA DAW WTF IM LIBOGINGS
-                {
-                    <div class="product-card">
-                        <img src="~/images/thumbnail.png" alt="Coffee" />
-                        <div class="product-info">
-                            <h3>Kapeng Barako</h3>
-                            <p>Bold, rich, earthy, smoky, Filipino.</p>
-                            <div class="price-row">
-                                <span class="price">₱100.00</span>
-                                <button class="add-btn">+</button>
-                            </div>
-                        </div>
-                    </div>
-                }
+            <div class="products" id="productsContainer">
+                <p>Loading products...</p>
             </div>
         </section>
     </main>
+    <script type="module" src="~/js/firebase-init.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/products-service.js" asp-append-version="true"></script>
+    <script type="module" src="~/js/products-page.js" asp-append-version="true"></script>
 </body>
 </html>

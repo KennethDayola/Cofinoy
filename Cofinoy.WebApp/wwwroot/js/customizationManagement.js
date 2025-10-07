@@ -69,7 +69,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function initializeApp() {
         try {
-            updateNoAddonsMessage(); // Add this line
             await loadCustomizations();
             setupEventListeners();
         } catch (error) {
@@ -77,7 +76,6 @@ document.addEventListener('DOMContentLoaded', function () {
             showToastMessage('Error initializing application: ' + error.message, 'Error');
         }
     }
-
     function setupEventListeners() {
         addAddonBtn.addEventListener('click', openModal);
         closeModalBtn.addEventListener('click', closeModalFunc);
@@ -745,32 +743,31 @@ document.addEventListener('DOMContentLoaded', function () {
     function updateNoAddonsMessage() {
         const addonsGrid = document.querySelector('.addons-grid');
 
-        // Remove existing message if any
         const existingMessage = addonsGrid.querySelector('.no-addons-message');
         if (existingMessage) {
             existingMessage.remove();
         }
 
-        // Create new message
-        const noAddonsMessage = document.createElement('div');
-        noAddonsMessage.className = 'no-addons-message';
-        noAddonsMessage.innerHTML = `
-        <div class="no-addons-icon">
-            <i class="fas fa-cube"></i>
-        </div>
-        <div class="no-addons-text">No addon categories yet</div>
-        <div class="no-addons-subtext">Create your first addon category to enhance your menu</div>
-    `;
-
-        // Add message if grid is empty
         if (addonsGrid.children.length === 0) {
+            const noAddonsMessage = document.createElement('div');
+            noAddonsMessage.className = 'no-addons-message';
+            noAddonsMessage.innerHTML = `
+            <div class="no-addons-icon"></div>
+            <div class="no-addons-text">No addon categories yet</div>
+            <div class="no-addons-subtext">Create your first addon category to enhance your menu</div>
+        `;
+
             addonsGrid.appendChild(noAddonsMessage);
             addonsGrid.style.display = 'flex';
             addonsGrid.style.justifyContent = 'center';
             addonsGrid.style.alignItems = 'center';
+            noAddonsMessage.style.display = 'block';
+        } else {
+            addonsGrid.style.display = 'grid';
+            addonsGrid.style.justifyContent = '';
+            addonsGrid.style.alignItems = '';
         }
     }
-
 
     function updateAddonsCount(count) {
         const countElement = document.querySelector('.addons-count');

@@ -124,12 +124,8 @@
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
-        import { app, db, analytics, firestore, storage, ref, uploadBytes, getDownloadURL, deleteObject } from "/js/firebase-init.js";
+        import { storage, ref, uploadBytes, getDownloadURL, deleteObject } from "/js/firebase-init.js";
 
-        window.firebaseApp = app;
-        window.firebaseDB = db;
-        window.firebaseAnalytics = analytics;
-        window.firebaseFirestore = firestore;
         window.firebaseStorage = {
             getStorage: () => storage,
             ref,
