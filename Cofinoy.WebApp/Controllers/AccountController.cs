@@ -91,8 +91,9 @@ namespace Cofinoy.WebApp.Controllers
                 await this._signInManager.SignInAsync(user);
                 this._session.SetString("UserName", user.Nickname);
 
-                if (user.Email.Equals("admin@cofinoy.com", StringComparison.OrdinalIgnoreCase))
+                if (user.Email != null && user.Email.Equals("admin@cofinoy.com", StringComparison.OrdinalIgnoreCase))
                 {
+                    Console.WriteLine("Nilogin");
                     return RedirectToAction("DrinkManagement", "Menu");
                 }
 

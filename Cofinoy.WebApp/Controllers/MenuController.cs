@@ -41,16 +41,19 @@ namespace Cofinoy.WebApp.Controllers
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult DrinkManagement()
         {
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult CategoriesManagement()
         {
             return View();
         }
 
+        [Authorize(Roles = "Admin")]
         public IActionResult CustomizationManagement()
         {
             return View();

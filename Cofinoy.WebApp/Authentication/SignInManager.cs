@@ -81,13 +81,13 @@ namespace Cofinoy.WebApp.Authentication
         {
             var token = _configuration.GetTokenAuthentication();
             //TODO
-            var claims = new List<Claim>()
+            var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Email, ClaimValueTypes.String, Const.Issuer),
-                new Claim(ClaimTypes.Name, user.Nickname, ClaimValueTypes.String, Const.Issuer),
-
-                new Claim("Eamil", user.Email, ClaimValueTypes.String, Const.Issuer),
-                new Claim("Nickname", user.Nickname, ClaimValueTypes.String, Const.Issuer),
+                new Claim(ClaimTypes.NameIdentifier, user.Email ?? string.Empty, ClaimValueTypes.String, Const.Issuer),
+                new Claim(ClaimTypes.Name, user.Nickname ?? string.Empty, ClaimValueTypes.String, Const.Issuer),
+                new Claim(ClaimTypes.Email, user.Email ?? string.Empty, ClaimValueTypes.String, Const.Issuer),
+                new Claim("Nickname", user.Nickname ?? string.Empty, ClaimValueTypes.String, Const.Issuer),
+                new Claim(ClaimTypes.Role, user.Role ?? "User", ClaimValueTypes.String, Const.Issuer)
             };
             return new ClaimsIdentity(claims, Const.AuthenticationScheme);
         }

@@ -10,6 +10,8 @@ namespace Cofinoy.Services.ServiceModels
     public class UserViewModel
     {
         [Required(ErrorMessage = "This field is required.")]
+
+        public string Role = "User";
         public string Nickname { get; set; }
 
         [Required(ErrorMessage = "This field is required.")]
