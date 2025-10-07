@@ -90,6 +90,12 @@ namespace Cofinoy.WebApp.Controllers
                 // Authentication OK
                 await this._signInManager.SignInAsync(user);
                 this._session.SetString("UserName", user.Nickname);
+
+                if (user.Email.Equals("admin@cofinoy.com", StringComparison.OrdinalIgnoreCase))
+                {
+                    return RedirectToAction("DrinkManagement", "Menu");
+                }
+
                 return RedirectToAction("Index", "Home");
             }
             else

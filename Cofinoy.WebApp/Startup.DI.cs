@@ -1,5 +1,6 @@
 ﻿using Cofinoy.Data;
 using Cofinoy.Data.Interfaces;
+using Cofinoy.Data.Models;
 using Cofinoy.Data.Repositories;
 using Cofinoy.Services.Interfaces;
 using Cofinoy.Services.ServiceModels;
@@ -38,6 +39,11 @@ namespace Cofinoy.WebApp
             this._services.AddScoped<ICategoryService, CategoryService>();
             this._services.AddScoped<ICustomizationService, CustomizationService>();
             this._services.AddScoped<IProductService, ProductService>();
+
+            //Email Service
+            this._services.Configure<EmailSettings>(Configuration.GetSection("EmailSettings"));
+            this._services.AddScoped<IEmailRepository, EmailRepository>();
+            this._services.AddScoped<IEmailService, EmailService>();
 
             // Repositories
             this._services.AddScoped<IUserRepository, UserRepository>();

@@ -2,7 +2,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Cofinoy.Data.Interfaces;
+using Cofinoy.Services.Interfaces;
+using Cofinoy.Data.Models;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Options;
+using System.Net.Mail;
 
 namespace Cofinoy.Services.Services
 {

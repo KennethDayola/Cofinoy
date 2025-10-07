@@ -105,11 +105,7 @@ namespace Cofinoy.WebApp
             //Configuration
             services.Configure<TokenAuthentication>(Configuration.GetSection("TokenAuthentication"));
 
-            services.Configure<EmailSettings>(Configuration.GetSection("EmailSettings"));
-            services.AddScoped<IEmailRepository, EmailRepository>();
-
-            //KANI ANG NAG ERROR - DLI MOBASA ANG DIRECTORY PATH
-            services.AddScoped<IEmailService, EmailService>();
+            
 
             // Session
             services.AddSession(options =>
