@@ -1,0 +1,111 @@
+﻿@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Categories Management";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Categories Management</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/drinkManagement.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/categoriesManagement.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="main-content">
+        <div class="page-header">
+            <h1 class="page-title">Categories Management</h1>
+            <p class="drinks-count">No categories yet.</p>
+        </div>
+
+        <div class="controls-section">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" class="search-input" placeholder="Search categories...">
+                <button class="btn btn-primary add-category-btn">
+                    <i class="fas fa-plus"></i>
+                    Add Category
+                </button>
+            </div>
+
+        </div>
+
+        <div class="categories-table-container">
+            <table class="categories-table">
+                <thead>
+                    <tr>
+                        <th>Category Name</th>
+                        <th>Description</th>
+                        <th>Items Count</th>
+                        <th>Status</th>
+                        <th>Display Order</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr class="empty-table-state">
+                        <td colspan="6">
+                            <div class="empty-table-icon">
+                                <img src="https://cdn-icons-png.flaticon.com/512/2603/2603910.png" />
+                            </div>
+                            <h3 class="empty-table-message">No categories yet</h3>
+                            <p class="empty-table-submessage">Add your first category to get started</p>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="addCategoryModal" class="modal-overlay">
+        <div class="modal-container">
+            <div class="modal-header">
+                <h2>Add new category</h2>
+                <button class="modal-close" id="closeModal">×</button>
+            </div>
+
+            <div class="modal-body">
+                <form id="addCategoryForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="modal-subheader">Category Name</label>
+                            <input type="text" id="categoryName" placeholder="Enter category name" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="modal-subheader">Status</label>
+                            <select id="categoryStatus" required>
+                                <option value="Active">Active</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="modal-subheader">Description</label>
+                        <textarea id="categoryDescription" placeholder="Enter category description..." rows="3"></textarea>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="modal-subheader">Display Order</label>
+                        <input type="number" id="categoryDisplayOrder" placeholder="Enter display order" min="0" value="0">
+                    </div>
+                </form>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="cancelBtn">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="addCategoryBtn" form="addCategoryForm">
+                    <i class="fas fa-plus"></i>
+                    Add Category
+                </button>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("_Toast")
+
+    <script defer src="~/js/categoriesManagement.js"></script>
+</body>
+</html>

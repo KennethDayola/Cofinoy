@@ -4,73 +4,93 @@
     ViewBag.LoginView = true;
     ViewData["Title"] = "Register Page";
 }
-@section styles {
-    <link rel="stylesheet" href="~/css/login.css" />
+@section AuthStyles {
 }
-<div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-0">
-    <div class="row w-100">
-        <div class="col-lg-6 auth-bg col-md-12 col-sm-12 d-flex flex-column justify-content-center align-items-center py-5">
-            <a class="position-absolute top-0 start-0 m-4 bg-primary rounded-2" href="javascript:history.back()">
-                <i class="material-symbols-rounded p-2 text-white icon-top-left-bs">
-                    arrow_back
-                </i>
-            </a>
-            <div class="card shadow p-4 w-100" style="max-width: 400px;">
-                <div class="card-body">
-                    <div class="text-center mb-4">
-                        <h3 class="mt-2 mb-0 fw-bold">Get Started!</h3>
-                        <p class="fs-7 mt-1">Enter your credentials to continue</p>
-                    </div>
-                    <form class="row g-3 needs-validation mt-2" novalidate>
-                        <div class="col-12 mb-3 mt-0">
-                            <label for="nickname" class="form-label fs-7">Nickname</label>
-                            <input type="text" class="form-control" placeholder="Enter your nickname" id="nickname" name="nickname" required />
-                            <div class="invalid-feedback fs-8">Please enter your nickname.</div>
+@section AuthBody {
+    <div class="container-fluid min-vh-100 d-flex align-items-center justify-content-center p-0">
+        <div class="row w-100">
+            <div class="col-lg-6 auth-bg col-md-12 col-sm-12 d-flex flex-column justify-content-center align-items-center py-5">
+                <a class="position-absolute top-0 start-0 m-4 bg-primary rounded-2" href="javascript:history.back()">
+                    <i class="material-symbols-rounded p-2 text-white icon-top-left-bs">
+                        arrow_back
+                    </i>
+                </a>
+                <div class="card shadow p-4 w-100" style="max-width: 400px;">
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <h3 class="mt-2 mb-0 fw-bold">Get Started!</h3>
+                            <p class="fs-7 mt-1">Enter your credentials to continue</p>
                         </div>
-                        <div class="col-12 mb-3 mt-0">
-                            <label for="email" class="form-label fs-7">Email</label>
-                            <input type="email" class="form-control" id="email" placeholder="Enter your email address" name="email" required />
-                            <div class="invalid-feedback fs-8">Please enter a valid email address.</div>
+                        <form asp-action="Register" asp-controller="Account" method="post" class="row g-3 needs-validation mt-2" novalidate>
+                            <div class="col-12 mb-2 mt-0">
+                                <label for="nickname" class="form-label fs-7">Nickname</label>
+                                <input type="text" class="form-control" placeholder="Enter your nickname" id="nickname" asp-for="Nickname" required />
+                                <span asp-validation-for="Nickname" class="invalid-feedback"></span>
+                            </div>
+                            <div class="col-12 mb-2 mt-0">
+                                <label for="email" class="form-label fs-7">Email</label>
+                                <input type="email" class="form-control" id="email" placeholder="Enter your email address" asp-for="Email" required />
+                                <span asp-validation-for="Email" class="invalid-feedback"></span>
+                            </div>
+                            <div class="col-12 mb-2 mt-0">
+                                <label for="password" class="form-label fs-7">Password</label>
+                                <input type="password" class="form-control" id="password" asp-for="Password" placeholder="Enter your password" required minlength="6" />
+                                <span asp-validation-for="Password" class="invalid-feedback"></span>
+                            </div>
+                            <div class="col-12 mb-4 mt-0">
+                                <label for="confirmPassword" class="form-label fs-7">Confirm password</label>
+                                <input type="password" class="form-control" id="confirmPassword" asp-for="ConfirmPassword" placeholder="Re-enter your password" required minlength="6" />
+                                <span asp-validation-for="ConfirmPassword" class="invalid-feedback"></span>
+                            </div>
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill ">Register</button>
+                            </div>
+                        </form>
+                        <div class="d-flex mt-2 justify-content-center flex-wrap">
+                            <p class="fs-7 mb-0">Already have an account?</p>
+                            <a class="fs-7 ms-1 text-tertiary text-decoration-none" asp-area="" asp-controller="Account" asp-action="Login">Sign in</a>
                         </div>
-                        <div class="col-12 mb-3 mt-0">
-                            <label for="password" class="form-label fs-7">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" placeholder="Enter your password" required minlength="6" />
-                            <div class="invalid-feedback fs-8">Password must be at least 6 characters.</div>
-                        </div>
-                        <div class="col-12 mb-3 mt-0">
-                            <label for="confirmPassword" class="form-label fs-7">Confirm password</label>
-                            <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" placeholder="Re-enter your password" required minlength="6" />
-                            <div class="invalid-feedback fs-8">Passwords do not match.</div>
-                        </div>
-                        <div class="col-12">
-                            <button type="submit" class="btn btn-primary w-100 rounded-pill ">Register</button>
-                        </div>
-                    </form>
-                    <div class="d-flex mt-2 justify-content-center flex-wrap">
-                        <p class="fs-7 mb-0">Already have an account?</p>
-                        <a class="fs-7 ms-1 text-tertiary text-decoration-none" asp-area="" asp-controller="Auth" asp-action="Login">Sign in</a>
                     </div>
                 </div>
             </div>
-        </div>
-        <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-center py-5">
-            <div class="container">
-                <div class="text-tertiary fw-bold mb-5">
-                    <img src="~/images/Cofinoy.png" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
-                    Cofinoy
+            <div class="col-lg-6 d-none d-lg-flex flex-column justify-content-center py-5">
+                <div class="container">
+                    <div class="text-tertiary fw-bold mb-5">
+                        <img src="~/images/Cofinoy.png" alt="Logo" width="30" height="24" class="d-inline-block align-text-top">
+                        Cofinoy
+                    </div>
+                    <h1>Good day starts with</h1>
+                    <h1 class="display-1 text-tertiary fw-bold">COFINOY</h1>
+                    <h4>Brewing connections, one cup at a time</h4>
                 </div>
-                <h1>Good day starts with</h1>
-                <h1 class="display-1 text-tertiary fw-bold">COFINOY</h1>
-                <h4>Brewing connections, one cup at a time</h4>
             </div>
         </div>
     </div>
-</div>
-@section scripts {
+}
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
     <script>
-        var errorMessage = '@TempData["ErrorMessage"]';
-        if (errorMessage) {
-            toastr.error(errorMessage);
-        }
+        document.addEventListener('DOMContentLoaded', function () {
+            'use strict';
+            const form = document.querySelector('.needs-validation');
+
+            form.addEventListener('submit', event => {
+                if (!form.checkValidity()) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    form.classList.add('was-validated');
+                    showToast("Please fill all required fields correctly.", "danger", "Validation Error");
+                }
+            });
+
+            // Show server toast (for failed registration)
+            const toastMessage = '@TempData["ToastMessage"]';
+            const toastType = '@TempData["ToastType"]' || 'info';
+
+            if (toastMessage) {
+                showToast(toastMessage, toastType, "Cofinoy");
+            }
+        });
     </script>
 }

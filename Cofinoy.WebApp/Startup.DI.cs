@@ -35,9 +35,15 @@ namespace Cofinoy.WebApp
             // Services
             this._services.TryAddSingleton<TokenValidationParametersFactory>();
             this._services.AddScoped<IUserService, UserService>();
+            this._services.AddScoped<ICategoryService, CategoryService>();
+            this._services.AddScoped<ICustomizationService, CustomizationService>();
+            this._services.AddScoped<IProductService, ProductService>();
 
             // Repositories
             this._services.AddScoped<IUserRepository, UserRepository>();
+            this._services.AddScoped<ICategoryRepository, CategoryRepository>();
+            this._services.AddScoped<ICustomizationRepository, CustomizationRepository>();
+            this._services.AddScoped<IProductRepository, ProductRepository>();
 
             // Manager Class
             this._services.AddScoped<SignInManager>();
