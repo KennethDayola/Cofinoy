@@ -65,16 +65,19 @@
                         </ul>
                         <div class="navbar-nav ms-auto">
                             <ul class="navbar-nav flex-row">
-                                <li class="nav-item">
-                                    <a class="btn btn-icon me-1 ms-1" asp-area="" asp-controller="Cart" asp-action="Index" aria-label="Cart">
-                                        <i class="bi bi-bag-fill"></i>
-                                    </a>
-                                </li>
+                            <li class="nav-item">
+                                <a class="btn btn-icon me-1 ms-1 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Cart" ? "active" : "")"
+                                   asp-area="" asp-controller="Cart" asp-action="Index" aria-label="Cart">
+                                    <i class="bi bi-bag-fill"></i>
+                                </a>
+                            </li>
 
-                                @if (User.Identity != null && User.Identity.IsAuthenticated)
+                            @if (User.Identity != null && User.Identity.IsAuthenticated)
                                 {
                                     <li class="nav-item">
-                                        <a class="btn btn-icon me-1 ms-1" asp-area="" asp-controller="Account" asp-action="SignOutUser" aria-label="Profile">
+                                        <a class="btn btn-icon me-1 ms-1 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Account" &&
+                                                                                    ViewContext.RouteData.Values["action"]?.ToString() == "ProfileDetails" ? "active" : "")"
+                                            asp-area="" asp-controller="Account" asp-action="ProfileDetails" aria-label="Profile">
                                             <i class="bi bi-person-circle"></i>
                                         </a>
                                     </li>

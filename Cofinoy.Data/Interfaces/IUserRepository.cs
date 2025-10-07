@@ -12,5 +12,6 @@ namespace Cofinoy.Data.Interfaces
         IQueryable<User> GetUsers();
         bool UserExists(string email);
         void AddUser(User user);
+        void UpdateUser(User user);
     }
 }

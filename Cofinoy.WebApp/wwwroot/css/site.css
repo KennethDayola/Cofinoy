@@ -114,3 +114,35 @@ body {
 .text-tertiary {
     color: #92400E !important;
 }
+
+/* Ensure cart & profile icons are always consistent */
+.navbar .btn-icon {
+    background-color: #EDEFF1 !important; /* same as other pages */
+    color: #322708 !important;
+    border-radius: 50% !important;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 !important;
+    font-size: 1.2rem;
+    transition: all 0.2s ease-in-out;
+}
+
+    .navbar .btn-icon:hover {
+        background-color: #322708 !important;
+        color: white !important;
+        border-color: transparent !important;
+        box-shadow: none !important;
+    }
+    .navbar .btn-icon.active {
+        background-color: #322708 !important; /* matches your primary hover color */
+        color: white !important;
+    }
+
+        .navbar .btn-icon.active:hover {
+            background-color: #3B3422 !important; /* slightly darker on hover */
+            color: white !important;
+        }
+

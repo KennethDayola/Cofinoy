@@ -1,11 +1,11 @@
-﻿using Cofinoy.Data.Models;
+﻿using AutoMapper;
+using Cofinoy.Data.Models;
 using Cofinoy.Services.Interfaces;
 using Cofinoy.Services.Manager;
 using Cofinoy.Services.ServiceModels;
 using Cofinoy.WebApp.Authentication;
 using Cofinoy.WebApp.Models;
 using Cofinoy.WebApp.Mvc;
-using AutoMapper;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -13,6 +13,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using static Cofinoy.Resources.Constants.Enums;
 
@@ -152,7 +153,110 @@ namespace Cofinoy.WebApp.Controllers
         public async Task<IActionResult> SignOutUser()
         {
             await this._signInManager.SignOutAsync();
+            _sessionManager.Clear();    
             return RedirectToAction("Login", "Account");
         }
+
+        [Authorize]
+        [HttpGet]
+        public IActionResult ProfileDetails()
+        {
+            var email = User.FindFirstValue(ClaimTypes.Email);
+
+            if (string.IsNullOrEmpty(email))
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            // Get the logged-in user’s full details
+            var user = _userService.GetUserByEmail(email);
+
+            if (user == null)
+            {
+                return RedirectToAction("Login", "Account");
+            }
+
+            return View(user);
+        }
+
+        [Authorize]
+        [HttpPost]
+        public async Task<IActionResult> UpdatePersonalInfo([FromBody] User model)
+        {
+            try
+            {
+                var currentEmail = User.FindFirstValue(ClaimTypes.Email);
+                var user = _userService.GetUserByEmail(currentEmail);
+
+                if (user == null)
+                    return Json(new { success = false, message = "User not found." });
+
+                // Check if email is being updated
+                if (!string.IsNullOrEmpty(model.Email) && model.Email != user.Email)
+                {
+                    if (_userService.EmailExists(model.Email))
+                        return Json(new { success = false, message = "Email is already in use." });
+
+                    user.Email = model.Email;
+                }
+
+                // Update other personal info
+                if (!string.IsNullOrEmpty(model.FirstName)) user.FirstName = model.FirstName;
+                if (!string.IsNullOrEmpty(model.LastName)) user.LastName = model.LastName;
+                if (!string.IsNullOrEmpty(model.Nickname)) user.Nickname = model.Nickname;
+                if (model.BirthDate != default(DateOnly)) user.BirthDate = model.BirthDate;
+                if (!string.IsNullOrEmpty(model.PhoneNumber)) user.PhoneNumber = model.PhoneNumber;
+
+                // Save updates
+                _userService.UpdateUser(user);
+
+                // Refresh session and claims if email changed
+                if (model.Email != currentEmail)
+                {
+                    // Sign out the old claims
+                    await _signInManager.SignOutAsync();
+
+                    // Sign in with updated claims
+                    await _signInManager.SignInAsync(user);
+
+                    // Update session if you store email there
+                    _session.SetString("UserName", user.Nickname);
+                }
+
+                return Json(new { success = true, message = "Personal info updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error updating personal info." });
+            }
+        }
+
+        [Authorize]
+        [HttpPost]
+        public IActionResult UpdateAddress([FromBody] User model)
+        {
+            try
+            {
+                var currentEmail = User.FindFirstValue(ClaimTypes.Email);
+                var user = _userService.GetUserByEmail(currentEmail);
+
+                if (user == null)
+                    return Json(new { success = false, message = "User not found." });
+
+                if (!string.IsNullOrEmpty(model.Country)) user.Country = model.Country;
+                if (!string.IsNullOrEmpty(model.City)) user.City = model.City;
+                if (!string.IsNullOrEmpty(model.postalCode)) user.postalCode = model.postalCode;
+
+                _userService.UpdateUser(user);
+
+                return Json(new { success = true, message = "Address updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error updating address." });
+            }
+        }
+
+
     }
 }
