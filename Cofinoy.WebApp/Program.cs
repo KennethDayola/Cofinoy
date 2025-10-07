@@ -26,6 +26,7 @@ appBuilder.Logging
 var configurer = new StartupConfigurer(appBuilder.Configuration);
 configurer.ConfigureServices(appBuilder.Services);
 
+
 var app = appBuilder.Build();
 
 configurer.ConfigureApp(app, app.Environment);

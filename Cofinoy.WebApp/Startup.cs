@@ -1,6 +1,11 @@
 ﻿using Cofinoy.Data;
+using Cofinoy.Data.Interfaces;
+using Cofinoy.Data.Models;
+using Cofinoy.Data.Repositories;
 using Cofinoy.Resources.Constants;
 using Cofinoy.Services.Manager;
+using Cofinoy.Services.Services;
+using Cofinoy.Services.Interfaces;
 using Cofinoy.WebApp.Authentication;
 using Cofinoy.WebApp.Extensions.Configuration;
 using Cofinoy.WebApp.Models;
@@ -99,7 +104,13 @@ namespace Cofinoy.WebApp
 
             //Configuration
             services.Configure<TokenAuthentication>(Configuration.GetSection("TokenAuthentication"));
-            
+
+            services.Configure<EmailSettings>(Configuration.GetSection("EmailSettings"));
+            services.AddScoped<IEmailRepository, EmailRepository>();
+
+            //KANI ANG NAG ERROR - DLI MOBASA ANG DIRECTORY PATH
+            services.AddScoped<IEmailService, EmailService>();
+
             // Session
             services.AddSession(options =>
             {
