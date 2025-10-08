@@ -119,6 +119,13 @@ namespace Cofinoy.WebApp.Controllers
         [AllowAnonymous]
         public IActionResult Register(UserViewModel model)
         {
+            if (!ModelState.IsValid)
+            {
+                TempData["ToastMessage"] = "Please fix the errors in the form.";
+                TempData["ToastType"] = "danger";
+                return View(model);
+            }
+
             try
             {
                 _userService.AddUser(model);
@@ -126,25 +133,24 @@ namespace Cofinoy.WebApp.Controllers
                 TempData["ToastType"] = "success";
                 return RedirectToAction("Login", "Account");
             }
-            catch(InvalidDataException ex)
+            catch (InvalidDataException ex)
             {
-                TempData["ToastMessage"] = ex.Message;
-                TempData["ToastType"] = "danger";
-                TempData["ErrorMessage"] = ex.Message;
+                ViewData["ToastMessage"] = ex.Message;
+                ViewData["ToastType"] = "danger";
+                return View(model);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 TempData["ToastMessage"] = Resources.Messages.Errors.ServerError;
                 TempData["ToastType"] = "danger";
-                TempData["ErrorMessage"] = Resources.Messages.Errors.ServerError;
+                return View(model);
             }
-            return View();
         }
+
 
         [AllowAnonymous]
         public IActionResult LoginRequired()
         {
-            
             return View();
         }
 

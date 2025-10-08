@@ -11,7 +11,7 @@ namespace Cofinoy.Services.ServiceModels
     {
         [Required(ErrorMessage = "This field is required.")]
 
-        public string Role = "User";
+        public string Role { get; set; } = "User";
         public string Nickname { get; set; }
 
         [Required(ErrorMessage = "This field is required.")]

@@ -71,22 +71,18 @@
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            'use strict';
-            const form = document.querySelector('.needs-validation');
-
-            form.addEventListener('submit', event => {
-                if (!form.checkValidity()) {
+                document.addEventListener('DOMContentLoaded', function () {
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function (event) {
+                if (!$(form).valid()) { // ✅ Use jQuery validation instead
                     event.preventDefault();
-                    event.stopPropagation();
                     form.classList.add('was-validated');
                     showToast("Please fill all required fields correctly.", "danger", "Validation Error");
                 }
             });
 
-            // Show server toast (for failed registration)
-            const toastMessage = '@TempData["ToastMessage"]';
-            const toastType = '@TempData["ToastType"]' || 'info';
+            const toastMessage = '@(TempData["ToastMessage"] ?? ViewData["ToastMessage"])';
+            const toastType = '@(TempData["ToastType"] ?? ViewData["ToastType"] ?? "info")';
 
             if (toastMessage) {
                 showToast(toastMessage, toastType, "Cofinoy");
