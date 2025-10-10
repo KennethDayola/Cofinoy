@@ -8,6 +8,6 @@ namespace Cofinoy.Services.Interfaces
 {
     public interface IEmailService
     {
-        Task SendPasswordResetEmailAsync(string toEmail, string resetLink);
+        Task SendPasswordResetCodeAsync(string toEmail, string code);
     }
 }

@@ -18,5 +18,7 @@ namespace Cofinoy.Data.Models
         public string Country { get; set; }
         public string City { get; set; }
         public string postalCode { get; set; }
+        public string ResetCode { get; set; }
+        public DateTime? ResetCodeExpiry { get; set; }
     }
 }

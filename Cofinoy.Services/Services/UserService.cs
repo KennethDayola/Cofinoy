@@ -48,5 +48,15 @@ namespace Cofinoy.Services.Services
                 throw new InvalidDataException(Resources.Messages.Errors.UserExists);
             }
         }
+
+        public User GetUserByEmail(string email)
+        {
+            return _repository.GetUsers().FirstOrDefault(u => u.Email == email);
+        }
+
+        public void UpdateUser(User user)
+        {
+            _repository.UpdateUser(user);
+        }
     }
 }

@@ -32,5 +32,10 @@ namespace Cofinoy.Data.Repositories
             UnitOfWork.SaveChanges();
         }
 
+        public void UpdateUser(User user)
+        {
+            this.GetDbSet<User>().Update(user);
+            UnitOfWork.SaveChanges();
+        }
     }
 }
