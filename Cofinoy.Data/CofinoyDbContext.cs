@@ -10,6 +10,7 @@ namespace Cofinoy.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
+        public DbSet<Menu> Menus { get; set; }
         public DbSet<Customization> Customizations { get; set; }
         public DbSet<CustomizationOption> CustomizationOptions { get; set; }
         public DbSet<ProductCategory> ProductCategories { get; set; }
@@ -66,6 +67,8 @@ namespace Cofinoy.Data
                 .WithMany(c => c.Options)
                 .HasForeignKey(co => co.CustomizationId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            // Temporarily remove Menu->Category relationship until DB migration adds MenuId
         }
     }
 }

@@ -1,18 +1,32 @@
-﻿@{
-    ViewData["Title"] = "Coffee Menu";
+﻿﻿@{
+ViewData["Title"] = "Coffee Menu";
 }
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"]</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="~/css/menu.css" asp-append-version="true">
+</head>
+<body>
+    <header class="hero">
+        <h1>From the Highlands to Your Cup</h1>
+    </header>
 
     <main class="main-container">
         <aside class="sidebar">
             <h2>MENU</h2>
             <ul>
                 <li><strong>Drinks</strong></li>
-                <li><a href="#">Featured Drinks</a></li>
-                <li><a href="#">Luzon Drinks</a></li>
-                <li><a href="#">Visayas Drinks</a></li>
-                <li><a href="#">Mindanao Drinks</a></li>
-                <li><a href="#">Foreign Blends</a></li>
-                <li><a href="#">Non-coffee</a></li>
+                <li><a href="#" class="category-link" data-category="Featured Drinks">Featured Drinks</a></li>
+                <li><a href="#" class="category-link" data-category="Luzon">Luzon Drinks</a></li>
+                <li><a href="#" class="category-link" data-category="Visayan Drinks">Visayan Drinks</a></li>
+                <li><a href="#" class="category-link" data-category="Mindanao">Mindanao Drinks</a></li>
+                <li><a href="#" class="category-link" data-category="Foreign">Foreign Blends</a></li>
+                <li><a href="#" class="category-link" data-category="Non-coffee">Non-coffee</a></li>
+                <li><a href="#" class="category-link" data-category="All">All Drinks</a></li>
             </ul>
         </aside>
 
@@ -34,4 +48,91 @@
                 <p>Loading products...</p>
             </div>
         </section>
+
+        <!-- Customize Modal Sa Kape -->
+        <div id="customizeModal" class="customize-modal" style="display:none;">
+            <div class="customize-dialog">
+                <div class="customize-header">
+                    <h2>Customize your drink</h2>
+                    <button id="customizeCloseBtn" class="customize-close" aria-label="Close">×</button>
+                </div>
+
+                <div class="customize-body">
+                    <div class="form-group">
+                        <label>Temperature</label>
+                        <div class="temp-toggle" role="tablist">
+                            <button class="temp-btn active" data-value="Hot" aria-pressed="true">
+                                <img src="~/images/flame-hot-icon.png" asp-append-version="true" alt="Hot" />
+                                <span>Hot</span>
+                            </button>
+                            <button class="temp-btn" data-value="Cold" aria-pressed="false">
+                                <img src="~/images/cold-hot-icon.png" asp-append-version="true" alt="Cold" />
+                                <span>Cold</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sizeSelect">Size</label>
+                        <select id="sizeSelect" class="customize-select">
+                            <option value="Small" data-delta="0">Small (12oz) - (+₱0)</option>
+                            <option value="Medium" data-delta="25" selected>Medium (16oz) - (+₱25)</option>
+                            <option value="Large" data-delta="45">Large (22oz) - (+₱45)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="milkSelect">Milk Type</label>
+                        <select id="milkSelect" class="customize-select">
+                            <option value="Whole" data-delta="0">Whole Milk (+₱0)</option>
+                            <option value="Almond" data-delta="30" selected>Almond Milk (+₱30.00)</option>
+                            <option value="Oat" data-delta="30">Oat Milk (+₱30.00)</option>
+                            <option value="Soy" data-delta="20">Soy Milk (+₱20.00)</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="sweetnessSelect">Sweetness Level</label>
+                        <select id="sweetnessSelect" class="customize-select">
+                            <option value="0%">No Sugar (0%)</option>
+                            <option value="25%">Light (25%)</option>
+                            <option value="50%">Less (50%)</option>
+                            <option value="75%" selected>Regular (75%)</option>
+                            <option value="100%">Full (100%)</option>
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group">
+                            <label>Extra Shots (+₱20)</label>
+                            <div class="stepper" data-type="extras">
+                                <button class="stepper-minus" aria-label="Decrease extras">−</button>
+                                <span class="stepper-value" id="extrasValue">1</span>
+                                <button class="stepper-plus" aria-label="Increase extras">+</button>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Quantity</label>
+                            <div class="stepper" data-type="quantity">
+                                <button class="stepper-minus" aria-label="Decrease quantity">−</button>
+                                <span class="stepper-value" id="qtyValue">2</span>
+                                <button class="stepper-plus" aria-label="Increase quantity">+</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="customize-footer">
+                    <div class="total-row">
+                        <span>TOTAL</span>
+                        <strong id="totalPrice">₱0.00</strong>
+                    </div>
+                    <button id="addToCartBtn" class="add-to-cart">Add to cart</button>
+                </div>
+            </div>
+        </div>
+        <script type="module" src="~/js/product-service.js" asp-append-version="true"></script>
+        <script type="module" src="~/js/product-page.js" asp-append-version="true"></script>
     </main>
+</body>
+</html>

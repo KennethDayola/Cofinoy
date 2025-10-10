@@ -76,18 +76,7 @@ namespace Cofinoy.WebApp.Controllers
             try
             {
                 var categories = _categoryService.GetAllCategories();
-                var viewModels = categories.Select(c => new CategoryViewModel
-                {
-                    Id = c.Id,
-                    Name = c.Name,
-                    Description = c.Description,
-                    ItemsCount = c.ItemsCount,
-                    DisplayOrder = c.DisplayOrder,
-                    Status = c.Status,
-                    CreatedAt = c.CreatedAt
-                }).ToList();
-
-                return Json(new { success = true, data = viewModels });
+                return Json(new { success = true, data = categories });
             }
             catch (Exception ex)
             {
@@ -271,6 +260,22 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+        public JsonResult GetProductsByCategory(string categoryName)
+        {
+            try
+            {
+                _logger.LogInformation("Fetching products for category: {CategoryName}", categoryName);
+                var products = _productService.GetProductsByCategory(categoryName);
+                _logger.LogInformation("Found {Count} products for category: {CategoryName}", products.Count, categoryName);
+                return Json(new { success = true, data = products });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting products by category: {CategoryName}", categoryName);
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
         public JsonResult GetAllProducts()
         {
             try
@@ -284,6 +289,7 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
+
 
         [HttpGet]
         public JsonResult GetProduct(string id)
