@@ -15,6 +15,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const addToCartBtn = document.getElementById("addToCartBtn");
     let currentProduct = null;
     let allProducts = [];
+    let currentCategoryProducts = []; // Store products for current category
     let currentSort = "default";
     let currentCategory = "All";
 
@@ -64,9 +65,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         console.log("Result for category", categoryName, ":", result);
 
         if (result.success) {
-            allProducts = result.data.filter(p => p.isActive);
-            console.log("Filtered products:", allProducts);
-            renderProducts(allProducts);
+            currentCategoryProducts = result.data.filter(p => p.isActive);
+            console.log("Filtered products:", currentCategoryProducts);
+            renderProducts(currentCategoryProducts);
         } else {
             productsContainer.innerHTML = `<p class="error">Error loading products: ${result.error}</p>`;
         }
@@ -78,6 +79,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (result.success) {
             allProducts = result.data.filter(p => p.isActive);
+            currentCategoryProducts = allProducts; // Set as current category products for "All"
             renderProducts(allProducts);
         } else {
             productsContainer.innerHTML = `<p class="error">Error loading products: ${result.error}</p>`;
@@ -85,15 +87,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function applyFilters() {
-        let filtered = [...allProducts];
+        // Use current category products if we're filtering by category, otherwise use all products
+        let baseProducts = currentCategory === "All" ? allProducts : currentCategoryProducts;
+        let filtered = [...baseProducts];
         const query = searchInput.value.toLowerCase();
-
-        // Apply category filter
-        if (currentCategory !== "All") {
-            filtered = filtered.filter(p => 
-                p.category && p.category.toLowerCase().includes(currentCategory.toLowerCase())
-            );
-        }
 
         if (query) {
             filtered = filtered.filter(p =>
