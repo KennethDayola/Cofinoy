@@ -1,16 +1,17 @@
-﻿using System;
+﻿using Cofinoy.Data.Models;
+using Cofinoy.Resources.Constants;
+using Cofinoy.Services.Interfaces;
+using Cofinoy.WebApp.Extensions.Configuration;
+using Cofinoy.WebApp.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Principal;
 using System.Threading.Tasks;
-using Cofinoy.WebApp.Extensions.Configuration;
-using Cofinoy.WebApp.Models;
-using Cofinoy.Resources.Constants;
-using Cofinoy.Data.Models;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Configuration;
 using static Cofinoy.Resources.Constants.Enums;
 
 namespace Cofinoy.WebApp.Authentication
@@ -60,7 +61,7 @@ namespace Cofinoy.WebApp.Authentication
             ClaimsIdentity claimsIdentity = null;
             User userData = new User();
 
-            user.loginResult = LoginResult.Success;//TODO this._accountService.AuthenticateUser(username, password, ref userData);
+            user.loginResult = _userService.AuthenticateUser(username, password, ref userData);
 
             if (user.loginResult == LoginResult.Failed)
             {
@@ -71,6 +72,19 @@ namespace Cofinoy.WebApp.Authentication
             claimsIdentity = CreateClaimsIdentity(userData);
             return Task.FromResult(claimsIdentity);
         }
+
+        private readonly IUserService _userService;
+
+        public SignInManager(IConfiguration configuration,
+                             IHttpContextAccessor httpContextAccessor,
+                             IUserService userService)
+        {
+            _configuration = configuration;
+            _httpContextAccessor = httpContextAccessor;
+            _userService = userService;
+            user = new LoginUser();
+        }
+
 
         /// <summary>
         /// Creates the claims identity.

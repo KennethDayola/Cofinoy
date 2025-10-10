@@ -58,5 +58,10 @@ namespace Cofinoy.Services.Services
         {
             _repository.UpdateUser(user);
         }
+
+        bool UserExists(string email)
+        {
+            return _repository.UserExists(email);
+        }
     }
 }
