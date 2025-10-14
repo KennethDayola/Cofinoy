@@ -15,7 +15,8 @@ namespace Cofinoy.Data
         public DbSet<CustomizationOption> CustomizationOptions { get; set; }
         public DbSet<ProductCategory> ProductCategories { get; set; }
         public DbSet<ProductCustomization> ProductCustomizations { get; set; }
-
+        public DbSet<CartItem> CartItems { get; set; }
+        public DbSet<Cart> Carts { get; set; }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -68,6 +69,13 @@ namespace Cofinoy.Data
                 .HasForeignKey(co => co.CustomizationId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<CartItem>()
+                .Property(ci => ci.UnitPrice)
+                .HasPrecision(18, 2);
+
+            modelBuilder.Entity<CartItem>()
+                .Property(ci => ci.TotalPrice)
+                .HasPrecision(18, 2);
             // Temporarily remove Menu->Category relationship until DB migration adds MenuId
         }
     }

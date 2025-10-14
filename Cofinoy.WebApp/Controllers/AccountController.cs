@@ -257,6 +257,19 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+        [HttpGet]
+        public JsonResult IsAuthenticated()
+        {
+            var result = new
+            {
+                isAuthenticated = User.Identity.IsAuthenticated,
+                userName = User.Identity.Name,
+                userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+            };
 
+            Console.WriteLine($"🟡 AUTH CHECK - Authenticated: {result.isAuthenticated}, User: {result.userName}, ID: {result.userId}");
+
+            return Json(result);
+        }
     }
 }
