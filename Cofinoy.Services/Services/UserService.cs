@@ -51,34 +51,17 @@ namespace Cofinoy.Services.Services
 
         public User GetUserByEmail(string email)
         {
-            return _repository.GetUsers().FirstOrDefault(x => x.Email == email);
+            return _repository.GetUsers().FirstOrDefault(u => u.Email == email);
         }
 
         public void UpdateUser(User user)
         {
-            var existingUser = _repository.GetUsers().FirstOrDefault(u => u.Id == user.Id);
-            if (existingUser == null)
-                throw new InvalidOperationException("User not found.");
-
-            // Update only properties we allow
-            existingUser.FirstName = user.FirstName;
-            existingUser.LastName = user.LastName;
-            existingUser.Nickname = user.Nickname;
-            existingUser.BirthDate = user.BirthDate;
-            existingUser.PhoneNumber = user.PhoneNumber;
-            existingUser.Email = user.Email;
-            existingUser.Country = user.Country;
-            existingUser.City = user.City;
-            existingUser.postalCode = user.postalCode;
-
-            _repository.UpdateUser(existingUser); // Implement this in repository
+            _repository.UpdateUser(user);
         }
 
-        public bool EmailExists(string email)
+        bool UserExists(string email)
         {
-            return _repository.GetUsers().Any(u => u.Email == email);
+            return _repository.UserExists(email);
         }
-
-
     }
 }

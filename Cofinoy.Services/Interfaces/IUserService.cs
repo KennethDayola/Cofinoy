@@ -10,7 +10,6 @@ namespace Cofinoy.Services.Interfaces
         void AddUser(UserViewModel model);
         User GetUserByEmail(string email);
         void UpdateUser(User user);
-        bool EmailExists(string email);
-
+        bool UserExists(string email);
     }
 }

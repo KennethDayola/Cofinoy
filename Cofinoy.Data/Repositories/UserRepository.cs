@@ -34,23 +34,8 @@ namespace Cofinoy.Data.Repositories
 
         public void UpdateUser(User user)
         {
-            var dbUser = this.GetDbSet<User>().FirstOrDefault(u => u.Id == user.Id);
-            if (dbUser != null)
-            {
-                dbUser.FirstName = user.FirstName;
-                dbUser.LastName = user.LastName;
-                dbUser.Nickname = user.Nickname;
-                dbUser.BirthDate = user.BirthDate;
-                dbUser.PhoneNumber = user.PhoneNumber;
-                dbUser.Email = user.Email;
-                dbUser.Country = user.Country;
-                dbUser.City = user.City;
-                dbUser.postalCode = user.postalCode;
-
-                UnitOfWork.SaveChanges();
-            }
+            this.GetDbSet<User>().Update(user);
+            UnitOfWork.SaveChanges();
         }
-
-
     }
 }

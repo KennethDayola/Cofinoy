@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using Cofinoy.Data.Models;
 using Cofinoy.Services.Interfaces;
 using Cofinoy.Services.ServiceModels;

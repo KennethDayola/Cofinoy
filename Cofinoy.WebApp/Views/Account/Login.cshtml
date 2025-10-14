@@ -33,7 +33,7 @@
                                 <span asp-validation-for="Password" class="text-danger fs-8 mt-1"></span>
                             </div>
                             <div class="text-end">
-                                <a class="fs-7 text-tertiary text-decoration-none" asp-area="" asp-controller="Auth" asp-action="RequestReset">Forgot password?</a>
+                                <a class="fs-7 text-tertiary text-decoration-none" asp-area="" asp-controller="Account" asp-action="RequestReset">Forgot password?</a>
                             </div>
                             <button type="submit" class="btn btn-primary w-100 rounded-pill mt-4">Login</button>
                         </form>
@@ -61,13 +61,7 @@
     </div>
 }
 
-<script>
-    (() => {
-        var toastMessage = '@TempData["ToastMessage"]';
-        var toastType = '@TempData["ToastType"]' || 'info';
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
 
-        if (toastMessage) {
-            showToast(toastMessage, toastType);
-        }
-    })();
-</script>
+}
