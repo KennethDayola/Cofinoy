@@ -43,10 +43,8 @@ namespace Cofinoy.Data.Repositories
                 {
                     Console.WriteLine("Cart exists - updating properties only");
 
-                    // Update cart properties without touching CartItems collection
                     existingCart.UpdatedAt = cart.UpdatedAt;
 
-                    // The CartItems are already tracked by EF, so they will be saved automatically
                     _context.Carts.Update(existingCart);
                 }
 

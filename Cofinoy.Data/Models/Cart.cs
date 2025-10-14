@@ -16,7 +16,7 @@ namespace Cofinoy.Data.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
 
-        // Navigation property
+   
         public virtual ICollection<CartItem> CartItems { get; set; } = new List<CartItem>();
     }
 
@@ -47,7 +47,7 @@ namespace Cofinoy.Data.Models
 
         public string ImageUrl { get; set; }
 
-        // Customization properties
+
         [MaxLength(50)]
         public string Size { get; set; }
 
@@ -62,7 +62,7 @@ namespace Cofinoy.Data.Models
         [MaxLength(50)]
         public string SweetnessLevel { get; set; }
 
-        // Navigation properties
+  
         [ForeignKey("CartId")]
         public virtual Cart Cart { get; set; }
 

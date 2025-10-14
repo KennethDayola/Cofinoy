@@ -40,7 +40,7 @@ namespace Cofinoy.WebApp.Controllers
                 var userId = GetCurrentUserId();
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
 
-                // The view will calculate totals from the cart items
+
                 return View(cartItems);
             }
             catch (Exception ex)
@@ -100,7 +100,7 @@ namespace Cofinoy.WebApp.Controllers
                     success = true,
                     itemTotal = updatedItem?.TotalPrice ?? 0,
                     subtotal = subtotal,
-                    total = subtotal - 60, // Your discount logic
+                    total = subtotal - 60,
                     cartCount = cartCount
                 });
             }
@@ -166,7 +166,7 @@ namespace Cofinoy.WebApp.Controllers
         }
     }
 
-    // Helper models for AJAX requests
+   
     public class UpdateQuantityModel
     {
         public string ProductId { get; set; }

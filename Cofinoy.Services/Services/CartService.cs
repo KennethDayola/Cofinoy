@@ -72,7 +72,7 @@ namespace Cofinoy.Services.Services
                         CartItems = new List<CartItem>()
                     };
 
-                    // Add the first item
+                  
                     var cartItem = CreateCartItem(cart.Id, item);
                     cart.CartItems.Add(cartItem);
                     Console.WriteLine("Added first item to new cart");
@@ -81,7 +81,7 @@ namespace Cofinoy.Services.Services
                 {
                     Console.WriteLine($"Found existing cart with {cart.CartItems.Count} items");
 
-                    // Check if exact same item (same product + same customizations) already exists
+                 
                     var existingItem = cart.CartItems.FirstOrDefault(i =>
                         i.ProductId == item.ProductId &&
                         i.Size == item.Size &&
@@ -92,7 +92,7 @@ namespace Cofinoy.Services.Services
 
                     if (existingItem != null)
                     {
-                        // Update quantity of existing item
+                     
                         Console.WriteLine("Updating quantity of existing item");
                         existingItem.Quantity += item.Quantity;
                         existingItem.TotalPrice = existingItem.UnitPrice * existingItem.Quantity;
@@ -100,7 +100,7 @@ namespace Cofinoy.Services.Services
                     }
                     else
                     {
-                        // Add as new item
+                       
                         Console.WriteLine("Adding as new item to existing cart");
                         var cartItem = CreateCartItem(cart.Id, item);
                         cart.CartItems.Add(cartItem);
