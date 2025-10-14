@@ -1,4 +1,32 @@
-﻿async function updateQuantity(productId, action) {
+﻿
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('Cart page initialized');
+
+    calculateCartTotals();
+    initializeCartEvents();
+});
+
+function calculateCartTotals() {
+    let subtotal = 0;
+
+   
+    document.querySelectorAll('.cart-item').forEach(item => {
+        const quantity = parseInt(item.querySelector('.quantity-value').textContent);
+        const unitPrice = parseFloat(item.querySelector('.item-price').textContent.replace('₱', ''));
+        const itemTotal = quantity * unitPrice;
+
+        subtotal += itemTotal;
+    });
+
+    const total = subtotal - 60; 
+
+    document.getElementById('subtotalAmount').textContent = '₱' + subtotal.toFixed(2);
+    document.getElementById('totalAmount').textContent = '₱' + total.toFixed(2);
+}
+
+
+
+async function updateQuantity(productId, action) {
     const quantityElement = document.getElementById(`quantity-${productId}`);
     let quantity = parseInt(quantityElement.textContent);
 
