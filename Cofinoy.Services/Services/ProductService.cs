@@ -22,6 +22,43 @@ namespace Cofinoy.Services.Services
             _categoryRepository = categoryRepository;
         }
 
+        public List<ProductServiceModel> GetProductsByCategory(string categoryName)
+        {
+            var products = _productRepository.GetProductsByCategory(categoryName).ToList();
+            var serviceModels = new List<ProductServiceModel>();
+
+            foreach (var product in products)
+            {
+                var categoryIds = product.ProductCategories
+                    .Select(pc => pc.CategoryId)
+                    .ToList();
+
+                var customizationIds = product.ProductCustomizations
+                    .Select(pc => pc.CustomizationId)
+                    .ToList();
+
+                serviceModels.Add(new ProductServiceModel
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Description = product.Description ?? string.Empty,
+                    Price = product.BasePrice,
+                    Status = product.Status ?? "Available",
+                    Stock = product.Stock.ToString(),
+                    ImageUrl = product.ImageUrl ?? string.Empty,
+                    ImagePath = product.ImagePath ?? string.Empty,
+                    Categories = categoryIds,
+                    Customizations = customizationIds,
+                    DisplayOrder = product.DisplayOrder,
+                    IsActive = product.IsAvailable,
+                    CreatedAt = product.CreatedAt,
+                    UpdatedAt = DateTime.UtcNow
+                });
+            }
+
+            return serviceModels;
+        }
+
         public List<ProductServiceModel> GetAllProducts()
         {
             var products = _productRepository.GetProducts().ToList();

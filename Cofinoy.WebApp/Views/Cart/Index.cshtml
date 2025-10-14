@@ -1,5 +1,207 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using Cofinoy.Services.ServiceModels
+@model List<CartItemServiceModel>
+@using System.Linq;
+
 @{
+    ViewData["Title"] = "Cart Management";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link rel="stylesheet" href="~/css/cart.css" />
+
+<div class="cart-container">
+    <div class="cart-header">
+        <h1 class="cart-title">Shopping Bag</h1>
+        <div class="cart-summary">
+            @if (Model == null || !Model.Any())
+            {
+                <span>Your cart is empty.</span>
+            }
+            else
+            {
+                <span id="cartSummary">@Model.Count item(s) in your cart</span>
+            }
+        </div>
+    </div>
+
+    <div class="cart-content">
+        <main class="cart-items" id="cartItemsContainer">
+            @if (Model == null || !Model.Any())
+            {
+                <div class="empty-cart-message">
+                    <div class="empty-cart-icon">
+                        <span class="material-symbols-rounded">shopping_bag</span>
+                    </div>
+                    <p>Your cart is empty</p>
+                    <p class="empty-cart-subtitle">Start shopping to add some delicious items!</p>
+                </div>
+            }
+            else
+            {
+                <div class="cart-items-header">
+                    <div class="header-product">Product</div>
+                    <div class="header-price">Price</div>
+                    <div class="header-quantity">Quantity</div>
+                    <div class="header-total">Total</div>
+                    <div class="header-actions"></div>
+                </div>
+
+                <div class="cart-items-list">
+                    @foreach (var item in Model)
+                    {
+                        <div class="cart-item" id="cartItem-@item.ProductId">
+                            <div class="item-details">
+                                <img src="@item.ImageUrl" alt="@item.Name" class="item-image" />
+                                <div class="item-info">
+                                    <h3 class="item-name">@item.Name</h3>
+                                    <div class="item-description">@item.Description</div>
+                                    @* Display customizations if available *@
+                                    @if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.MilkType))
+                                    {
+                                        <div class="item-customizations">
+                                            <small>
+                                                @item.Size
+                                                @if (!string.IsNullOrEmpty(item.MilkType))
+                                                {
+                                                    <text>• @item.MilkType</text>
+                                                }
+                                                @if (!string.IsNullOrEmpty(item.Temperature))
+                                                {
+                                                    <text>• @item.Temperature</text>
+                                                }
+                                                @if (item.ExtraShots > 0)
+                                                {
+                                                    <text>• @item.ExtraShots extra shots</text>
+                                                }
+                                            </small>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="item-price">₱@item.UnitPrice.ToString("N2")</div>
+
+                            <div class="item-quantity">
+                                <div class="quantity-controls">
+                                    <button type="button" class="quantity-btn" onclick="updateQuantity('@item.ProductId', 'decrease')">
+                                        <span class="material-symbols-rounded">remove</span>
+                                    </button>
+                                    <span class="quantity-value" id="quantity-@item.ProductId">@item.Quantity</span>
+                                    <button type="button" class="quantity-btn" onclick="updateQuantity('@item.ProductId', 'increase')">
+                                        <span class="material-symbols-rounded">add</span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="item-total" id="total-@item.ProductId">₱@item.TotalPrice.ToString("N2")</div>
+
+                            <div class="item-actions">
+                                <button type="button" class="remove-btn" onclick="removeFromCart('@item.ProductId')" title="Remove item">
+                                    <span class="material-symbols-rounded">delete</span>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </main>
+
+        <aside class="cart-sidebar">
+            <div class="checkout-details">
+                <h2 class="checkout-title">Checkout Details</h2>
+
+                <form id="checkoutForm" asp-controller="Cart" asp-action="Checkout" method="post">
+                    @Html.AntiForgeryToken()
+
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label for="nickname">Nickname</label>
+                            <div class="input-wrapper">
+                                <span class="material-symbols-rounded">person</span>
+                                <input type="text" id="nickname" name="Nickname" placeholder="What should we call you?" required />
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="additional-request">Additional Request</label>
+                            <div class="input-wrapper">
+                                <span class="material-symbols-rounded">note</span>
+                                <textarea id="additional-request" name="AdditionalRequest" placeholder="Any special instructions?"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-section">
+                        <div class="form-group">
+                            <label class="form-label">Order Type</label>
+                            <div class="radio-group">
+                                <label class="radio-option">
+                                    <input type="radio" name="OrderType" value="DineIn" checked />
+                                    <span class="radio-checkmark"></span>
+                                    <span class="radio-label">Dine In</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="OrderType" value="TakeOut" />
+                                    <span class="radio-checkmark"></span>
+                                    <span class="radio-label">Take Out</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="coupon-code">Coupon Code</label>
+                            <div class="input-wrapper">
+                                <span class="material-symbols-rounded">local_offer</span>
+                                <input type="text" id="coupon-code" name="CouponCode" placeholder="Enter coupon code" />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="order-summary-section">
+                        <h2 class="summary-title">Order Summary</h2>
+
+                        @if (Model == null || !Model.Any())
+                        {
+                            <div class="no-items-message">
+                                <p>No items to checkout</p>
+                            </div>
+                        }
+                        else
+                        {
+                            var subtotal = ViewBag.Subtotal ?? 0m;
+                            var total = ViewBag.Total ?? 0m;
+
+                            <div class="summary-details">
+                                <div class="summary-line">
+                                    <span class="summary-label">Subtotal</span>
+                                    <span class="summary-value" id="subtotalAmount">₱@subtotal.ToString("N2")</span>
+                                </div>
+
+                                <div class="summary-line">
+                                    <span class="summary-label">Discount</span>
+                                    <span class="summary-value discount">-₱60.00</span>
+                                </div>
+
+                                <div class="summary-divider"></div>
+
+                                <div class="summary-total">
+                                    <span class="total-label">TOTAL</span>
+                                    <span class="total-value" id="totalAmount">₱@total.ToString("N2")</span>
+                                </div>
+                            </div>
+                        }
+
+                        <button type="submit" class="order-btn @(Model == null || !Model.Any() ? "order-btn-disabled" : "")"
+                                id="placeOrderBtn" @(Model == null || !Model.Any() ? "disabled" : "")>
+                            <span class="btn-text" >Place Order</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </aside>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/cart.js" asp-append-version="true"></script>
 }

@@ -7,6 +7,7 @@ namespace Cofinoy.Data.Interfaces
     public interface IProductRepository
     {
         IQueryable<Product> GetProducts();
+        IQueryable<Product> GetProductsByCategory(string categoryName);
         Product GetProductById(string id);
         void AddProduct(Product product);
         void UpdateProduct(Product product);

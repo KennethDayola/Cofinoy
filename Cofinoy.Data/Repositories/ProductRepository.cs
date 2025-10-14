@@ -25,6 +25,18 @@ namespace Cofinoy.Data.Repositories
                 .ThenBy(p => p.CreatedAt);
         }
 
+        public IQueryable<Product> GetProductsByCategory(string categoryName)
+        {
+            return this.GetDbSet<Product>()
+                .Include(p => p.ProductCategories)
+                    .ThenInclude(pc => pc.Category)
+                .Include(p => p.ProductCustomizations)
+                    .ThenInclude(pc => pc.Customization)
+                .Where(p => p.ProductCategories.Any(pc => pc.Category.Name == categoryName))
+                .OrderBy(p => p.DisplayOrder)
+                .ThenBy(p => p.CreatedAt);
+        }
+
         public Product GetProductById(string id)
         {
             return this.GetDbSet<Product>()
