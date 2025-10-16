@@ -127,7 +127,7 @@ namespace Cofinoy.WebApp.Controllers
                 {
                     success = true,
                     subtotal = subtotal,
-                    total = subtotal - 60, 
+                    total = subtotal - 60,
                     cartCount = cartCount
                 });
             }
@@ -137,16 +137,34 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
-
         [HttpPost]
         public async Task<IActionResult> Checkout(CheckoutViewModel model)
         {
             try
             {
                 var userId = GetCurrentUserId();
-               
 
-                return Json(new { success = true, message = "Order placed successfully" });
+                // Get all cart items for the user
+                var cartItems = await _cartService.GetCartItemsAsync(userId);
+
+                if (cartItems == null || !cartItems.Any())
+                {
+                    return RedirectToAction("Index", "Cart");
+                }
+
+                // Create checkout model - no need to map, just assign directly
+                var checkoutModel = new CheckoutViewModel
+                {
+                    InvoiceNumber = Guid.NewGuid().ToString().Substring(0, 8),
+                    OrderDate = DateTime.Now,
+                    Nickname = model.Nickname,
+                    AdditionalRequest = model.AdditionalRequest,
+                    PaymentMethod = model.PaymentMethod,
+                    CartItems = cartItems, // Direct assignment - no mapping needed!
+                    TotalPrice = cartItems.Sum(i => i.TotalPrice)
+                };
+
+                return View("~/Views/Checkout/Checkout.cshtml", checkoutModel);
             }
             catch (Exception ex)
             {
@@ -154,6 +172,10 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
+
+
+
+
 
         private string GetCurrentUserId()
         {
@@ -166,7 +188,7 @@ namespace Cofinoy.WebApp.Controllers
         }
     }
 
-   
+
     public class UpdateQuantityModel
     {
         public string ProductId { get; set; }
@@ -177,12 +199,6 @@ namespace Cofinoy.WebApp.Controllers
     {
         public string ProductId { get; set; }
     }
-
-    public class CheckoutViewModel
-    {
-        public string Nickname { get; set; }
-        public string AdditionalRequest { get; set; }
-        public string OrderType { get; set; }
-        public string CouponCode { get; set; }
-    }
 }
+
+ 
