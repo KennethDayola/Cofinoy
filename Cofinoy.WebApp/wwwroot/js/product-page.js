@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const productsContainer = document.getElementById("productsContainer");
     const searchInput = document.getElementById("searchInput");
     const filterButton = document.querySelector(".filter-btn");
+    const categoryList = document.getElementById("categoryList");
     const customizeModal = document.getElementById("customizeModal");
     const customizeCloseBtn = document.getElementById("customizeCloseBtn");
     const sizeSelect = document.getElementById("sizeSelect");
@@ -18,6 +19,61 @@ document.addEventListener("DOMContentLoaded", async () => {
     let currentCategoryProducts = []; // Store products for current category
     let currentSort = "default";
     let currentCategory = "All";
+    async function renderCategories() {
+        if (!categoryList) return;
+
+        // Keep heading item, clear the rest
+        categoryList.innerHTML = "<li><strong>Drinks</strong></li>";
+
+        // Always include an All category at the top
+        const allItem = document.createElement("li");
+        allItem.innerHTML = '<a href="#" class="category-link" data-category="All">All Drinks</a>';
+        categoryList.appendChild(allItem);
+
+        const result = await ProductsService.getAllCategories();
+        if (!result.success || !Array.isArray(result.data)) {
+            return; // silently keep just All if categories fail to load
+        }
+
+        // Expecting items with Name/Status from service; normalize name
+        const categories = result.data
+            .filter(c => (c.status?.toLowerCase?.() ?? c.Status?.toLowerCase?.() ?? "active") === "active")
+            .sort((a, b) => {
+                const ao = (a.displayOrder ?? a.DisplayOrder ?? 0);
+                const bo = (b.displayOrder ?? b.DisplayOrder ?? 0);
+                return ao - bo;
+            });
+
+        categories.forEach(cat => {
+            const name = cat.name ?? cat.Name ?? "Unnamed";
+            const li = document.createElement("li");
+            li.innerHTML = `<a href="#" class="category-link" data-category="${name}">${name}</a>`;
+            categoryList.appendChild(li);
+        });
+
+        // Wire events after rendering
+        wireCategoryClickHandlers();
+
+        // Set initial active state
+        const initial = categoryList.querySelector('.category-link[data-category="All"]');
+        initial?.classList.add('active');
+    }
+
+    function wireCategoryClickHandlers() {
+        categoryList?.querySelectorAll('.category-link').forEach(link => {
+            link.addEventListener('click', async (e) => {
+                e.preventDefault();
+                currentCategory = link.getAttribute('data-category') || 'All';
+
+                // Update active state
+                categoryList.querySelectorAll('.category-link').forEach(l => l.classList.remove('active'));
+                link.classList.add('active');
+
+                // Load products for the selected category
+                await loadProductsByCategory(currentCategory);
+            });
+        });
+    }
 
     function renderProducts(products) {
         productsContainer.innerHTML = "";
@@ -132,29 +188,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await loadProducts();
 
-    // Debug: Load and display all categories
-    const categoriesResult = await ProductsService.getAllCategories();
-    if (categoriesResult.success) {
-        console.log("Available categories in database:", categoriesResult.data);
-    }
-
-    // Category filtering
-    document.querySelectorAll('.category-link').forEach(link => {
-        link.addEventListener('click', async (e) => {
-            e.preventDefault();
-            currentCategory = link.getAttribute('data-category');
-            
-            // Update active state
-            document.querySelectorAll('.category-link').forEach(l => l.classList.remove('active'));
-            link.classList.add('active');
-            
-            // Load products for the selected category
-            await loadProductsByCategory(currentCategory);
-        });
-    });
-
-    // Set initial active state
-    document.querySelector('.category-link[data-category="All"]').classList.add('active');
+    // Build category list from API and wire filtering
+    await renderCategories();
 
     // Modal behaviors
     function openCustomize(product) {
