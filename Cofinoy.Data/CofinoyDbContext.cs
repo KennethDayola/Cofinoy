@@ -78,5 +78,16 @@ namespace Cofinoy.Data
                 .HasPrecision(18, 2);
             // Temporarily remove Menu->Category relationship until DB migration adds MenuId
         }
+
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+
+
+
+
+
     }
+
+
+
 }
