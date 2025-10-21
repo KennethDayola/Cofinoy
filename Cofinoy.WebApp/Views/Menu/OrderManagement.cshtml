@@ -9,6 +9,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Order Management</title>
+
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link rel="stylesheet" href="~/css/orderManagement.css" asp-append-version="true" />
 </head>
@@ -17,7 +18,7 @@
         <!-- Page Header -->
         <div class="page-header">
             <h1 class="page-title">Order Management</h1>
-            <p class="orders-count">2 orders in your list.</p>
+            <p class="orders-count">Loading orders...</p>
         </div>
 
         <!-- Controls Section -->
@@ -49,31 +50,15 @@
                 </thead>
                 <tbody id="orderList">
                     <tr>
-                        <td>#001</td>
-                        <td>Laine</td>
-                        <td>09/04/25 – 7:30 AM</td>
-                        <td>2</td>
-                        <td>₱ 330.00</td>
-                        <td><span class="status brewing">Brewing</span></td>
-                        <td>
-                            <button class="btn-view"><i class="fas fa-eye"></i></button>
-                        </td>
-                    </tr>
-                    <tr>
-                        <td>#002</td>
-                        <td>Pearl</td>
-                        <td>09/04/25 – 10:30 AM</td>
-                        <td>3</td>
-                        <td>₱ 360.00</td>
-                        <td><span class="status preparing">Preparing</span></td>
-                        <td>
-                            <button class="btn-view"><i class="fas fa-eye"></i></button>
-                        </td>
+                        <td colspan="7" style="text-align:center; padding: 20px;">Loading...</td>
                     </tr>
                 </tbody>
             </table>
         </div>
     </div>
+
+    <!-- ✅ Modal Container -->
+    <div id="modalContainer"></div>
 
     <script defer src="~/js/orderManagement.js"></script>
 </body>

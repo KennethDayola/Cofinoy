@@ -1,0 +1,67 @@
+﻿@model Cofinoy.Data.Models.Order
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Order Details";
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="~/css/orderDetails.css" asp-append-version="true" />
+
+<div class="order-details-container">
+    <a href="/Menu/OrderManagement" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to order list
+    </a>
+
+    <h2 class="order-title">Order #@Model.InvoiceNumber</h2>
+    <p class="order-time">@Model.OrderDate.ToString("hh:mm tt")</p>
+
+    <div class="order-details-body">
+        <!-- Left: Order Items -->
+        <div class="order-items-card">
+            <h3>Order Items</h3>
+            @foreach (var item in Model.OrderItems)
+            {
+                <div class="order-item">
+                    <div>
+                        <strong>@item.ProductName</strong><br />
+                        <small>Quantity: @item.Quantity</small><br />
+                        @if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.Temperature))
+                        {
+                            <small>Add-ons: @item.Size @if (!string.IsNullOrEmpty(item.Temperature)) {
+                            <text>, @item.Temperature</text>
+                        }
+    </small>
+                    }
+                </div>
+                <strong>₱@item.TotalPrice.ToString("N2")</strong>
+            </div>
+                        }
+
+            <div class="price-summary">
+                <div><span>Subtotal</span><span>₱@Model.TotalPrice.ToString("N2")</span></div>
+                @if (Model.AdditionalRequest == "Discount")
+                {
+                    <div><span>Discount</span><span>- ₱60.00</span></div>
+                }
+                <div class="total"><span>TOTAL</span><span>₱@Model.TotalPrice.ToString("N2")</span></div>
+            </div>
+        </div>
+
+        <!-- Right: Customer Info -->
+        <div class="customer-info-card">
+            <h3>Customer Information</h3>
+            <p><i class="fas fa-user"></i> @Model.Nickname</p>
+            <p><i class="fas fa-envelope"></i> @Model.UserId</p>
+            <p><i class="fas fa-phone"></i> 09627463870</p>
+            <p><i class="fas fa-map-marker-alt"></i> Liloan, Cebu</p>
+        </div>
+    </div>
+
+    <div class="order-footer">
+        <button class="btn-ready" onclick="markAsReady(@Model.Id)">Mark as Ready</button>
+        <button class="btn-cancel-outline" onclick="cancelOrder(@Model.Id)">Cancel Order</button>
+    </div>
+</div>
+
+<!-- ✅ External JS file for order actions -->
+<script src="~/js/orderDetails.js"></script>

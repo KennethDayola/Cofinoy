@@ -1,4 +1,134 @@
-﻿
+﻿/* ✅ Modal Overlay & Layout */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.modal-content {
+    background: #fff;
+    border-radius: 16px;
+    width: 600px;
+    max-height: 80vh;
+    overflow-y: auto;
+    padding: 20px 25px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Header */
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+}
+
+    .modal-header h2 {
+        font-size: 1.3rem;
+        color: #4a4a4a;
+    }
+
+.close-btn {
+    background: transparent;
+    border: none;
+    font-size: 1.3rem;
+    color: #666;
+    cursor: pointer;
+}
+
+/* Sections */
+.modal-section {
+    margin-top: 18px;
+}
+
+    .modal-section h3 {
+        font-size: 1.1rem;
+        color: #6b46c1; /* lavender highlight */
+        margin-bottom: 8px;
+    }
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 12px;
+    font-size: 0.95rem;
+    color: #444;
+}
+
+/* Footer */
+.modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.btn {
+    border: none;
+    border-radius: 8px;
+    padding: 8px 16px;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.btn-primary {
+    background-color: #9b7ae6;
+    color: white;
+}
+
+    .btn-primary:hover {
+        background-color: #8265d6;
+    }
+
+.btn-cancel {
+    background-color: #e25d5d;
+    color: white;
+}
+
+    .btn-cancel:hover {
+        background-color: #c94c4c;
+    }
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+.status.brewing {
+    background: #cfe2f3;
+    color: #0b5394;
+}
+
+.status.preparing {
+    background: #FFF9CF;
+    color: #F9C22C;
+}
+
+.status.ready {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+
+.status.cancelled {
+    background: #f4cccc;
+    color: #990000;
+}
 .main-content {
     padding: 20px;
 }
@@ -130,7 +260,7 @@
 }
 
     .status.brewing {
-        background: #fff3cd;
+        background-color: #fff3cd;
         color: #856404;
     }
 
