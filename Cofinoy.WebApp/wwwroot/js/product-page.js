@@ -15,12 +15,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     const totalPriceEl = document.getElementById("totalPrice");
     const addToCartBtn = document.getElementById("addToCartBtn");
     const addonsContainer = document.getElementById("addonsContainer");
+
     let currentProduct = null;
     let allProducts = [];
-    let currentCategoryProducts = []; // Store products for current category
+    let currentCategoryProducts = [];
     let currentSort = "default";
     let currentCategory = "All";
     let allCustomizations = [];
+
+    // Expose currentProduct globally for cart functionality
+    window.currentProduct = null;
+
     async function renderCategories() {
         if (!categoryList) return;
 
@@ -162,6 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         renderProducts(filtered);
     }
+
     searchInput.addEventListener("input", applyFilters);
 
     filterButton.addEventListener("click", () => {
@@ -193,23 +199,40 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     // Modal behaviors
     async function openCustomize(product) {
+        console.log('Opening customize modal for product:', product);
+
+        if (!product) {
+            console.error('No product provided to openCustomize');
+            return;
+        }
+
         currentProduct = product;
+        window.currentProduct = product;
+
         if (!allCustomizations || allCustomizations.length === 0) {
             await loadCustomizations();
         }
-        // reset defaults (no static fields anymore)
-        qtyValueEl.textContent = '2';
+
+        // Reset quantity
+        if (qtyValueEl) qtyValueEl.textContent = '1';
+
         // Render only customizations linked to this product
         renderCustomizationsForProduct(product);
         recalcTotal();
-        customizeModal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+
+        if (customizeModal) {
+            customizeModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
     }
 
     function closeCustomize() {
-        customizeModal.style.display = 'none';
-        document.body.style.overflow = '';
+        if (customizeModal) {
+            customizeModal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
         currentProduct = null;
+        window.currentProduct = null;
     }
 
     customizeCloseBtn?.addEventListener('click', closeCustomize);
@@ -217,65 +240,64 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (e.target === customizeModal) closeCustomize();
     });
 
-    document.querySelectorAll('.temp-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-            document.querySelectorAll('.temp-btn').forEach(b => {
-                b.classList.toggle('active', b === btn);
-                b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
-            });
-        });
-    });
-
-    // No static selects to watch now
-
     document.querySelectorAll('.stepper').forEach(stepper => {
         const minus = stepper.querySelector('.stepper-minus');
         const plus = stepper.querySelector('.stepper-plus');
         const valueEl = stepper.querySelector('.stepper-value');
         const type = stepper.getAttribute('data-type');
-        minus?.addEventListener('click', () => {
-            const val = Math.max(type === 'quantity' ? 1 : 0, parseInt(valueEl.textContent || '0') - 1);
-            valueEl.textContent = String(val);
-            recalcTotal();
-        });
-        plus?.addEventListener('click', () => {
-            const val = Math.min(99, parseInt(valueEl.textContent || '0') + 1);
-            valueEl.textContent = String(val);
-            recalcTotal();
-        });
+
+        if (minus && plus && valueEl) {
+            minus.addEventListener('click', () => {
+                const min = type === 'quantity' ? 1 : 0;
+                const val = Math.max(min, parseInt(valueEl.textContent || '0') - 1);
+                valueEl.textContent = String(val);
+                recalcTotal();
+            });
+
+            plus.addEventListener('click', () => {
+                const val = Math.min(99, parseInt(valueEl.textContent || '0') + 1);
+                valueEl.textContent = String(val);
+                recalcTotal();
+            });
+        }
     });
 
     function recalcTotal() {
         if (!currentProduct) return;
+
         const base = Number(currentProduct.price) || 0;
-        const sizeDelta = 0;
-        const milkDelta = 0;
-        const extras = 0;
         const qty = parseInt(qtyValueEl?.textContent || '1');
-        const extrasDelta = extras * 20;
 
         // Dynamic add-ons: sum selected prices
         let addonsDelta = 0;
-        addonsContainer?.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-            if (cb.checked) addonsDelta += Number(cb.getAttribute('data-price') || '0');
+
+        // Checkboxes
+        addonsContainer?.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+            addonsDelta += Number(cb.getAttribute('data-price') || '0');
         });
+
+        // Radio buttons
         addonsContainer?.querySelectorAll('input[type="radio"]:checked').forEach(rb => {
             addonsDelta += Number(rb.getAttribute('data-price') || '0');
         });
-        // dropdown single-selects
+
+        // Dropdown single-selects
         addonsContainer?.querySelectorAll('select.addon-select').forEach(sel => {
             const price = Number(sel.selectedOptions?.[0]?.getAttribute('data-price') || '0');
             addonsDelta += price;
         });
-        // quantity-based addons
+
+        // Quantity-based addons
         addonsContainer?.querySelectorAll('.stepper[data-type="addon-qty"]').forEach(step => {
             const perUnit = Number(step.getAttribute('data-price-per-unit') || '0');
             const units = Number(step.querySelector('.stepper-value')?.textContent || '0');
             addonsDelta += perUnit * units;
         });
 
-        const total = (base + sizeDelta + milkDelta + extrasDelta + addonsDelta) * qty;
-        totalPriceEl.textContent = `₱${total.toFixed(2)}`;
+        const total = (base + addonsDelta) * qty;
+        if (totalPriceEl) {
+            totalPriceEl.textContent = `₱${total.toFixed(2)}`;
+        }
     }
 
     function validateRequiredCustomizations() {
@@ -285,6 +307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             const isRequired = !!title?.querySelector('.required-badge');
             const body = section.querySelector('.addon-body');
             const validation = body?.querySelector('.addon-validation');
+
             if (!isRequired) {
                 if (validation) {
                     validation.textContent = '';
@@ -301,6 +324,8 @@ document.addEventListener("DOMContentLoaded", async () => {
                 satisfied = !!body.querySelector('input[type="radio"]:checked');
             } else if (body?.querySelector('input[type="checkbox"]')) {
                 satisfied = Array.from(body.querySelectorAll('input[type="checkbox"]')).some(cb => cb.checked);
+            } else if (body?.querySelector('select.addon-select')) {
+                satisfied = true; // Dropdowns always have a selection
             }
 
             if (!satisfied) {
@@ -319,15 +344,210 @@ document.addEventListener("DOMContentLoaded", async () => {
         return valid;
     }
 
-    addToCartBtn?.addEventListener('click', () => {
-        if (!validateRequiredCustomizations()) {
-            const firstError = addonsContainer?.querySelector('.addon-validation:not(.hidden)');
-            firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            return;
+    function getCustomizationData() {
+        const customizations = [];
+
+        addonsContainer?.querySelectorAll('.addon-section').forEach(section => {
+            const title = section.querySelector('.addon-title');
+            const customizationName = title?.textContent?.replace('Required', '').trim();
+            const body = section.querySelector('.addon-body');
+
+            // Quantity stepper
+            const qtyStepper = body?.querySelector('.stepper[data-type="addon-qty"]');
+            if (qtyStepper) {
+                const units = parseInt(qtyStepper.querySelector('.stepper-value')?.textContent || '0');
+                if (units > 0) {
+                    customizations.push({
+                        name: customizationName,
+                        value: `${units}`,
+                        type: 'quantity'
+                    });
+                }
+            }
+
+            // Radio buttons (including hidden ones for temperature)
+            const checkedRadio = body?.querySelector('input[type="radio"]:checked');
+            if (checkedRadio) {
+                const label = body.querySelector(`label[for="${checkedRadio.id}"]`)?.textContent ||
+                    body.querySelector(`.temp-btn.active span`)?.textContent || 'Selected';
+                customizations.push({
+                    name: customizationName,
+                    value: label.trim(),
+                    type: 'single_select'
+                });
+            }
+
+            // Checkboxes
+            const checkedBoxes = body?.querySelectorAll('input[type="checkbox"]:checked');
+            if (checkedBoxes && checkedBoxes.length > 0) {
+                const values = Array.from(checkedBoxes).map(cb => {
+                    const label = body.querySelector(`label[for="${cb.id}"]`);
+                    return label?.querySelector('.option-name')?.textContent || label?.textContent || 'Selected';
+                });
+                customizations.push({
+                    name: customizationName,
+                    value: values.join(', '),
+                    type: 'multi_select'
+                });
+            }
+
+            // Dropdown selects
+            const select = body?.querySelector('select.addon-select');
+            if (select && select.selectedOptions && select.selectedOptions[0]) {
+                customizations.push({
+                    name: customizationName,
+                    value: select.selectedOptions[0].textContent.trim(),
+                    type: 'single_select'
+                });
+            }
+        });
+
+        const qtyValueEl = document.getElementById('qtyValue');
+        const quantity = qtyValueEl ? parseInt(qtyValueEl.textContent) : 1;
+
+        return {
+            customizations,
+            quantity
+        };
+    }
+
+    function calculateTotalPrice() {
+        if (!currentProduct) return 0;
+
+        const base = Number(currentProduct.price) || 0;
+        const qty = parseInt(qtyValueEl?.textContent || '1');
+        let addonsDelta = 0;
+
+        addonsContainer?.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
+            addonsDelta += Number(cb.getAttribute('data-price') || '0');
+        });
+        addonsContainer?.querySelectorAll('input[type="radio"]:checked').forEach(rb => {
+            addonsDelta += Number(rb.getAttribute('data-price') || '0');
+        });
+        addonsContainer?.querySelectorAll('select.addon-select').forEach(sel => {
+            const price = Number(sel.selectedOptions?.[0]?.getAttribute('data-price') || '0');
+            addonsDelta += price;
+        });
+        addonsContainer?.querySelectorAll('.stepper[data-type="addon-qty"]').forEach(step => {
+            const perUnit = Number(step.getAttribute('data-price-per-unit') || '0');
+            const units = Number(step.querySelector('.stepper-value')?.textContent || '0');
+            addonsDelta += perUnit * units;
+        });
+
+        return (base + addonsDelta) * qty;
+    }
+
+    function showNotification(message, type) {
+        const notification = document.createElement('div');
+        notification.className = `notification ${type}`;
+        notification.textContent = message;
+        notification.style.cssText = `
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 20px;
+            background: ${type === 'success' ? '#4CAF50' : '#f44336'};
+            color: white;
+            border-radius: 5px;
+            z-index: 10000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        `;
+
+        document.body.appendChild(notification);
+
+        setTimeout(() => {
+            notification.remove();
+        }, 3000);
+    }
+
+    function updateCartCount(count) {
+        const cartCountElement = document.querySelector('.cart-count');
+        if (cartCountElement) {
+            cartCountElement.textContent = count;
         }
-        // Placeholder: wire to cart later
-        closeCustomize();
-    });
+    }
+
+    if (addToCartBtn) {
+        addToCartBtn.addEventListener('click', async function () {
+            console.log('Add to cart button clicked');
+
+            // Validate required customizations first
+            if (!validateRequiredCustomizations()) {
+                const firstError = addonsContainer?.querySelector('.addon-validation:not(.hidden)');
+                firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                return;
+            }
+
+            if (!window.currentProduct) {
+                console.error('No product selected');
+                showNotification('Please select a product first', 'error');
+                return;
+            }
+
+            try {
+                const customizationData = getCustomizationData();
+                console.log('Customization data:', customizationData);
+
+                const totalPrice = calculateTotalPrice();
+                console.log('Total price:', totalPrice);
+
+                const cartItem = {
+                    productId: window.currentProduct.id,
+                    name: window.currentProduct.name,
+                    description: window.currentProduct.description,
+                    unitPrice: totalPrice / customizationData.quantity,
+                    quantity: customizationData.quantity,
+                    imageUrl: window.currentProduct.imageUrl,
+                    customizations: customizationData.customizations
+                };
+
+                console.log('Sending cart item:', cartItem);
+
+                const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+                if (!tokenElement) {
+                    throw new Error('Anti-forgery token not found');
+                }
+
+                const response = await fetch('/Cart/AddToCart', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'RequestVerificationToken': tokenElement.value
+                    },
+                    body: JSON.stringify(cartItem),
+                    credentials: 'include'
+                });
+
+                console.log('Raw response status:', response.status);
+                console.log('Raw response ok:', response.ok);
+
+                const responseText = await response.text();
+                console.log('Raw response text:', responseText);
+
+                let result;
+                try {
+                    result = JSON.parse(responseText);
+                    console.log('Parsed server response:', result);
+                } catch (e) {
+                    console.error('Failed to parse response as JSON:', e);
+                    throw new Error('Invalid response from server');
+                }
+
+                if (result.success) {
+                    showNotification('Item added to cart!', 'success');
+                    closeCustomize();
+                    if (result.cartCount !== undefined) {
+                        updateCartCount(result.cartCount);
+                    }
+                } else {
+                    showNotification('Failed to add item to cart: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                showNotification('Error adding item to cart: ' + error.message, 'error');
+            }
+        });
+    }
 
     async function loadCustomizations() {
         const result = await ProductsService.getAllCustomizations();
@@ -335,94 +555,20 @@ document.addEventListener("DOMContentLoaded", async () => {
         allCustomizations = result.data
             .slice()
             .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
-        renderCustomizations();
-    }
-
-    function renderCustomizations() {
-        if (!addonsContainer) return;
-        addonsContainer.innerHTML = '';
-
-        allCustomizations.forEach(cz => {
-            const type = (cz.type || '').toLowerCase();
-            const section = document.createElement('div');
-            section.className = 'addon-section';
-
-            const title = document.createElement('div');
-            title.className = 'addon-title';
-            title.textContent = cz.name || 'Addon';
-            section.appendChild(title);
-
-            const body = document.createElement('div');
-            body.className = 'addon-body';
-
-            if (type === 'quantity') {
-                const maxQ = Number(cz.maxQuantity ?? 5);
-                const pricePerUnit = Number(cz.pricePerUnit ?? 0);
-                const wrapper = document.createElement('div');
-                wrapper.className = 'stepper';
-                wrapper.setAttribute('data-type', 'addon-qty');
-                wrapper.setAttribute('data-price-per-unit', String(pricePerUnit));
-                wrapper.innerHTML = `
-                    <button class="stepper-minus" aria-label="Decrease">−</button>
-                    <span class="stepper-value">0</span>
-                    <button class="stepper-plus" aria-label="Increase">+</button>
-                    <span class="addon-price-note">(+₱${pricePerUnit.toFixed(2)} each)</span>
-                `;
-                const minus = wrapper.querySelector('.stepper-minus');
-                const plus = wrapper.querySelector('.stepper-plus');
-                const valueEl = wrapper.querySelector('.stepper-value');
-                minus.addEventListener('click', () => {
-                    const val = Math.max(0, parseInt(valueEl.textContent || '0') - 1);
-                    valueEl.textContent = String(val);
-                    recalcTotal();
-                });
-                plus.addEventListener('click', () => {
-                    const val = Math.min(maxQ, parseInt(valueEl.textContent || '0') + 1);
-                    valueEl.textContent = String(val);
-                    recalcTotal();
-                });
-                body.appendChild(wrapper);
-            } else if (type === 'single-choice') {
-                (cz.options || []).forEach((opt, idx) => {
-                    const id = `cz_${cz.id}_${idx}`;
-                    const item = document.createElement('div');
-                    item.className = 'radio-item';
-                    item.innerHTML = `
-                        <input type="radio" name="cz_${cz.id}" id="${id}" data-price="${Number(opt.priceModifier || 0)}">
-                        <label for="${id}">${opt.name} ${Number(opt.priceModifier || 0) ? `(₱${Number(opt.priceModifier).toFixed(2)})` : ''}</label>
-                    `;
-                    item.querySelector('input')?.addEventListener('change', recalcTotal);
-                    body.appendChild(item);
-                });
-            } else if (type === 'multi-choice') {
-                (cz.options || []).forEach((opt, idx) => {
-                    const id = `cz_${cz.id}_${idx}`;
-                    const item = document.createElement('div');
-                    item.className = 'checkbox-item';
-                    item.innerHTML = `
-                        <input type="checkbox" id="${id}" data-price="${Number(opt.priceModifier || 0)}">
-                        <label for="${id}">${opt.name} ${Number(opt.priceModifier || 0) ? `(₱${Number(opt.priceModifier).toFixed(2)})` : ''}</label>
-                    `;
-                    item.querySelector('input')?.addEventListener('change', recalcTotal);
-                    body.appendChild(item);
-                });
-            }
-
-            section.appendChild(body);
-            addonsContainer.appendChild(section);
-        });
     }
 
     function renderCustomizationsForProduct(product) {
+        if (!addonsContainer) return;
+
         if (!product || !Array.isArray(product.customizations)) {
             // If no mapping, show none
             addonsContainer.innerHTML = '';
             return;
         }
+
         const allowedIds = new Set(product.customizations);
         const filtered = allCustomizations.filter(cz => allowedIds.has(cz.id));
-        // Preserve sort order from allCustomizations (already sorted)
-        if (!addonsContainer) return;
+
         addonsContainer.innerHTML = '';
 
         filtered.forEach(cz => {
