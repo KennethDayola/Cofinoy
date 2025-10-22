@@ -1,0 +1,153 @@
+@model Cofinoy.WebApp.Models.CheckoutViewModel
+
+@{
+    ViewData["Title"] = "Checkout";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice - Cofinoy</title>
+    <link rel="stylesheet" href="~/css/checkout.css">
+</head>
+<body class="invoice-body">
+    <div class="invoice-container">
+        <div class="success-card no-print">
+            <div class="success-icon">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h1 class="success-title">Order Confirmed!</h1>
+            <p class="success-text">Thank you for your order. Your invoice is ready below.</p>
+        </div>
+
+        <div class="invoice-card">
+            <div class="invoice-header">
+                <div>
+                    <h2 class="brand-name">Cofinoy</h2>
+                    <p class="brand-tagline">Coffee Shop</p>
+                </div>
+                <div class="text-right">
+                    <p class="invoice-label">Invoice</p>
+                    <p class="invoice-number">#@Model.InvoiceNumber</p>
+                </div>
+            </div>
+
+           
+            <div class="invoice-details">
+                <div class="detail-section">
+                    <h3>INVOICE TO:</h3>
+                    <p>@Model.Nickname</p>
+                </div>
+                <div class="detail-section text-right">
+                    <h3>INVOICE DATE:</h3>
+                    <p>@Model.OrderDate.ToString("MMM dd, yyyy")</p>
+                    <p class="secondary-text">@Model.OrderDate.ToString("hh:mm tt")</p>
+                </div>
+            </div>
+
+           
+            <table class="items-table">
+                <thead>
+                    <tr>
+                        <th style="text-align: left;">ITEM</th>
+                        <th style="text-align: center;">QTY</th>
+                        <th style="text-align: right;">PRICE</th>
+                        <th style="text-align: right;">TOTAL</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.CartItems)
+                    {
+                        <tr>
+                            <td>
+                                <p class="item-name">@item.Name</p>
+                                @if (!string.IsNullOrEmpty(item.Description))
+                                {
+                                    <p class="item-description">@item.Description</p>
+                                }
+                                <div class="item-customizations">
+                                    @if (!string.IsNullOrEmpty(item.Size))
+                                    {
+                                        <p><strong>Size:</strong> @item.Size</p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.MilkType))
+                                    {
+                                        <p><strong>Milk Type:</strong> @item.MilkType</p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.Temperature))
+                                    {
+                                        <p><strong>Temperature:</strong> @item.Temperature</p>
+                                    }
+                                    @if (item.ExtraShots > 0)
+                                    {
+                                        <p><strong>Extra Shots:</strong> @item.ExtraShots</p>
+                                    }
+                                    @if (!string.IsNullOrEmpty(item.SweetnessLevel))
+                                    {
+                                        <p><strong>Sweetness:</strong> @item.SweetnessLevel</p>
+                                    }
+                                </div>
+                            </td>
+                            <td style="text-align: center;" class="item-quantity">@item.Quantity</td>
+                            <td style="text-align: right;" class="item-price">₱@item.UnitPrice.ToString("N2")</td>
+                            <td style="text-align: right;" class="item-total">₱@item.TotalPrice.ToString("N2")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            
+            @if (!string.IsNullOrEmpty(Model.AdditionalRequest))
+            {
+                <div class="additional-request">
+                    <p class="additional-request-label">Additional Request:</p>
+                    <p class="additional-request-text">@Model.AdditionalRequest</p>
+                </div>
+            }
+
+           
+            <div class="totals-section">
+                <div class="totals-box">
+                    <div class="total-row">
+                        <span class="total-label">Order Type:</span>
+                        <span class="total-value">@Model.OrderType</span>
+                    </div>
+                    <div class="total-row">
+                        <span class="total-label">Coupon Discount:</span>
+                        <span class="discount-value">-₱@Model.CouponCode.ToString("N2")</span>
+                    </div>
+                    <div class="total-row grand-total">
+                        <span class="grand-total-label">TOTAL:</span>
+                        <span class="grand-total-value">₱@Model.TotalPrice.ToString("N2")</span>
+                    </div>
+                </div>
+            </div>
+
+          
+            <div class="payment-info">
+                <div>
+                    <p class="payment-method-label">Payment Method:</p>
+                    <p class="payment-method-value">@Model.PaymentMethod</p>
+                </div>
+                <div class="text-right">
+                    <p class="status-label">
+                        Status:
+                        <span class="status-badge">Paid</span>
+                    </p>
+                </div>
+            </div>
+
+            <div class="invoice-footer">
+                <p class="footer-message">Thank you for your business!</p>
+                <p class="footer-contact">For questions about this invoice, please contact support@cofinoy.com</p>
+            </div>
+
+            <a href="@Url.Action("Index", "Home")" class="btn-link no-print">Back to Home</a>
+        </div>
+    </div>
+</body>
+</html>
