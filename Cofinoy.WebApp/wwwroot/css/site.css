@@ -75,6 +75,36 @@ body {
         border-color: transparent;
     }
 
+.btn-secondary {
+    background-color: #EDEFF1;
+    padding-left: 24px;
+    padding-right: 24px;
+    border-radius: 50px;
+    border-width: 2px;
+    border-color: #322708;
+    color: #322708;
+}
+
+    .btn-secondary:hover {
+        background-color: #322708 !important;
+        border-color: transparent;
+    }
+
+.btn-secondary2 {
+    background-color: white;
+    padding-left: 24px;
+    padding-right: 24px;
+    border-radius: 50px;
+    border-width: 2px;
+    border-color: #322708;
+    color: #322708;
+}
+
+    .btn-secondary2:hover {
+        background-color: #322708 !important;
+        border-color: transparent;
+    }
+
 .btn-icon {
     background-color: #EDEFF1;
     border-radius: 50px;
@@ -145,4 +175,20 @@ body {
             background-color: #3B3422 !important; /* slightly darker on hover */
             color: white !important;
         }
+
+.profile-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+}
+
+.profile-card {
+    background: white;
+    border-radius: 20px;
+    padding: 40px;
+    margin-bottom: 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+
 
