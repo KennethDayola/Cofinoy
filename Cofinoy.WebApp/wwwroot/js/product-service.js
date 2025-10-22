@@ -22,6 +22,7 @@
                 price: typeof p.price === "number" ? p.price : 0,
                 imageUrl: p.imageUrl || "/images/thumbnail.png",
                 category: p.category || "Uncategorized",
+                customizations: p.customizations || p.Customizations || [],
                 isActive: typeof p.isActive === "boolean" ? p.isActive : true,
                 createdAt: p.createdAt
             }));
@@ -29,6 +30,29 @@
             return { success: true, data: products };
         } catch (error) {
             console.error("Error fetching products:", error);
+            return { success: false, error: error.message };
+        }
+    },
+
+    async getAllCustomizations() {
+        try {
+            const response = await fetch("/Menu/GetAllCustomizations", {
+                method: "GET",
+                headers: { "Accept": "application/json" }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const result = await response.json();
+            if (!result.success) {
+                throw new Error(result.error || "Unknown error");
+            }
+
+            return { success: true, data: result.data || [] };
+        } catch (error) {
+            console.error("Error fetching customizations:", error);
             return { success: false, error: error.message };
         }
     },
@@ -59,6 +83,7 @@
                 price: typeof p.price === "number" ? p.price : 0,
                 imageUrl: p.imageUrl || "/images/thumbnail.png",
                 category: p.category || "Uncategorized",
+                customizations: p.customizations || p.Customizations || [],
                 isActive: typeof p.isActive === "boolean" ? p.isActive : true,
                 createdAt: p.createdAt
             }));
@@ -92,3 +117,8 @@
         }
     }
 };
+
+// Expose globally for non-module or cross-file access with cache-busted script tags
+if (typeof window !== 'undefined') {
+    window.ProductsService = ProductsService;
+}
