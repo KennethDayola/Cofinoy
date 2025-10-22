@@ -328,10 +328,7 @@
     cursor: not-allowed;
 }
 
-.order-btn:disabled {
-    background: #ccc;
-    cursor: not-allowed;
-}
+
 
 
 .empty-cart-message {
