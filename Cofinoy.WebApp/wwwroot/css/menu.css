@@ -41,6 +41,7 @@
 .sidebar {
     width: 220px;
     padding: 10px;
+    padding-top: 70px;
 }
 
     .sidebar h2 {
@@ -63,9 +64,9 @@
         font-weight: 500;
     }
 
-    .sidebar a:hover {
-        color: #000;
-    }
+        .sidebar a:hover {
+            color: #000;
+        }
 
     .sidebar .category-link.active {
         color: #4b3d1f;
@@ -85,11 +86,13 @@
     align-items: center;
     margin-bottom: 30px;
     gap: 15px;
+    flex-wrap: wrap;
 }
 
 .search-box {
     display: flex;
-    flex: 1;
+    flex: 0 1 400px;
+    max-width: 400px;
     background: white;
     border-radius: 8px;
     border: 1px solid #d1d5db;
@@ -257,12 +260,12 @@
     border-bottom: 1px solid #eee;
 }
 
-.customize-header h2 {
-    margin: 0;
-    font-size: 22px;
-    font-weight: 700;
-    color: #2b2416;
-}
+    .customize-header h2 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: 700;
+        color: #2b2416;
+    }
 
 .customize-close {
     background: transparent;
@@ -301,17 +304,30 @@
     cursor: pointer;
 }
 
-.temp-btn.active {
-    background: #4b3d1f;
-    color: #fff;
-    border-color: #4b3d1f;
+    .temp-btn.active {
+        background: #4b3d1f;
+        color: #fff;
+        border-color: #4b3d1f;
+    }
+
+    .temp-btn img {
+        width: 18px;
+        height: 18px;
+        display: block;
+    }
+
+    .temp-btn:not(.active) img {
+        filter: invert(35%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(85%) contrast(90%);
+    }
+
+    .temp-btn:hover img {
+        filter: none;
+    }
+
+.form-group label {
+    font-weight: 600;
+    color: #3b2f1c;
 }
-
-.temp-btn img { width: 18px; height: 18px; display: block; }
-.temp-btn:not(.active) img { filter: invert(35%) sepia(0%) saturate(0%) hue-rotate(0deg) brightness(85%) contrast(90%); }
-.temp-btn:hover img { filter: none; }
-
-.form-group label { font-weight: 600; color: #3b2f1c; }
 
 .customize-select {
     padding: 12px 14px;
@@ -320,33 +336,35 @@
     background: #fff;
 }
 
-/* Match design for single-select customization dropdowns */
-.customize-select.addon-select {
-    width: 100%;
-    padding: 14px 44px 14px 14px;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
-    background-color: #f5f6f8;
-    font-size: 16px;
-    line-height: 1.3;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2399A1AD' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 18px 18px;
-}
-.customize-select.addon-select:focus {
-    outline: none;
-    border-color: #4b3d1f;
-    box-shadow: 0 0 0 3px rgba(75,61,31,0.12);
-    background-color: #f9fafb;
-}
-.customize-select.addon-select option {
-    background: #fff;
-    color: #111827;
-}
+    /* Match design for single-select customization dropdowns */
+    .customize-select.addon-select {
+        width: 100%;
+        padding: 14px 44px 14px 14px;
+        border-radius: 12px;
+        border: 1px solid #e5e7eb;
+        background-color: #f5f6f8;
+        font-size: 16px;
+        line-height: 1.3;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%2399A1AD' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 18px 18px;
+    }
+
+        .customize-select.addon-select:focus {
+            outline: none;
+            border-color: #4b3d1f;
+            box-shadow: 0 0 0 3px rgba(75,61,31,0.12);
+            background-color: #f9fafb;
+        }
+
+        .customize-select.addon-select option {
+            background: #fff;
+            color: #111827;
+        }
 
 .row {
     display: grid;
@@ -370,7 +388,11 @@
     cursor: pointer;
 }
 
-.stepper-value { min-width: 16px; text-align: center; font-weight: 600; }
+.stepper-value {
+    min-width: 16px;
+    text-align: center;
+    font-weight: 600;
+}
 
 .customize-footer {
     padding: 16px 24px 20px;
@@ -384,8 +406,15 @@
     margin-bottom: 14px;
 }
 
-.total-row span { color: #6b7280; font-weight: 600; }
-.total-row strong { font-size: 20px; color: #2b2416; }
+    .total-row span {
+        color: #6b7280;
+        font-weight: 600;
+    }
+
+    .total-row strong {
+        font-size: 20px;
+        color: #2b2416;
+    }
 
 .add-to-cart {
     width: 100%;
@@ -399,17 +428,66 @@
 }
 
 /* Add-on UI enhancements */
-.addon-section { margin-bottom: 14px; }
-.addon-title { font-weight: 600; color: #3b2f1c; margin-bottom: 8px; }
-.required-badge { display: inline-block; margin-left: 8px; font-size: 11px; background: #fee2e2; color: #991b1b; padding: 2px 6px; border-radius: 999px; vertical-align: middle; }
-.addon-body .radio-item, .addon-body .checkbox-item { margin-bottom: 8px; }
-.addon-body label { display: inline-block; cursor: pointer; }
-.option-name { font-weight: 500; }
-.option-price { color: #6b7280; margin-left: 6px; font-size: 12px; }
-.option-desc { color: #6b7280; font-size: 12px; margin-top: 2px; }
-.addon-price-note { color: #6b7280; font-size: 12px; }
-.addon-validation { color: #b91c1c; font-size: 12px; margin-top: 6px; }
-.addon-validation.hidden { display: none; }
+.addon-section {
+    margin-bottom: 14px;
+}
+
+.addon-title {
+    font-weight: 600;
+    color: #3b2f1c;
+    margin-bottom: 8px;
+}
+
+.required-badge {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 11px;
+    background: #fee2e2;
+    color: #991b1b;
+    padding: 2px 6px;
+    border-radius: 999px;
+    vertical-align: middle;
+}
+
+.addon-body .radio-item, .addon-body .checkbox-item {
+    margin-bottom: 8px;
+}
+
+.addon-body label {
+    display: inline-block;
+    cursor: pointer;
+}
+
+.option-name {
+    font-weight: 500;
+}
+
+.option-price {
+    color: #6b7280;
+    margin-left: 6px;
+    font-size: 12px;
+}
+
+.option-desc {
+    color: #6b7280;
+    font-size: 12px;
+    margin-top: 2px;
+}
+
+.addon-price-note {
+    color: #6b7280;
+    font-size: 12px;
+}
+
+.addon-validation {
+    color: #b91c1c;
+    font-size: 12px;
+    margin-top: 6px;
+}
+
+    .addon-validation.hidden {
+        display: none;
+    }
 
 /* Options grid layout for radios and checkboxes */
 .options-grid {
@@ -417,12 +495,25 @@
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
     gap: 10px 14px;
 }
-.options-grid.two-cols {
-    grid-template-columns: repeat(2, 1fr);
-}
-.options-grid .radio-item,
-.options-grid .checkbox-item {
-    border: 1px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 10px 12px;
+
+    .options-grid.two-cols {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .options-grid .radio-item,
+    .options-grid .checkbox-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 10px 12px;
+    }
+
+@media (max-width: 768px) {
+    .search-box {
+        flex: 1 1 100%;
+        max-width: 100%;
+    }
+
+    .sidebar {
+        padding-top: 10px;
+    }
 }
