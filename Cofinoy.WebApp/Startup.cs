@@ -3,13 +3,15 @@ using Cofinoy.Data.Interfaces;
 using Cofinoy.Data.Models;
 using Cofinoy.Data.Repositories;
 using Cofinoy.Resources.Constants;
+using Cofinoy.Services.Interfaces;
 using Cofinoy.Services.Manager;
 using Cofinoy.Services.Services;
-using Cofinoy.Services.Interfaces;
+using Cofinoy.Services;
 using Cofinoy.WebApp.Authentication;
 using Cofinoy.WebApp.Extensions.Configuration;
 using Cofinoy.WebApp.Models;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Cors.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.EntityFrameworkCore;
@@ -86,6 +88,10 @@ namespace Cofinoy.WebApp
             this._services = services;
 
             services.AddMemoryCache();
+
+            _services.AddScoped<ICartRepository, CartRepository>();
+            _services.AddScoped<ICartService, CartService>();
+            
 
             // Register SQL database configuration context as services.
             services.AddDbContext<CofinoyDbContext>(options =>

@@ -8,22 +8,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     const productsContainer = document.getElementById("productsContainer");
     const searchInput = document.getElementById("searchInput");
     const filterButton = document.querySelector(".filter-btn");
-    const categoryList = document.getElementById("categoryList");
     const customizeModal = document.getElementById("customizeModal");
     const customizeCloseBtn = document.getElementById("customizeCloseBtn");
     const qtyValueEl = document.getElementById("qtyValue");
     const totalPriceEl = document.getElementById("totalPrice");
-    const addToCartBtn = document.getElementById("addToCartBtn");
+    const sweetnessSelect = document.getElementById("sweetnessSelect");
     const addonsContainer = document.getElementById("addonsContainer");
+    const extrasValueEl = document.getElementById("extrasValue");
+    const qtyValueEl = document.getElementById("qtyValue");
+    const totalPriceEl = document.getElementById("totalPrice");
+    const addToCartBtn = document.getElementById("addToCartBtn");
     let currentProduct = null;
     let allProducts = [];
-    let currentCategoryProducts = []; // Store products for current category
+    let currentCategoryProducts = [];
     let currentSort = "default";
     let currentCategory = "All";
-    let allCustomizations = [];
-    async function renderCategories() {
-        if (!categoryList) return;
-
         // Keep heading item, clear the rest
         categoryList.innerHTML = "<li><strong>Drinks</strong></li>";
 
@@ -77,6 +76,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
+    let allCustomizations = [];
+    async function renderCategories() {
+        if (!categoryList) return;
+
     function renderProducts(products) {
         productsContainer.innerHTML = "";
 
@@ -110,42 +113,36 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     async function loadProductsByCategory(categoryName) {
         productsContainer.innerHTML = "<p>Loading products...</p>";
-        
-        console.log("Loading products for category:", categoryName);
-        
-        let result;
+
+        let categoryResult;
         if (categoryName === "All") {
-            result = await ProductsService.getAllProducts();
+            categoryResult = await ProductsService.getAllProducts();
         } else {
-            result = await ProductsService.getProductsByCategory(categoryName);
+            categoryResult = await ProductsService.getProductsByCategory(categoryName);
         }
 
-        console.log("Result for category", categoryName, ":", result);
-
-        if (result.success) {
-            currentCategoryProducts = result.data.filter(p => p.isActive);
-            console.log("Filtered products:", currentCategoryProducts);
+        if (categoryResult.success) {
+            currentCategoryProducts = categoryResult.data.filter(p => p.isActive);
             renderProducts(currentCategoryProducts);
         } else {
-            productsContainer.innerHTML = `<p class="error">Error loading products: ${result.error}</p>`;
+            productsContainer.innerHTML = `<p class="error">Error loading products: ${categoryResult.error}</p>`;
         }
     }
 
     async function loadProducts() {
         productsContainer.innerHTML = "<p>Loading products...</p>";
-        const result = await ProductsService.getAllProducts();
+        const productsResult = await ProductsService.getAllProducts();
 
-        if (result.success) {
-            allProducts = result.data.filter(p => p.isActive);
-            currentCategoryProducts = allProducts; // Set as current category products for "All"
+        if (productsResult.success) {
+            allProducts = productsResult.data.filter(p => p.isActive);
+            currentCategoryProducts = allProducts;
             renderProducts(allProducts);
         } else {
-            productsContainer.innerHTML = `<p class="error">Error loading products: ${result.error}</p>`;
+            productsContainer.innerHTML = `<p class="error">Error loading products: ${productsResult.error}</p>`;
         }
     }
 
     function applyFilters() {
-        // Use current category products if we're filtering by category, otherwise use all products
         let baseProducts = currentCategory === "All" ? allProducts : currentCategoryProducts;
         let filtered = [...baseProducts];
         const query = searchInput.value.toLowerCase();
@@ -165,6 +162,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         renderProducts(filtered);
     }
+
     searchInput.addEventListener("input", applyFilters);
 
     filterButton.addEventListener("click", () => {
@@ -186,17 +184,13 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         applyFilters();
-    });
-
-    await loadProducts();
-
     // Build category list from API and wire filtering
     await renderCategories();
     await loadCustomizations();
 
     // Modal behaviors
     async function openCustomize(product) {
-        currentProduct = product;
+    document.querySelector('.category-link[data-category="All"]').classList.add('active');
         if (!allCustomizations || allCustomizations.length === 0) {
             await loadCustomizations();
         }
@@ -204,58 +198,103 @@ document.addEventListener("DOMContentLoaded", async () => {
         qtyValueEl.textContent = '2';
         // Render only customizations linked to this product
         renderCustomizationsForProduct(product);
+        milkSelect.value = 'Almond';
+        sweetnessSelect.value = '75%';
+        extrasValueEl.textContent = '1';
+        qtyValueEl.textContent = '2';
         recalcTotal();
-        customizeModal.style.display = 'flex';
-        document.body.style.overflow = 'hidden';
+
+        if (customizeModal) {
+            customizeModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
     }
 
-    function closeCustomize() {
-        customizeModal.style.display = 'none';
-        document.body.style.overflow = '';
+    function closeCustomizeModal() {
+        if (customizeModal) {
+            customizeModal.style.display = 'none';
+            document.body.style.overflow = '';
+        }
         currentProduct = null;
+        window.currentProduct = null;
     }
 
-    customizeCloseBtn?.addEventListener('click', closeCustomize);
-    customizeModal?.addEventListener('click', (e)=>{
-        if (e.target === customizeModal) closeCustomize();
-    });
+    if (customizeCloseBtn) {
+        customizeCloseBtn.addEventListener('click', closeCustomizeModal);
+    }
 
+    if (customizeModal) {
+        customizeModal.addEventListener('click', (e) => {
+            if (e.target === customizeModal) closeCustomizeModal();
+        });
+    }
+
+   
     document.querySelectorAll('.temp-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelectorAll('.temp-btn').forEach(b => {
                 b.classList.toggle('active', b === btn);
                 b.setAttribute('aria-pressed', b === btn ? 'true' : 'false');
             });
-        });
-    });
-
     // No static selects to watch now
 
+    [sizeSelect, milkSelect, sweetnessSelect].forEach(el => {
+        el?.addEventListener('change', recalcTotal);
+    });
+
+    
     document.querySelectorAll('.stepper').forEach(stepper => {
         const minus = stepper.querySelector('.stepper-minus');
         const plus = stepper.querySelector('.stepper-plus');
         const valueEl = stepper.querySelector('.stepper-value');
-        const type = stepper.getAttribute('data-type');
-        minus?.addEventListener('click', () => {
-            const val = Math.max( type === 'quantity' ? 1 : 0, parseInt(valueEl.textContent || '0') - 1 );
-            valueEl.textContent = String(val);
-            recalcTotal();
-        });
-        plus?.addEventListener('click', () => {
-            const val = Math.min(99, parseInt(valueEl.textContent || '0') + 1);
-            valueEl.textContent = String(val);
-            recalcTotal();
-        });
+
+        if (minus && plus && valueEl) {
+            minus.addEventListener('click', () => {
+                const type = stepper.getAttribute('data-type');
+                const min = type === 'quantity' ? 1 : 0;
+                const val = Math.max(min, parseInt(valueEl.textContent || '0') - 1);
+                valueEl.textContent = String(val);
+                recalcTotal();
+            });
+
+            plus.addEventListener('click', () => {
+                const val = Math.min(99, parseInt(valueEl.textContent || '0') + 1);
+                valueEl.textContent = String(val);
+                recalcTotal();
+            });
+        }
     });
 
-    function recalcTotal() {
-        if (!currentProduct) return;
-        const base = Number(currentProduct.price) || 0;
-        const sizeDelta = 0;
-        const milkDelta = 0;
-        const extras = 0;
-        const qty = parseInt(qtyValueEl?.textContent || '1');
-        const extrasDelta = extras * 20;
+
+        
+        let sizeDelta = 0;
+        const sizeSelect = document.getElementById('sizeSelect');
+        if (sizeSelect && sizeSelect.selectedOptions && sizeSelect.selectedOptions[0]) {
+            sizeDelta = Number(sizeSelect.selectedOptions[0].dataset.delta || 0);
+        }
+
+      
+        let milkDelta = 0;
+        const milkSelect = document.getElementById('milkSelect');
+        if (milkSelect && milkSelect.selectedOptions && milkSelect.selectedOptions[0]) {
+            milkDelta = Number(milkSelect.selectedOptions[0].dataset.delta || 0);
+        }
+
+        
+        let extras = 0;
+        const extrasValueEl = document.getElementById('extrasValue');
+        if (extrasValueEl) {
+            extras = parseInt(extrasValueEl.textContent || '0');
+        }
+
+     
+        let qty = 1;
+        const qtyValueEl = document.getElementById('qtyValue');
+        if (qtyValueEl) {
+            qty = parseInt(qtyValueEl.textContent || '1');
+        }
+
+        const sizeDelta = Number(sizeSelect?.selectedOptions?.[0]?.dataset?.delta || 0);
 
         // Dynamic add-ons: sum selected prices
         let addonsDelta = 0;
@@ -280,7 +319,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         const total = (base + sizeDelta + milkDelta + extrasDelta + addonsDelta) * qty;
         totalPriceEl.textContent = `₱${total.toFixed(2)}`;
     }
-
+        const extrasDelta = extras * 20;
     function validateRequiredCustomizations() {
         let valid = true;
         addonsContainer?.querySelectorAll('.addon-section').forEach(section => {
@@ -573,4 +612,23 @@ document.addEventListener("DOMContentLoaded", async () => {
             addonsContainer.appendChild(section);
         });
     }
+                if (result.success) {
+                    showNotification('Item added to cart!', 'success');
+                    closeCustomizeModal();
+                    if (result.cartCount !== undefined) {
+                        updateCartCount(result.cartCount);
+                    }
+                } else {
+                    showNotification('Failed to add item to cart: ' + result.error, 'error');
+                }
+            } catch (error) {
+                console.error('Error adding to cart:', error);
+                showNotification('Error adding item to cart: ' + error.message, 'error');
+            }
+        });
+    }
+    addToCartBtn?.addEventListener('click', () => {
+        // Placeholder: wire to cart later
+        closeCustomize();
+    });
 });

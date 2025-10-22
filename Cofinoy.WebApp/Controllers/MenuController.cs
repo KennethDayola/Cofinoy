@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Cofinoy.Data.Models;
 using Cofinoy.Services.Interfaces;
 using Cofinoy.Services.ServiceModels;
 using Cofinoy.WebApp.Models;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
@@ -372,5 +374,8 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
+
+        
+
     }
 }

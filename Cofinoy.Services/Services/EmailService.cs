@@ -22,18 +22,18 @@ namespace Cofinoy.Services.Services
             _settings = settings.Value;
         }
 
-        public async Task SendPasswordResetEmailAsync(string toEmail, string resetLink)
+        public async Task SendPasswordResetCodeAsync(string toEmail, string code)
         {
             var message = new MailMessage
             {
                 From = new MailAddress(_settings.Username, _settings.DisplayName),
-                Subject = "Reset your Cofinoy password",
+                Subject = "Your Cofinoy Password Reset Code",
                 Body = $@"
-                    <p>Hello,</p>
-                    <p>Follow this link to reset your password:</p>
-                    <p><a href='{resetLink}'>{resetLink}</a></p>
-                    <p>If you didn’t request a reset, ignore this email.</p>
-                    <p>Thanks,<br/>Cofinoy Team</p>",
+            <p>Hello,</p>
+            <p>Your Cofinoy password reset code is: <strong>{code}</strong></p>
+            <p>This code will expire in 10 minutes.</p>
+            <p>If you didn’t request a reset, you can ignore this message.</p>
+            <p>Thanks,<br/>Cofinoy Team</p>",
                 IsBodyHtml = true
             };
 
