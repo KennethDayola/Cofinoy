@@ -22,7 +22,6 @@ function calculateCartTotals() {
         return;
     }
 
-    // Calculate subtotal from cart items
     cartItems.forEach(item => {
         const quantity = parseInt(item.querySelector('.quantity-value').textContent);
         const unitPrice = parseFloat(item.querySelector('.item-price').textContent.replace('₱', ''));
@@ -71,7 +70,6 @@ async function updateQuantity(productId, action) {
         if (result.success) {
             quantityElement.textContent = quantity;
 
-            // Safely update elements only if they exist
             const itemTotalElement = document.getElementById(`total-${productId}`);
             const subtotalElement = document.getElementById('subtotalAmount');
             const totalElement = document.getElementById('totalAmount');
