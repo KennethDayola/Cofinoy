@@ -391,7 +391,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 });
             }
 
-            // Dropdown selects
             const select = body?.querySelector('select.addon-select');
             if (select && select.selectedOptions && select.selectedOptions[0]) {
                 customizations.push({
@@ -442,22 +441,31 @@ document.addEventListener("DOMContentLoaded", async () => {
         notification.className = `notification ${type}`;
         notification.textContent = message;
         notification.style.cssText = `
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            padding: 15px 20px;
-            background: ${type === 'success' ? '#4CAF50' : '#f44336'};
-            color: white;
-            border-radius: 5px;
-            z-index: 10000;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        `;
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        padding: 10px 20px;
+        background: ${type === 'success' ? '#322708' : '#f44336'};
+        color: white;
+        border-radius: 5px;
+        z-index: 10000;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        transform: translateX(100%);
+        transition: transform 0.3s ease-in-out;
+    `;
 
         document.body.appendChild(notification);
 
         setTimeout(() => {
-            notification.remove();
-        }, 3000);
+            notification.style.transform = 'translateX(0)';
+        }, 10);
+
+        setTimeout(() => {
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                notification.remove();
+            }, 300);
+        }, 2700);
     }
 
     function updateCartCount(count) {
