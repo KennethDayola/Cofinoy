@@ -1,7 +1,5 @@
-﻿body {
-    background-color: #e8e8e8;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
-}
+﻿/* Profile Page Styles - Matching Site Theme */
+/* This CSS only affects the profile page and will not change navigation/header styles */
 
 .profile-container {
     max-width: 1200px;
@@ -15,7 +13,12 @@
     padding: 40px;
     margin-bottom: 30px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: box-shadow 0.3s ease;
 }
+
+    .profile-card:hover {
+        box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+    }
 
 .section-header {
     display: flex;
@@ -32,37 +35,152 @@
     margin: 0;
 }
 
-.edit-btn {
-    background-color: #4a4a2e;
+/* Primary Edit Button (Personal Info) */
+.btn-primary.rounded-pill {
+    background-color: #322708 !important;
     color: white;
     border: none;
-    border-radius: 25px;
-    padding: 10px 30px;
+    padding: 10px 28px;
     font-size: 0.95rem;
-    display: flex;
+    font-weight: 500;
+    display: inline-flex;
     align-items: center;
     gap: 8px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-    text-decoration: none;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(50, 39, 8, 0.2);
 }
 
-    .edit-btn:hover {
-        background-color: #3a3a24;
-        color: #fff;
-        text-decoration: none;
+    .btn-primary.rounded-pill:hover {
+        background-color: #3B3422 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(50, 39, 8, 0.3);
     }
 
-    .edit-btn.outline {
-        background-color: white;
-        color: #4a4a2e;
-        border: 2px solid #4a4a2e;
+    .btn-primary.rounded-pill:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(50, 39, 8, 0.2);
     }
 
-        .edit-btn.outline:hover {
-            background-color: #f5f5f5;
-        }
+/* Secondary Edit Button (Address) */
+.btn-secondary2.rounded-pill {
+    background-color: white;
+    color: #322708;
+    border: 2px solid #322708;
+    padding: 10px 28px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+}
 
+    .btn-secondary2.rounded-pill:hover {
+        background-color: #322708 !important;
+        color: white;
+        border-color: #322708;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(50, 39, 8, 0.2);
+    }
+
+    .btn-secondary2.rounded-pill:active {
+        transform: translateY(0);
+    }
+
+/* Warning Button (Change Password) */
+.btn-warning.rounded-pill {
+    background-color: #92400E !important;
+    color: white;
+    border: none;
+    padding: 10px 28px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(146, 64, 14, 0.2);
+}
+
+    .btn-warning.rounded-pill:hover {
+        background-color: #7c3510 !important;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 16px rgba(146, 64, 14, 0.3);
+    }
+
+    .btn-warning.rounded-pill:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 8px rgba(146, 64, 14, 0.2);
+    }
+
+/* Logout Button */
+.btn-danger.rounded-pill {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 14px 80px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 12px rgba(220, 53, 69, 0.2);
+}
+
+    .btn-danger.rounded-pill:hover {
+        background-color: #c82333;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 20px rgba(220, 53, 69, 0.3);
+    }
+
+    .btn-danger.rounded-pill:active {
+        transform: translateY(0);
+        box-shadow: 0 2px 12px rgba(220, 53, 69, 0.2);
+    }
+
+/* Modal Button Styles */
+.btn-outline-secondary {
+    border: 2px solid #6c757d;
+    color: #6c757d;
+    background: white;
+    padding: 10px 30px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+    .btn-outline-secondary:hover {
+        background: #6c757d;
+        color: white;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(108, 117, 125, 0.2);
+    }
+
+.modal-content .btn-primary {
+    background-color: #322708 !important;
+    padding: 10px 30px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+    .modal-content .btn-primary:hover {
+        background-color: #3B3422 !important;
+        transform: translateY(-1px);
+    }
+
+.modal-content .btn-warning {
+    background-color: #92400E !important;
+    padding: 10px 30px;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+    .modal-content .btn-warning:hover {
+        background-color: #7c3510 !important;
+        transform: translateY(-1px);
+    }
+
+/* Info Grid */
 .info-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
@@ -78,6 +196,8 @@
     font-size: 0.85rem;
     color: #888;
     margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .info-value {
@@ -86,60 +206,181 @@
     font-weight: 500;
 }
 
-.logout-container {
-    display: flex;
-    justify-content: center;
-    margin-top: 40px;
-}
-
-.logout-btn {
-    background-color: #dc3545;
-    color: white;
-    border: none;
-    border-radius: 25px;
-    padding: 12px 80px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-    .logout-btn:hover {
-        background-color: #c82333;
-    }
-
+/* Modal Styles */
 .modal-content {
     border-radius: 20px;
-    padding: 20px 30px;
+    border: none;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.1);
 }
 
 .modal-header {
-    border-bottom: none;
+    border-bottom: 1px solid #f0f0f0;
+    padding: 25px 30px;
+}
+
+.modal-body {
+    padding: 25px 30px;
 }
 
 .modal-title {
     font-size: 1.5rem;
     font-weight: 600;
+    color: #322708;
 }
 
-.btn-save {
-    background-color: #4a4a2e;
-    color: white;
+.btn-close {
+    transition: transform 0.2s ease;
+}
+
+    .btn-close:hover {
+        transform: rotate(90deg);
+    }
+
+/* Form Inputs */
+.form-control {
+    border: 2px solid #e9ecef;
+    border-radius: 12px;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+}
+
+    .form-control:focus {
+        border-color: #322708;
+        box-shadow: 0 0 0 0.2rem rgba(50, 39, 8, 0.15);
+    }
+
+.form-label {
+    font-weight: 500;
+    color: #495057;
+    margin-bottom: 8px;
+    font-size: 0.9rem;
+}
+
+/* Card Styles */
+.card {
+    transition: all 0.3s ease;
+}
+
+    .card.shadow-sm {
+        box-shadow: 0 2px 12px rgba(0,0,0,0.08) !important;
+    }
+
+        .card.shadow-sm:hover {
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12) !important;
+        }
+
+/* Icon Styling */
+.bi {
+    transition: transform 0.2s ease;
+}
+
+.btn:hover .bi {
+    transform: scale(1.1);
+}
+
+/* Logout Modal Special Styling */
+#logoutConfirmModal .modal-content {
+    background: white;
+    border: 2px solid #f0f0f0;
+}
+
+#logoutConfirmModal .bi-box-arrow-right {
+    color: #dc3545;
+}
+
+#logoutConfirmModal .btn-danger {
+    background-color: #dc3545;
     border: none;
-    border-radius: 25px;
-    padding: 12px 40px;
-    font-size: 1rem;
-    font-weight: 500;
-    cursor: pointer;
+    box-shadow: 0 2px 12px rgba(220, 53, 69, 0.2);
+    padding: 10px 30px;
 }
 
-.btn-cancel {
-    background-color: white;
-    color: #666;
-    border: 2px solid #ddd;
-    border-radius: 25px;
-    padding: 12px 40px;
-    font-size: 1rem;
+    #logoutConfirmModal .btn-danger:hover {
+        background-color: #c82333;
+        box-shadow: 0 4px 16px rgba(220, 53, 69, 0.3);
+        transform: translateY(-1px);
+    }
+
+/* Toast Container */
+#toastContainer {
+    z-index: 9999;
+}
+
+.toast {
+    border-radius: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+.toast-body {
+    padding: 16px;
     font-weight: 500;
 }
 
+/* Loading Spinner */
+.spinner-border-sm {
+    width: 1rem;
+    height: 1rem;
+    border-width: 0.15em;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .info-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    .btn-danger.rounded-pill {
+        padding: 12px 50px;
+        font-size: 1rem;
+    }
+
+    .profile-card {
+        padding: 25px;
+    }
+}
+
+@media (max-width: 480px) {
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+
+    .btn-danger.rounded-pill {
+        padding: 12px 40px;
+    }
+}
+
+/* Disabled State */
+button:disabled, .btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+/* Focus States */
+.btn:focus-visible {
+    outline: 2px solid #322708;
+    outline-offset: 2px;
+}
+
+/* Success/Error States for Forms */
+.form-control.is-valid {
+    border-color: #28a745;
+}
+
+.form-control.is-invalid {
+    border-color: #dc3545;
+}
+
+/* Smooth Transitions */
+* {
+    transition-property: background-color, color, border-color, transform, box-shadow;
+    transition-duration: 0.3s;
+    transition-timing-function: ease;
+}

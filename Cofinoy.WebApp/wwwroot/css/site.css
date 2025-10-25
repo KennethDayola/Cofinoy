@@ -103,6 +103,7 @@ body {
     .btn-secondary2:hover {
         background-color: #322708 !important;
         border-color: transparent;
+        color: white !important;
     }
 
 .btn-icon {
