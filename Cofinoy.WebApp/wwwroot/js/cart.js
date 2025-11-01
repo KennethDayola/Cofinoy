@@ -30,7 +30,7 @@ function calculateCartTotals() {
         subtotal += itemTotal;
     });
 
-    const total = subtotal - 60;
+    const total = subtotal - 0;
 
     const subtotalElement = document.getElementById('subtotalAmount');
     const totalElement = document.getElementById('totalAmount');
@@ -114,7 +114,6 @@ async function removeFromCart(productId) {
         if (result.success) {
             document.getElementById(`cartItem-${productId}`).remove();
 
-            // Safely update elements only if they exist
             const subtotalElement = document.getElementById('subtotalAmount');
             const totalElement = document.getElementById('totalAmount');
 
