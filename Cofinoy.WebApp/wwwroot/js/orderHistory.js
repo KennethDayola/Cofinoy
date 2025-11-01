@@ -223,3 +223,91 @@ async function loadOrderDetails(orderId) {
         }
     });
 });
+
+// Auto-refresh order status every 10 seconds
+let autoRefreshInterval;
+
+function startAutoRefresh() {
+    autoRefreshInterval = setInterval(async () => {
+        await refreshOrderStatus();
+    }, 10000); // Check every 10 seconds
+}
+
+async function refreshOrderStatus() {
+    try {
+        // Change this URL to match your controller route
+        const response = await fetch('/OrderHistory/GetOrderStatuses'); // or '/Menu/GetOrderStatuses'
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch order statuses');
+        }
+
+        const orders = await response.json();
+
+        // Update each order card status
+        orders.forEach(order => {
+            const orderCard = document.querySelector(`[data-order-id="${order.id}"]`);
+            if (orderCard) {
+                const statusDot = orderCard.querySelector('.status-dot');
+                const statusText = orderCard.querySelector('.status-text');
+
+                // Remove old status classes
+                statusDot.className = 'status-dot';
+                statusText.className = 'status-text';
+
+                // Add new status classes
+                const statusClass = `status-${order.status.toLowerCase().replace(' ', '-')}`;
+                statusDot.classList.add(statusClass);
+                statusText.classList.add(statusClass);
+                statusText.textContent = order.status;
+
+                // Update track order section if this is the active order
+                if (orderCard.classList.contains('active')) {
+                    updateTrackOrderProgress(order.status);
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Error refreshing order status:', error);
+    }
+}
+
+function updateTrackOrderProgress(status) {
+    const trackText = document.getElementById('trackOrderText');
+    if (trackText) {
+        trackText.textContent = `"Your order is ${status.toLowerCase()}"`;
+    }
+
+    // Update progress bar
+    const steps = document.querySelectorAll('.progress-steps .step');
+    steps.forEach(step => step.classList.remove('active'));
+
+    if (status !== 'Cancelled') {
+        steps[0].classList.add('active'); // Placed
+
+        if (['Brewing', 'Ready', 'Serving', 'Served'].includes(status)) {
+            steps[1].classList.add('active'); // Brewing
+        }
+        if (['Ready', 'Serving', 'Served'].includes(status)) {
+            steps[2].classList.add('active'); // Ready
+        }
+        if (['Serving', 'Served'].includes(status)) {
+            steps[3].classList.add('active'); // Serving
+        }
+        if (status === 'Served') {
+            steps[4].classList.add('active'); // Served
+        }
+    }
+}
+
+// Start auto-refresh when page loads
+document.addEventListener('DOMContentLoaded', () => {
+    startAutoRefresh();
+});
+
+// Stop auto-refresh when user leaves the page
+window.addEventListener('beforeunload', () => {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+});

@@ -16,6 +16,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Security.Claims;
 using System.Text.Json;
 using System.Threading.Tasks;
 
@@ -128,6 +129,24 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+        // Add this to your Order controller (MenuController or OrderController)
+        [HttpGet]
+        public async Task<IActionResult> GetOrderStatuses()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            var orders = await _context.Orders
+                .Where(o => o.UserId == userId)
+                .OrderByDescending(o => o.OrderDate)
+                .Select(o => new {
+                    Id = o.Id,
+                    Status = o.Status
+                })
+                .ToListAsync();
+
+            return Json(new { success = true, data = orders });
+        }
+
         // ✅ Get order details (for modal view)
         [HttpGet]
         [Authorize(Roles = "Admin")]
@@ -211,7 +230,7 @@ namespace Cofinoy.WebApp.Controllers
                 if (order == null)
                     return Json(new { success = false, error = "Order not found" });
 
-                var validStatuses = new[] { "Pending", "Confirmed", "Brewing", "Preparing", "Ready", "Completed", "Cancelled" };
+                var validStatuses = new[] { "Pending", "Confirmed", "Brewing", "Ready", "Completed", "Cancelled" };
                 if (!validStatuses.Contains(newStatus))
                     return Json(new { success = false, error = "Invalid status" });
 

@@ -89,5 +89,33 @@ namespace Cofinoy.Controllers
                 return Json(new { success = false, message = ex.Message });
             }
         }
+        [HttpGet]
+        public async Task<IActionResult> GetOrderStatuses()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, error = "User not authenticated" });
+                }
+
+                var orders = await _context.Orders
+                    .Where(o => o.UserId == userId)
+                    .OrderByDescending(o => o.OrderDate)
+                    .Select(o => new {
+                        id = o.Id,
+                        status = o.Status
+                    })
+                    .ToListAsync();
+
+                return Json(orders);
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
     }
 }
