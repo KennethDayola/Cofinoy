@@ -117,5 +117,38 @@ namespace Cofinoy.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
+
+
+        [HttpGet]
+        public async Task<IActionResult> GetAllOrderStatuses()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                var orders = await _context.Orders
+                    .Where(o => o.UserId == userId)
+                    .Select(o => new
+                    {
+                        id = o.Id,
+                        status = o.Status
+                    })
+                    .ToListAsync();
+
+                return Json(new
+                {
+                    success = true,
+                    orders = orders
+                });
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
     }
 }
