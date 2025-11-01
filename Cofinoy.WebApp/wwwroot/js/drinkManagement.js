@@ -680,6 +680,11 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
+    // Back-compat shim: some callers may still reference the old Firebase-based loader
+    function loadDrinksFromFirebase() {
+        return loadDrinksFromAPI();
+    }
+
     async function loadCategoriesFromAPI() {
         try {
             const result = await DrinkAPIService.getAllCategories();
@@ -977,6 +982,6 @@ document.addEventListener('DOMContentLoaded', function () {
         closeModal: closeModalFunc,
         applyFilters: applyFilters,
         clearFilters: clearAllFilters,
-        refreshData: loadDrinksFromFirebase
+        refreshData: loadDrinksFromAPI
     };
 });
