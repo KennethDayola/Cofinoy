@@ -57,3 +57,45 @@ function cancelOrder(orderId) {
             showToast('An unexpected error occurred', 'error');
         });
 }
+// ✅ Served
+function markAsServed(orderId) {
+    fetch(`${window.location.origin}/Menu/UpdateOrderStatus`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: orderId, newStatus: 'Served' })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('✅ Order marked as Served', 'success');
+                setTimeout(() => window.location.href = '/Menu/OrderManagement', 1800);
+            } else {
+                showToast('⚠️ ' + data.error, 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            showToast('An unexpected error occurred', 'error');
+        });
+}
+// ✅ Serving
+function markAsServing(orderId) {
+    fetch(`${window.location.origin}/Menu/UpdateOrderStatus`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: orderId, newStatus: 'Serving' })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('✅ Order marked as Serving', 'success');
+                setTimeout(() => window.location.reload(), 1800);
+            } else {
+                showToast('⚠️ ' + data.error, 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            showToast('An unexpected error occurred', 'error');
+        });
+}

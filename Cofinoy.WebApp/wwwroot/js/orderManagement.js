@@ -1,22 +1,36 @@
 ﻿document.addEventListener('DOMContentLoaded', function () {
     loadOrders();
     setupEventListeners();
+    startAutoRefresh();
 });
 
+let autoRefreshInterval;
+let currentFilter = 'All';
+
 function setupEventListeners() {
-    // 🔍 Search functionality
     document.getElementById('searchOrders').addEventListener('keyup', function () {
-        loadOrders();
+        loadOrders(currentFilter === 'All' ? null : currentFilter);
     });
 
-    // 🧭 Filter button
-    document.querySelector('.btn-filter').addEventListener('click', function () {
+    document.querySelector('.btn-filter').addEventListener('click', function (e) {
+        e.stopPropagation();
         showStatusFilter();
     });
 }
 
-// ✅ Fetch and display all orders
-function loadOrders(status = null, searchTerm = null) {
+function startAutoRefresh() {
+    autoRefreshInterval = setInterval(() => {
+        loadOrders(currentFilter === 'All' ? null : currentFilter, null, true);
+    }, 5000);
+}
+
+window.addEventListener('beforeunload', () => {
+    if (autoRefreshInterval) {
+        clearInterval(autoRefreshInterval);
+    }
+});
+
+function loadOrders(status = null, searchTerm = null, silentRefresh = false) {
     const search = document.getElementById('searchOrders').value || searchTerm || '';
 
     fetch(`${window.location.origin}/Menu/GetAllOrders?status=${encodeURIComponent(status || '')}&searchTerm=${encodeURIComponent(search)}`)
@@ -27,12 +41,16 @@ function loadOrders(status = null, searchTerm = null) {
         .then(data => {
             if (data.success) {
                 displayOrders(data.data);
-                updateOrderCount(data.count);
+                updateOrderCount(data.count, currentFilter);
             } else {
                 console.error('Error loading orders:', data.error);
             }
         })
-        .catch(error => console.error('Fetch error:', error));
+        .catch(error => {
+            if (!silentRefresh) {
+                console.error('Fetch error:', error);
+            }
+        });
 }
 
 function displayOrders(orders) {
@@ -45,7 +63,6 @@ function displayOrders(orders) {
     }
 
     orders.forEach(order => {
-        // Normalize status (default to Brewing)
         let status = (order.status || '').trim();
         if (status === '' || status.toLowerCase() === 'pending') {
             status = 'Brewing';
@@ -71,16 +88,15 @@ function displayOrders(orders) {
     });
 }
 
-function updateOrderCount(count) {
-    document.querySelector('.orders-count').textContent = `${count} orders in your list.`;
+function updateOrderCount(count, filter) {
+    const filterText = filter === 'All' ? 'total' : filter.toLowerCase();
+    document.querySelector('.orders-count').textContent = `${count} ${filterText} order${count !== 1 ? 's' : ''} in your list.`;
 }
 
-// ✅ Redirects to full Order Details page
 function viewOrderDetails(orderId) {
     window.location.href = `/Menu/ViewOrder?orderId=${orderId}`;
 }
 
-// ✅ Filter dropdown (for All Orders button)
 function showStatusFilter() {
     const existingDropdown = document.querySelector('.status-filter-dropdown');
     if (existingDropdown) {
@@ -88,18 +104,39 @@ function showStatusFilter() {
         return;
     }
 
-    const statuses = ['All', 'Brewing', 'Confirmed', 'Preparing', 'Ready', 'Completed', 'Cancelled'];
+    const statuses = [
+        { value: 'All', label: 'All Orders', icon: 'fa-list' },
+        { value: 'Brewing', label: 'Brewing', icon: 'fa-fire' },
+        { value: 'Ready', label: 'Ready', icon: 'fa-clock' },
+        { value: 'Serving', label: 'Serving', icon: 'fa-hand-holding' },
+        { value: 'Served', label: 'Served', icon: 'fa-check-double' },
+        { value: 'Cancelled', label: 'Cancelled', icon: 'fa-times-circle' }
+    ];
+
     const dropdown = document.createElement('div');
     dropdown.className = 'status-filter-dropdown';
 
     statuses.forEach(status => {
         const option = document.createElement('div');
-        option.className = 'filter-option';
-        option.textContent = status;
-        option.onclick = function () {
-            loadOrders(status === 'All' ? null : status);
+        option.className = 'filter-option' + (currentFilter === status.value ? ' active' : '');
+        option.innerHTML = `
+            <i class="fas ${status.icon}"></i>
+            <span>${status.label}</span>
+            ${currentFilter === status.value ? '<i class="fas fa-check check-icon"></i>' : ''}
+        `;
+
+        option.onclick = function (e) {
+            e.stopPropagation();
+            currentFilter = status.value;
+
+            const filterBtn = document.querySelector('.btn-filter');
+            filterBtn.innerHTML = `<i class="fas fa-filter"></i> ${status.label}`;
+
+            loadOrders(status.value === 'All' ? null : status.value);
+
             dropdown.remove();
         };
+
         dropdown.appendChild(option);
     });
 
@@ -108,17 +145,18 @@ function showStatusFilter() {
     const filterButton = document.querySelector('.btn-filter');
     const rect = filterButton.getBoundingClientRect();
 
-    dropdown.style.position = 'absolute';
-    dropdown.style.top = `${rect.bottom + window.scrollY}px`;
-    dropdown.style.left = `${rect.left + window.scrollX}px`;
+    dropdown.style.position = 'fixed';
+    dropdown.style.top = `${rect.bottom + 5}px`;
+    dropdown.style.left = `${rect.left}px`;
     dropdown.style.minWidth = `${rect.width}px`;
     dropdown.style.zIndex = 1000;
 
-    // Close dropdown when clicking outside
-    document.addEventListener('click', function handleOutsideClick(e) {
-        if (!dropdown.contains(e.target) && !filterButton.contains(e.target)) {
-            dropdown.remove();
-            document.removeEventListener('click', handleOutsideClick);
-        }
-    });
+    setTimeout(() => {
+        document.addEventListener('click', function handleOutsideClick(e) {
+            if (!dropdown.contains(e.target) && !filterButton.contains(e.target)) {
+                dropdown.remove();
+                document.removeEventListener('click', handleOutsideClick);
+            }
+        });
+    }, 0);
 }

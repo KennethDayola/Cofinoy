@@ -84,7 +84,12 @@ namespace Cofinoy.WebApp.Controllers
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(status) && status != "All")
-                    query = query.Where(o => o.Status == status);
+                {
+                    if (status == "Brewing")
+                        query = query.Where(o => o.Status == "Pending");
+                    else
+                        query = query.Where(o => o.Status == status);
+                }
 
                 var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
                 var users = await _context.Users.ToListAsync();
@@ -129,7 +134,6 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
-        // Add this to your Order controller (MenuController or OrderController)
         [HttpGet]
         public async Task<IActionResult> GetOrderStatuses()
         {
@@ -147,7 +151,6 @@ namespace Cofinoy.WebApp.Controllers
             return Json(new { success = true, data = orders });
         }
 
-        // ✅ Get order details (for modal view)
         [HttpGet]
         [Authorize(Roles = "Admin")]
         public async Task<JsonResult> GetOrderDetails(int orderId)
@@ -212,7 +215,6 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
-        // ✅ Update order status (dropdown)
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<JsonResult> UpdateOrderStatus([FromBody] JsonElement body)
@@ -230,15 +232,30 @@ namespace Cofinoy.WebApp.Controllers
                 if (order == null)
                     return Json(new { success = false, error = "Order not found" });
 
-                var validStatuses = new[] { "Pending", "Confirmed", "Brewing", "Ready", "Completed", "Cancelled" };
+                var validStatuses = new[] { "Pending", "Confirmed", "Brewing", "Ready", "Serving", "Served", "Cancelled" };
                 if (!validStatuses.Contains(newStatus))
-                    return Json(new { success = false, error = "Invalid status" });
+                    return Json(new { success = false, error = $"Invalid status: {newStatus}" });
+
+                if (order.Status == "Served")
+                    return Json(new { success = false, error = "Cannot update a served order" });
+
+                if (order.Status == "Cancelled")
+                    return Json(new { success = false, error = "Cannot update a cancelled order" });
+
+                _logger.LogInformation("Updating order {OrderId} from {OldStatus} to {NewStatus}",
+                    orderId, order.Status, newStatus);
 
                 order.Status = newStatus;
                 _context.Orders.Update(order);
                 await _context.SaveChangesAsync();
 
-                return Json(new { success = true, message = $"Order status updated to {newStatus}" });
+                return Json(new
+                {
+                    success = true,
+                    message = $"Order status updated to {newStatus}",
+                    orderId = orderId,
+                    newStatus = newStatus
+                });
             }
             catch (Exception ex)
             {
@@ -246,9 +263,6 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
-
-        // ✅ Cancel order (cancel button)
-
         [HttpPost]
         [Authorize(Roles = "Admin")]
         public async Task<JsonResult> CancelOrder([FromBody] JsonElement body)

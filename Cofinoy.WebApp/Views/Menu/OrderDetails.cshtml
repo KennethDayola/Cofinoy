@@ -13,10 +13,13 @@
     </a>
 
     <h2 class="order-title">Order #@Model.InvoiceNumber</h2>
-    <p class="order-time">@Model.OrderDate.ToString("hh:mm tt")</p>
+    <p class="order-time">@Model.OrderDate.ToString("MMMM dd, yyyy - hh:mm tt")</p>
+
+    <div class="order-status-badge status-@Model.Status.ToLower().Replace(" ", "-")">
+        <i class="fas fa-circle"></i> @Model.Status
+    </div>
 
     <div class="order-details-body">
-        <!-- Left: Order Items -->
         <div class="order-items-card">
             <h3>Order Items</h3>
             @foreach (var item in Model.OrderItems)
@@ -27,15 +30,17 @@
                         <small>Quantity: @item.Quantity</small><br />
                         @if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.Temperature))
                         {
-                            <small>Add-ons: @item.Size @if (!string.IsNullOrEmpty(item.Temperature)) {
-                            <text>, @item.Temperature</text>
+                            <small>
+                                Add-ons: @item.Size @if (!string.IsNullOrEmpty(item.Temperature))
+                                {
+                                    <text>, @item.Temperature</text>
+                                }
+                            </small>
                         }
-    </small>
-                    }
+                    </div>
+                    <strong>₱@item.TotalPrice.ToString("N2")</strong>
                 </div>
-                <strong>₱@item.TotalPrice.ToString("N2")</strong>
-            </div>
-                        }
+            }
 
             <div class="price-summary">
                 <div><span>Subtotal</span><span>₱@Model.TotalPrice.ToString("N2")</span></div>
@@ -57,11 +62,58 @@
         </div>
     </div>
 
+    <!-- ORDER ACTION BUTTONS -->
     <div class="order-footer">
-        <button class="btn-ready" onclick="markAsReady(@Model.Id)">Mark as Ready</button>
-        <button class="btn-cancel-outline" onclick="cancelOrder(@Model.Id)">Cancel Order</button>
+        @{
+            var status = Model.Status?.Trim() ?? "Brewing";
+        }
+
+        @if (status == "Brewing" || status == "Confirmed" || status == "Pending")
+        {
+            <button class="btn-ready" onclick="markAsReady(@Model.Id)">
+                <i class="fas fa-check"></i> Mark as Ready
+            </button>
+        }
+        else if (status == "Ready")
+        {
+            <button class="btn-serving" onclick="markAsServing(@Model.Id)">
+                <i class="fas fa-hand-holding"></i> Mark as Serving
+            </button>
+        }
+        else if (status == "Serving")
+        {
+            <button class="btn-served" onclick="markAsServed(@Model.Id)">
+                <i class="fas fa-check-double"></i> Mark as Served
+            </button>
+        }
+        else if (status == "Served")
+        {
+            <div class="order-completed-message">
+                <i class="fas fa-check-circle"></i> Order Completed Successfully
+            </div>
+        }
+
+        @if (status != "Cancelled" && status != "Served")
+        {
+            <button class="btn-cancel-outline" onclick="cancelOrder(@Model.Id)">
+                <i class="fas fa-times"></i> Cancel Order
+            </button>
+        }
+
+        @if (status == "Cancelled")
+        {
+            <div class="order-completed-message cancelled">
+                <i class="fas fa-times-circle"></i> Order Cancelled
+            </div>
+        }
     </div>
 </div>
 
 <!-- ✅ External JS file for order actions -->
-<script src="~/js/orderDetails.js"></script>
+<script src="~/js/orderDetails.js" asp-append-version="true"></script>
+
+<script>
+    // Debug logging
+    console.log('Current Order Status:', '@Model.Status');
+    console.log('Order ID:', @Model.Id);
+</script>
