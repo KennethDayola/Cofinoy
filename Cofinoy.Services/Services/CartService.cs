@@ -57,6 +57,7 @@ namespace Cofinoy.Services.Services
             {
                 Console.WriteLine("=== START: AddToCartAsync ===");
                 Console.WriteLine($"User: {userId}, Product: {item.ProductId}, Quantity: {item.Quantity}");
+                Console.WriteLine($"Calculated Total should be: {item.UnitPrice * item.Quantity}");
 
                 var cart = await _cartRepository.GetCartByUserIdAsync(userId);
 
@@ -157,6 +158,9 @@ namespace Cofinoy.Services.Services
         //helper
         private CartItem CreateCartItem(string cartId, CartItemServiceModel item)
         {
+            Console.WriteLine($"Creating cart item - UnitPrice: {item.UnitPrice}, Quantity: {item.Quantity}");
+            Console.WriteLine($"Calculated TotalPrice: {item.TotalPrice}");
+
             return new CartItem
             {
                 Id = Guid.NewGuid().ToString(),
@@ -164,9 +168,9 @@ namespace Cofinoy.Services.Services
                 ProductId = item.ProductId,
                 ProductName = item.Name,
                 Description = item.Description,
-                UnitPrice = item.UnitPrice,
+                UnitPrice = item.UnitPrice, // This should include base price + all add-ons
                 Quantity = item.Quantity,
-                TotalPrice = item.UnitPrice * item.Quantity,
+                TotalPrice = item.TotalPrice, // Use the calculated TotalPrice for consistency
                 ImageUrl = item.ImageUrl,
                 Temperature = item.Temperature,
                 Size = item.Size,

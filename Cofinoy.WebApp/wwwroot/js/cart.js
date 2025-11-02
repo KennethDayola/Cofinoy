@@ -1,6 +1,5 @@
 ﻿document.addEventListener('DOMContentLoaded', function () {
     console.log('Cart page initialized');
-
     calculateCartTotals();
 });
 
@@ -24,13 +23,19 @@ function calculateCartTotals() {
 
     cartItems.forEach(item => {
         const quantity = parseInt(item.querySelector('.quantity-value').textContent);
-        const unitPrice = parseFloat(item.querySelector('.item-price').textContent.replace('₱', ''));
+        const unitPrice = parseFloat(item.querySelector('.item-price').textContent.replace('₱', '').replace(',', ''));
         const itemTotal = quantity * unitPrice;
+
+        const itemTotalElement = item.querySelector('.item-total');
+        if (itemTotalElement) {
+            itemTotalElement.textContent = '₱' + itemTotal.toFixed(2);
+        }
 
         subtotal += itemTotal;
     });
 
-    const total = subtotal - 0;
+    
+    const total = subtotal; 
 
     const subtotalElement = document.getElementById('subtotalAmount');
     const totalElement = document.getElementById('totalAmount');
@@ -42,6 +47,7 @@ function calculateCartTotals() {
         totalElement.textContent = '₱' + total.toFixed(2);
     }
 }
+
 
 async function updateQuantity(productId, action) {
     const quantityElement = document.getElementById(`quantity-${productId}`);
@@ -71,17 +77,18 @@ async function updateQuantity(productId, action) {
             quantityElement.textContent = quantity;
 
             const itemTotalElement = document.getElementById(`total-${productId}`);
+            if (itemTotalElement) {
+                itemTotalElement.textContent = `₱${result.itemTotal.toFixed(2)}`;
+            }
+
             const subtotalElement = document.getElementById('subtotalAmount');
             const totalElement = document.getElementById('totalAmount');
 
-            if (itemTotalElement) {
-                itemTotalElement.textContent = `₱ ${result.itemTotal.toFixed(2)}`;
-            }
             if (subtotalElement) {
-                subtotalElement.textContent = `₱ ${result.subtotal.toFixed(2)}`;
+                subtotalElement.textContent = `₱${result.subtotal.toFixed(2)}`;
             }
             if (totalElement) {
-                totalElement.textContent = `₱ ${result.total.toFixed(2)}`;
+                totalElement.textContent = `₱${result.total.toFixed(2)}`;
             }
 
             updateCartSummary(result.cartCount);

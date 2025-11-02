@@ -57,32 +57,47 @@ namespace Cofinoy.WebApp.Controllers
         {
             try
             {
-                Console.WriteLine("=== CART CONTROLLER ADD TO CART START ===");
-                Console.WriteLine($"Received item: {item.Name}, Price: {item.UnitPrice}, Quantity: {item.Quantity}");
+                Console.WriteLine("=== CART CONTROLLER ADD TO CART DEBUG ===");
+                Console.WriteLine($"Product: {item.Name}");
+                Console.WriteLine($"UnitPrice received: {item.UnitPrice}");
+                Console.WriteLine($"Quantity: {item.Quantity}");
+                Console.WriteLine($"Expected Total: {item.UnitPrice * item.Quantity}");
+
+                if (item.Customizations != null && item.Customizations.Any())
+                {
+                    Console.WriteLine($"Customizations count: {item.Customizations.Count}");
+                    foreach (var custom in item.Customizations)
+                    {
+                        Console.WriteLine($"  - {custom.Name}: {custom.Value} ({custom.Type})");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("No customizations in request!");
+                }
 
                 var userId = GetCurrentUserId();
-                Console.WriteLine($"User ID: {userId}");
-
                 await _cartService.AddToCartAsync(userId, item);
 
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
                 var cartCount = cartItems.Sum(i => i.Quantity);
 
-                Console.WriteLine($"Success! Cart count: {cartCount}, Total items: {cartItems.Count}");
-                Console.WriteLine("=== CART CONTROLLER ADD TO CART COMPLETED ===");
+                var storedItem = cartItems.FirstOrDefault(i => i.ProductId == item.ProductId);
+                if (storedItem != null)
+                {
+                    Console.WriteLine($"Stored in cart - UnitPrice: {storedItem.UnitPrice}, Total: {storedItem.UnitPrice * storedItem.Quantity}");
+                }
 
                 return Json(new { success = true, cartCount = cartCount });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"=== CART CONTROLLER ADD TO CART FAILED ===");
                 Console.WriteLine($"Error: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-
-                _logger.LogError(ex, "Error adding item to cart");
                 return Json(new { success = false, error = ex.Message });
             }
         }
+
+
 
         [HttpPost]
         public async Task<JsonResult> UpdateQuantity([FromBody] UpdateQuantityModel model)
@@ -129,7 +144,7 @@ namespace Cofinoy.WebApp.Controllers
                 {
                     success = true,
                     subtotal = subtotal,
-                    total = subtotal - 60,
+                    total = subtotal - 0,
                     cartCount = cartCount
                 });
             }
@@ -150,7 +165,6 @@ namespace Cofinoy.WebApp.Controllers
                 Console.WriteLine("=== CHECKOUT START ===");
                 Console.WriteLine($"User ID: {userId}");
 
-                //Cart Items 
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
                 if (cartItems == null || !cartItems.Any())
                 {

@@ -79,8 +79,7 @@
                                 </div>
                             </div>
 
-                            <div class="item-price">₱@item.UnitPrice.ToString("N2")</div>
-
+<div class="item-price">₱@item.UnitPrice.ToString("N2")</div>
                             <div class="item-quantity">
                                 <div class="quantity-controls">
                                     <button type="button" class="quantity-btn" onclick="updateQuantity('@item.ProductId', 'decrease')">
@@ -93,8 +92,7 @@
                                 </div>
                             </div>
 
-                            <div class="item-total" id="total-@item.ProductId">₱@item.TotalPrice.ToString("N2")</div>
-
+<div class="item-total" id="total-@item.ProductId">₱@((item.UnitPrice * item.Quantity).ToString("N2"))</div>
                             <div class="item-actions">
                                 <button type="button" class="remove-btn" onclick="removeFromCart('@item.ProductId')" title="Remove item">
                                     <span class="material-symbols-rounded">delete</span>
