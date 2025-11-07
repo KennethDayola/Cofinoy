@@ -220,7 +220,7 @@
 
     async function refreshOrderStatuses() {
         try {
-            const response = await fetch('/Menu/GetOrderStatuses');
+            const response = await fetch('/OrderHistory/GetOrderStatuses');
 
             if (!response.ok) {
                 throw new Error('Failed to fetch order statuses');
@@ -230,11 +230,11 @@
 
             if (result.success) {
                 result.data.forEach(order => {
-                    updateOrderCardStatus(order.Id, order.Status);
+                    updateOrderCardStatus(order.id, order.status);
 
                    
-                    if (order.Id == currentActiveOrderId) {
-                        updateTrackOrderProgress(order.Status);
+                    if (order.id == currentActiveOrderId) {
+                        updateTrackOrderProgress(order.status);
                     }
                 });
             }

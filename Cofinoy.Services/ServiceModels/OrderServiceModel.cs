@@ -32,6 +32,7 @@ namespace Cofinoy.Services.ServiceModels
         public string Temperature { get; set; }
         public int? ExtraShots { get; set; }
         public string SweetnessLevel { get; set; }
+        public string ImageUrl { get; set; }
     }
 
     public class OrderDetailsServiceModel : OrderServiceModel

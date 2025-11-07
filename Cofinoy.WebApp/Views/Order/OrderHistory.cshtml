@@ -1,4 +1,4 @@
-﻿@model List<Cofinoy.Data.Models.Order>
+﻿@model List<Cofinoy.Services.ServiceModels.OrderServiceModel>
 @{
     ViewData["Title"] = "Order History";
     Layout = "~/Views/Shared/_Layout.cshtml";
@@ -101,13 +101,9 @@
                         {
                             <article class="order-item">
                                 <div class="item-image">
-                                    @if (!string.IsNullOrEmpty(item.Product?.ImageUrl))
+                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
                                     {
-                                        <img src="@item.Product.ImageUrl" alt="@item.ProductName" class="product-image" />
-                                    }
-                                    else if (!string.IsNullOrEmpty(item.Product?.ImagePath))
-                                    {
-                                        <img src="@item.Product.ImagePath" alt="@item.ProductName" class="product-image" />
+                                        <img src="@item.ImageUrl" alt="@item.ProductName" class="product-image" />
                                     }
                                     else
                                     {

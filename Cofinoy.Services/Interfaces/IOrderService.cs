@@ -11,6 +11,7 @@ namespace Cofinoy.Services.Interfaces
         Task<OrderDetailsServiceModel> GetOrderDetailsAsync(int orderId);
         Task<bool> UpdateOrderStatusAsync(int orderId, string newStatus);
         Task<bool> CancelOrderAsync(int orderId);
+        Task<OrderDetailsServiceModel> CreateOrderAsync(string userId, string nickname, string additionalRequest, string paymentMethod, List<CartItemServiceModel> cartItems);
         bool OrderExists(int id);
     }
 }

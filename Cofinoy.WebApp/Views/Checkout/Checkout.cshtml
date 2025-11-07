@@ -19,7 +19,7 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
-            </div>y
+            </div>
             <h1 class="success-title">Order Confirmed!</h1>
             <p class="success-text">Thank you for your order. Your invoice is ready below.</p>
         </div>
@@ -86,7 +86,6 @@
 
             <div class="totals-section">
                 <div class="totals-box">
-                    @* OrderType is not used by controller; omit the row to avoid confusion *@
                     <div class="total-row">
                         <span class="total-label">Coupon Discount:</span>
                         <span class="discount-value">-₱@Model.CouponCode.ToString("N2")</span>
@@ -99,10 +98,6 @@
             </div>
 
             <div class="payment-info">
-                <div>
-                    <p class="payment-method-label">Payment Method:</p>
-                    <p class="payment-method-value">@Model.PaymentMethod</p>
-                </div>
                 <div class="text-right">
                     <p class="status-label">
                         Status:

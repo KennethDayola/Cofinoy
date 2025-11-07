@@ -234,6 +234,69 @@ namespace Cofinoy.Services.Services
             }
         }
 
+        public async Task<OrderDetailsServiceModel> CreateOrderAsync(string userId, string nickname, string additionalRequest, string paymentMethod, List<CartItemServiceModel> cartItems)
+        {
+            try
+            {
+                if (cartItems == null || !cartItems.Any())
+                {
+                    throw new InvalidOperationException("Cannot create order with empty cart");
+                }
+
+                _logger.LogInformation("Creating order for user {UserId}", userId);
+
+                // Create order entity
+                var order = new Order
+                {
+                    UserId = userId,
+                    InvoiceNumber = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
+                    OrderDate = DateTime.UtcNow,
+                    Nickname = nickname,
+                    AdditionalRequest = additionalRequest ?? "",
+                    PaymentMethod = paymentMethod,
+                    TotalPrice = cartItems.Sum(i => i.TotalPrice),
+                    Status = "Pending",
+                    OrderItems = cartItems.Select(item => new OrderItem
+                    {
+                        ProductId = item.ProductId,
+                        ProductName = item.Name,
+                        Description = item.Description ?? "",
+                        UnitPrice = item.UnitPrice,
+                        Quantity = item.Quantity,
+                        TotalPrice = item.TotalPrice,
+                        Size = item.Size ?? "",
+                        MilkType = item.MilkType ?? "",
+                        Temperature = item.Temperature ?? "",
+                        ExtraShots = item.ExtraShots,
+                        SweetnessLevel = item.SweetnessLevel ?? ""
+                    }).ToList()
+                };
+
+                _logger.LogInformation("Order created with invoice: {InvoiceNumber}, Items: {ItemCount}", 
+                    order.InvoiceNumber, order.OrderItems.Count);
+
+                // Save order using repository
+                _orderRepository.AddOrder(order);
+
+                _logger.LogInformation("Order saved to database with ID: {OrderId}", order.Id);
+
+                // Clear cart
+                await _cartRepository.ClearCartAsync(userId);
+
+                _logger.LogInformation("Cart cleared for user {UserId}", userId);
+
+                // Return order details
+                var orderDetails = await GetOrderDetailsAsync(order.Id);
+                
+                return orderDetails;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating order for user {UserId}", userId);
+                throw;
+            }
+        }
+
         public bool OrderExists(int id)
         {
             return _orderRepository.OrderExists(id);
