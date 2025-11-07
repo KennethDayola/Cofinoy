@@ -19,7 +19,7 @@
                 <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                 </svg>
-            </div>
+            </div>y
             <h1 class="success-title">Order Confirmed!</h1>
             <p class="success-text">Thank you for your order. Your invoice is ready below.</p>
         </div>
@@ -36,7 +36,6 @@
                 </div>
             </div>
 
-           
             <div class="invoice-details">
                 <div class="detail-section">
                     <h3>INVOICE TO:</h3>
@@ -49,7 +48,6 @@
                 </div>
             </div>
 
-           
             <table class="items-table">
                 <thead>
                     <tr>
@@ -69,38 +67,15 @@
                                 {
                                     <p class="item-description">@item.Description</p>
                                 }
-                                <div class="item-customizations">
-                                    @if (!string.IsNullOrEmpty(item.Size))
-                                    {
-                                        <p><strong>Size:</strong> @item.Size</p>
-                                    }
-                                    @if (!string.IsNullOrEmpty(item.MilkType))
-                                    {
-                                        <p><strong>Milk Type:</strong> @item.MilkType</p>
-                                    }
-                                    @if (!string.IsNullOrEmpty(item.Temperature))
-                                    {
-                                        <p><strong>Temperature:</strong> @item.Temperature</p>
-                                    }
-                                    @if (item.ExtraShots > 0)
-                                    {
-                                        <p><strong>Extra Shots:</strong> @item.ExtraShots</p>
-                                    }
-                                    @if (!string.IsNullOrEmpty(item.SweetnessLevel))
-                                    {
-                                        <p><strong>Sweetness:</strong> @item.SweetnessLevel</p>
-                                    }
-                                </div>
                             </td>
                             <td style="text-align: center;" class="item-quantity">@item.Quantity</td>
                             <td style="text-align: right;" class="item-price">₱@item.UnitPrice.ToString("N2")</td>
-                            <td style="text-align: right;" class="item-total">₱@item.TotalPrice.ToString("N2")</td>
+                            <td style="text-align: right;" class="item-total">₱@((item.UnitPrice * item.Quantity).ToString("N2"))</td>
                         </tr>
                     }
                 </tbody>
             </table>
 
-            
             @if (!string.IsNullOrEmpty(Model.AdditionalRequest))
             {
                 <div class="additional-request">
@@ -109,13 +84,9 @@
                 </div>
             }
 
-           
             <div class="totals-section">
                 <div class="totals-box">
-                    <div class="total-row">
-                        <span class="total-label">Order Type:</span>
-                        <span class="total-value">@Model.OrderType</span>
-                    </div>
+                    @* OrderType is not used by controller; omit the row to avoid confusion *@
                     <div class="total-row">
                         <span class="total-label">Coupon Discount:</span>
                         <span class="discount-value">-₱@Model.CouponCode.ToString("N2")</span>
@@ -127,7 +98,6 @@
                 </div>
             </div>
 
-          
             <div class="payment-info">
                 <div>
                     <p class="payment-method-label">Payment Method:</p>
@@ -136,7 +106,7 @@
                 <div class="text-right">
                     <p class="status-label">
                         Status:
-                        <span class="status-badge">Paid</span>
+                        <span class="status-badge">Pending</span>
                     </p>
                 </div>
             </div>

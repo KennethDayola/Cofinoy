@@ -1,4 +1,4 @@
-﻿@model Cofinoy.Data.Models.Order
+﻿@model Cofinoy.Services.ServiceModels.OrderDetailsServiceModel
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Order Details";
@@ -8,7 +8,7 @@
 <link rel="stylesheet" href="~/css/orderDetails.css" asp-append-version="true" />
 
 <div class="order-details-container">
-    <a href="/Menu/OrderManagement" class="back-link">
+    <a href="/Order/OrderManagement" class="back-link">
         <i class="fas fa-arrow-left"></i> Back to order list
     </a>
 
@@ -31,11 +31,26 @@
                         @if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.Temperature))
                         {
                             <small>
-                                Add-ons: @item.Size @if (!string.IsNullOrEmpty(item.Temperature))
-                                {
-                                    <text>, @item.Temperature</text>
-                                }
+                                Add-ons: @item.Size@(string.IsNullOrEmpty(item.Size) || string.IsNullOrEmpty(item.Temperature) ? "" : ", ")@item.Temperature
                             </small>
+                        }
+                        @if (!string.IsNullOrEmpty(item.MilkType))
+                        {
+                            <br />
+                    
+                            <small>Milk: @item.MilkType</small>
+                        }
+                        @if (item.ExtraShots.HasValue && item.ExtraShots.Value > 0)
+                        {
+                            <br />
+                    
+                            <small>Extra Shots: @item.ExtraShots</small>
+                        }
+                        @if (!string.IsNullOrEmpty(item.SweetnessLevel))
+                        {
+                            <br />
+                    
+                            <small>Sweetness: @item.SweetnessLevel</small>
                         }
                     </div>
                     <strong>₱@item.TotalPrice.ToString("N2")</strong>
@@ -55,10 +70,41 @@
         <!-- Right: Customer Info -->
         <div class="customer-info-card">
             <h3>Customer Information</h3>
-            <p><i class="fas fa-user"></i> @Model.Nickname</p>
-            <p><i class="fas fa-envelope"></i> @Model.UserId</p>
-            <p><i class="fas fa-phone"></i> 09627463870</p>
-            <p><i class="fas fa-map-marker-alt"></i> Liloan, Cebu</p>
+            <p><i class="fas fa-user"></i> @(Model.CustomerName ?? Model.Nickname ?? "Guest")</p>
+
+            @{
+                var email = Model.CustomerInfo?.Email;
+                var city = Model.CustomerInfo?.City;
+                var country = Model.CustomerInfo?.Country;
+                var location = "";
+
+                if (!string.IsNullOrEmpty(city) && !string.IsNullOrEmpty(country))
+                {
+                    location = $"{city}, {country}";
+                }
+                else if (!string.IsNullOrEmpty(city))
+                {
+                    location = city;
+                }
+                else if (!string.IsNullOrEmpty(country))
+                {
+                    location = country;
+                }
+            }
+
+            <p><i class="fas fa-envelope"></i> @(string.IsNullOrEmpty(email) ? "N/A" : email)</p>
+            <p><i class="fas fa-map-marker-alt"></i> @(string.IsNullOrEmpty(location) ? "N/A" : location)</p>
+
+            @if (!string.IsNullOrEmpty(Model.PaymentMethod))
+            {
+                <hr style="margin: 15px 0; border: none; border-top: 1px solid #eee;" />
+                <p><i class="fas fa-credit-card"></i> Payment: @Model.PaymentMethod</p>
+            }
+
+            @if (!string.IsNullOrEmpty(Model.AdditionalRequest) && Model.AdditionalRequest != "Discount")
+            {
+                <p><i class="fas fa-comment"></i> Note: @Model.AdditionalRequest</p>
+            }
         </div>
     </div>
 
@@ -113,7 +159,22 @@
 <script src="~/js/orderDetails.js" asp-append-version="true"></script>
 
 <script>
-    // Debug logging
-    console.log('Current Order Status:', '@Model.Status');
-    console.log('Order ID:', @Model.Id);
+    // ✅ Customer Information Logging
+    const customerInfo = {
+        orderId: @Model.Id,
+        invoiceNumber: '@Model.InvoiceNumber',
+        customerName: '@(Model.CustomerName ?? Model.Nickname ?? "Guest")',
+        email: '@(email ?? "N/A")',
+        location: '@(location ?? "N/A")',
+        status: '@Model.Status'
+    };
+
+    console.log('=== Order Details ===');
+    console.log('Order ID:', customerInfo.orderId);
+    console.log('Invoice Number:', customerInfo.invoiceNumber);
+    console.log('Customer:', customerInfo.customerName);
+    console.log('Email:', customerInfo.email);
+    console.log('Location:', customerInfo.location);
+    console.log('Status:', customerInfo.status);
+    console.log('====================');
 </script>

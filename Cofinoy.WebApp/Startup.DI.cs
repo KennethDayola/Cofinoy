@@ -39,6 +39,8 @@ namespace Cofinoy.WebApp
             this._services.AddScoped<ICategoryService, CategoryService>();
             this._services.AddScoped<ICustomizationService, CustomizationService>();
             this._services.AddScoped<IProductService, ProductService>();
+            this._services.AddScoped<IOrderService, OrderService>();
+            this._services.AddScoped<ICartService, CartService>(); // added
 
             //Email Service
             this._services.Configure<EmailSettings>(Configuration.GetSection("EmailSettings"));
@@ -50,6 +52,8 @@ namespace Cofinoy.WebApp
             this._services.AddScoped<ICategoryRepository, CategoryRepository>();
             this._services.AddScoped<ICustomizationRepository, CustomizationRepository>();
             this._services.AddScoped<IProductRepository, ProductRepository>();
+            this._services.AddScoped<IOrderRepository, OrderRepository>();
+            this._services.AddScoped<ICartRepository, CartRepository>(); // added
 
             // Manager Class
             this._services.AddScoped<SignInManager>();

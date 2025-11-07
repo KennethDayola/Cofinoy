@@ -27,7 +27,6 @@ namespace Cofinoy.WebApp.Controllers
         private readonly ICategoryService _categoryService;
         private readonly ICustomizationService _customizationService;
         private readonly IProductService _productService;
-        private readonly CofinoyDbContext _context;
         private readonly IMapper _mapper;
 
         public MenuController(
@@ -37,14 +36,12 @@ namespace Cofinoy.WebApp.Controllers
             IMapper mapper,
             ICategoryService categoryService,
             ICustomizationService customizationService,
-            IProductService productService,
-            CofinoyDbContext context)
+            IProductService productService)
             : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
             _categoryService = categoryService;
             _customizationService = customizationService;
             _productService = productService;
-            _context = context;
             _mapper = mapper;
         }
 
@@ -58,241 +55,6 @@ namespace Cofinoy.WebApp.Controllers
 
         [Authorize(Roles = "Admin")]
         public IActionResult CustomizationManagement() => View();
-
-        [Authorize(Roles = "Admin")]
-        public IActionResult OrderManagement() => View("~/Views/Menu/OrderManagement.cshtml");
-        public IActionResult ViewOrder(int orderId)
-        {
-            var order = _context.Orders
-                .Include(o => o.OrderItems)
-                .FirstOrDefault(o => o.Id == orderId);
-
-            if (order == null)
-                return NotFound();
-
-            return View("OrderDetails", order);
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<JsonResult> GetAllOrders(string status = null, string searchTerm = null)
-        {
-            try
-            {
-                var query = _context.Orders
-                    .Include(o => o.OrderItems)
-                    .AsQueryable();
-
-                if (!string.IsNullOrEmpty(status) && status != "All")
-                {
-                    if (status == "Brewing")
-                        query = query.Where(o => o.Status == "Pending");
-                    else
-                        query = query.Where(o => o.Status == status);
-                }
-
-                var orders = await query.OrderByDescending(o => o.OrderDate).ToListAsync();
-                var users = await _context.Users.ToListAsync();
-
-                var orderViewModels = orders.Select(o =>
-                {
-                    var user = users.FirstOrDefault(u => o.UserId == u.Id.ToString());
-                    var customerName = user != null
-                        ? $"{user.FirstName} {user.LastName}"
-                        : (!string.IsNullOrEmpty(o.Nickname) ? o.Nickname : "Guest");
-
-                    if (!string.IsNullOrEmpty(searchTerm))
-                    {
-                        bool matches = (o.InvoiceNumber?.Contains(searchTerm) ?? false)
-                                    || (customerName?.Contains(searchTerm) ?? false)
-                                    || (o.Nickname?.Contains(searchTerm) ?? false);
-                        if (!matches) return null;
-                    }
-
-                    return new
-                    {
-                        o.Id,
-                        o.InvoiceNumber,
-                        CustomerName = customerName,
-                        o.Nickname,
-                        OrderDate = o.OrderDate.ToString("MM/dd/yy – h:mm tt"),
-                        ItemCount = o.OrderItems.Count,
-                        o.TotalPrice,
-                        o.Status,
-                        o.PaymentMethod
-                    };
-                })
-                .Where(x => x != null)
-                .ToList();
-
-                return Json(new { success = true, data = orderViewModels, count = orderViewModels.Count });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching orders");
-                return Json(new { success = false, error = ex.Message });
-            }
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetOrderStatuses()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            var orders = await _context.Orders
-                .Where(o => o.UserId == userId)
-                .OrderByDescending(o => o.OrderDate)
-                .Select(o => new {
-                    Id = o.Id,
-                    Status = o.Status
-                })
-                .ToListAsync();
-
-            return Json(new { success = true, data = orders });
-        }
-
-        [HttpGet]
-        [Authorize(Roles = "Admin")]
-        public async Task<JsonResult> GetOrderDetails(int orderId)
-        {
-            try
-            {
-                var order = await _context.Orders
-                    .Include(o => o.OrderItems)
-                    .FirstOrDefaultAsync(o => o.Id == orderId);
-
-                if (order == null)
-                    return Json(new { success = false, error = "Order not found" });
-
-                var user = await _context.Users.FirstOrDefaultAsync(u => u.Id.ToString() == order.UserId);
-
-                var orderDetails = new
-                {
-                    order.Id,
-                    order.InvoiceNumber,
-                    order.OrderDate,
-                    CustomerName = user != null ? $"{user.FirstName} {user.LastName}" : order.Nickname,
-                    order.Nickname,
-                    order.PaymentMethod,
-                    order.Status,
-                    order.AdditionalRequest,
-                    order.TotalPrice,
-                    CustomerInfo = user != null ? new
-                    {
-                        user.Email,
-                        user.PhoneNumber,
-                        user.Country,
-                        user.City
-                    } : new
-                    {
-                        Email = "",
-                        PhoneNumber = "",
-                        Country = "",
-                        City = ""
-                    },
-                    OrderItems = order.OrderItems.Select(oi => new
-                    {
-                        oi.Id,
-                        oi.ProductName,
-                        oi.Description,
-                        oi.Quantity,
-                        oi.UnitPrice,
-                        oi.TotalPrice,
-                        oi.Size,
-                        oi.MilkType,
-                        oi.Temperature,
-                        oi.ExtraShots,
-                        oi.SweetnessLevel
-                    }).ToList()
-                };
-
-                return Json(new { success = true, data = orderDetails });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error fetching order details");
-                return Json(new { success = false, error = ex.Message });
-            }
-        }
-
-        [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public async Task<JsonResult> UpdateOrderStatus([FromBody] JsonElement body)
-        {
-            try
-            {
-                if (!body.TryGetProperty("orderId", out var idProp) ||
-                    !body.TryGetProperty("newStatus", out var statusProp))
-                    return Json(new { success = false, error = "Invalid request data" });
-
-                int orderId = idProp.GetInt32();
-                string newStatus = statusProp.GetString();
-
-                var order = await _context.Orders.FindAsync(orderId);
-                if (order == null)
-                    return Json(new { success = false, error = "Order not found" });
-
-                var validStatuses = new[] { "Pending", "Confirmed", "Brewing", "Ready", "Serving", "Served", "Cancelled" };
-                if (!validStatuses.Contains(newStatus))
-                    return Json(new { success = false, error = $"Invalid status: {newStatus}" });
-
-                if (order.Status == "Served")
-                    return Json(new { success = false, error = "Cannot update a served order" });
-
-                if (order.Status == "Cancelled")
-                    return Json(new { success = false, error = "Cannot update a cancelled order" });
-
-                _logger.LogInformation("Updating order {OrderId} from {OldStatus} to {NewStatus}",
-                    orderId, order.Status, newStatus);
-
-                order.Status = newStatus;
-                _context.Orders.Update(order);
-                await _context.SaveChangesAsync();
-
-                return Json(new
-                {
-                    success = true,
-                    message = $"Order status updated to {newStatus}",
-                    orderId = orderId,
-                    newStatus = newStatus
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error updating order status");
-                return Json(new { success = false, error = ex.Message });
-            }
-        }
-        [HttpPost]
-        [Authorize(Roles = "Admin")]
-        public async Task<JsonResult> CancelOrder([FromBody] JsonElement body)
-        {
-            try
-            {
-                if (!body.TryGetProperty("orderId", out var idProp))
-                    return Json(new { success = false, error = "Invalid request data" });
-
-                int orderId = idProp.GetInt32();
-                var order = await _context.Orders.FindAsync(orderId);
-
-                if (order == null)
-                    return Json(new { success = false, error = "Order not found" });
-
-                if (order.Status == "Completed" || order.Status == "Cancelled")
-                    return Json(new { success = false, error = $"Cannot cancel a {order.Status} order" });
-
-                order.Status = "Cancelled";
-                _context.Orders.Update(order);
-                await _context.SaveChangesAsync();
-
-                return Json(new { success = true, message = "Order cancelled successfully" });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error cancelling order");
-                return Json(new { success = false, error = ex.Message });
-            }
-        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()

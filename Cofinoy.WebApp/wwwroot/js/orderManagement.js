@@ -33,7 +33,7 @@ window.addEventListener('beforeunload', () => {
 function loadOrders(status = null, searchTerm = null, silentRefresh = false) {
     const search = document.getElementById('searchOrders').value || searchTerm || '';
 
-    fetch(`${window.location.origin}/Menu/GetAllOrders?status=${encodeURIComponent(status || '')}&searchTerm=${encodeURIComponent(search)}`)
+    fetch(`${window.location.origin}/Order/GetAllOrders?status=${encodeURIComponent(status || '')}&searchTerm=${encodeURIComponent(search)}`)
         .then(response => {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return response.json();
@@ -94,7 +94,7 @@ function updateOrderCount(count, filter) {
 }
 
 function viewOrderDetails(orderId) {
-    window.location.href = `/Menu/ViewOrder?orderId=${orderId}`;
+    window.location.href = `/Order/ViewOrder?orderId=${orderId}`;
 }
 
 function showStatusFilter() {
