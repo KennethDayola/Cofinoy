@@ -12,12 +12,12 @@ namespace Cofinoy.Services.Services
 {
     public class CartService : ICartService
     {
-        private readonly ICartRepository _cartRepository;
+        private readonly ICartRepository _repository;
         private readonly ILogger<CartService> _logger;
 
-        public CartService(ICartRepository cartRepository, ILogger<CartService> logger)
+        public CartService(ICartRepository repository, ILogger<CartService> logger)
         {
-            _cartRepository = cartRepository;
+            _repository = repository;
             _logger = logger;
         }
 
@@ -25,7 +25,7 @@ namespace Cofinoy.Services.Services
         {
             try
             {
-                var cart = await _cartRepository.GetCartByUserIdAsync(userId);
+                var cart = await _repository.GetCartByUserIdAsync(userId);
                 if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
                     return new List<CartItemServiceModel>();
 
@@ -55,15 +55,13 @@ namespace Cofinoy.Services.Services
         {
             try
             {
-                Console.WriteLine("=== START: AddToCartAsync ===");
-                Console.WriteLine($"User: {userId}, Product: {item.ProductId}, Quantity: {item.Quantity}");
-                Console.WriteLine($"Calculated Total should be: {item.UnitPrice * item.Quantity}");
+                _logger.LogInformation("Adding item to cart for user {UserId}, Product: {ProductId}", userId, item.ProductId);
 
-                var cart = await _cartRepository.GetCartByUserIdAsync(userId);
+                var cart = await _repository.GetCartByUserIdAsync(userId);
 
                 if (cart == null)
                 {
-                    Console.WriteLine("Creating new cart...");
+                    _logger.LogInformation("Creating new cart for user {UserId}", userId);
                     cart = new Cart
                     {
                         Id = Guid.NewGuid().ToString(),
@@ -73,16 +71,13 @@ namespace Cofinoy.Services.Services
                         CartItems = new List<CartItem>()
                     };
 
-                  
-                    var cartItem = CreateCartItem(cart.Id, item);
+                    var cartItem = MapToCartItem(cart.Id, item);
                     cart.CartItems.Add(cartItem);
-                    Console.WriteLine("Added first item to new cart");
                 }
                 else
                 {
-                    Console.WriteLine($"Found existing cart with {cart.CartItems.Count} items");
+                    _logger.LogInformation("Found existing cart with {Count} items", cart.CartItems?.Count ?? 0);
 
-                 
                     var existingItem = cart.CartItems.FirstOrDefault(i =>
                         i.ProductId == item.ProductId &&
                         i.Size == item.Size &&
@@ -92,44 +87,41 @@ namespace Cofinoy.Services.Services
                         i.ExtraShots == item.ExtraShots);
 
                     if (existingItem != null)
-                    {
-                     
-                        Console.WriteLine("Updating quantity of existing item");
+                    {           
+                        _logger.LogInformation("Updating existing item quantity");
                         existingItem.Quantity += item.Quantity;
                         existingItem.TotalPrice = existingItem.UnitPrice * existingItem.Quantity;
-                        Console.WriteLine($"Item quantity updated to: {existingItem.Quantity}");
                     }
                     else
                     {
-                       
-                        Console.WriteLine("Adding as new item to existing cart");
-                        var cartItem = CreateCartItem(cart.Id, item);
+                        _logger.LogInformation("Adding new item to cart");
+                        var cartItem = MapToCartItem(cart.Id, item);
                         cart.CartItems.Add(cartItem);
-                        Console.WriteLine("New item added to cart");
                     }
 
                     cart.UpdatedAt = DateTime.UtcNow;
                 }
 
-                Console.WriteLine($"Cart now has {cart.CartItems.Count} total items");
-                await _cartRepository.AddOrUpdateCartAsync(cart);
-                Console.WriteLine("=== SUCCESS: Item added/updated in cart ===");
+                await _repository.AddOrUpdateCartAsync(cart);
+                _logger.LogInformation("Cart updated successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"=== ERROR: {ex.Message}");
+                _logger.LogError(ex, "Error adding item to cart");
                 throw;
             }
         }
-
-        
 
         public async Task UpdateCartItemQuantityAsync(string userId, string productId, int quantity)
         {
             try
             {
-                var cart = await _cartRepository.GetCartByUserIdAsync(userId);
-                if (cart == null) return;
+                var cart = await _repository.GetCartByUserIdAsync(userId);
+                if (cart == null)
+                {
+                    _logger.LogWarning("Cart not found for user {UserId}", userId);
+                    return;
+                }
 
                 var item = cart.CartItems.FirstOrDefault(i => i.ProductId == productId);
                 if (item != null)
@@ -137,14 +129,17 @@ namespace Cofinoy.Services.Services
                     if (quantity <= 0)
                     {
                         cart.CartItems.Remove(item);
+                        _logger.LogInformation("Removed item {ProductId} from cart", productId);
                     }
                     else
                     {
                         item.Quantity = quantity;
                         item.TotalPrice = item.UnitPrice * quantity;
+                        _logger.LogInformation("Updated item {ProductId} quantity to {Quantity}", productId, quantity);
                     }
+                    
                     cart.UpdatedAt = DateTime.UtcNow;
-                    await _cartRepository.AddOrUpdateCartAsync(cart);
+                    await _repository.AddOrUpdateCartAsync(cart);
                 }
             }
             catch (Exception ex)
@@ -154,45 +149,24 @@ namespace Cofinoy.Services.Services
             }
         }
 
-
-        //helper
-        private CartItem CreateCartItem(string cartId, CartItemServiceModel item)
-        {
-            Console.WriteLine($"Creating cart item - UnitPrice: {item.UnitPrice}, Quantity: {item.Quantity}");
-            Console.WriteLine($"Calculated TotalPrice: {item.TotalPrice}");
-
-            return new CartItem
-            {
-                Id = Guid.NewGuid().ToString(),
-                CartId = cartId,
-                ProductId = item.ProductId,
-                ProductName = item.Name,
-                Description = item.Description,
-                UnitPrice = item.UnitPrice, // This should include base price + all add-ons
-                Quantity = item.Quantity,
-                TotalPrice = item.TotalPrice, // Use the calculated TotalPrice for consistency
-                ImageUrl = item.ImageUrl,
-                Temperature = item.Temperature,
-                Size = item.Size,
-                MilkType = item.MilkType,
-                SweetnessLevel = item.SweetnessLevel,
-                ExtraShots = item.ExtraShots
-            };
-        }
-
         public async Task RemoveFromCartAsync(string userId, string productId)
         {
             try
             {
-                var cart = await _cartRepository.GetCartByUserIdAsync(userId);
-                if (cart == null) return;
+                var cart = await _repository.GetCartByUserIdAsync(userId);
+                if (cart == null)
+                {
+                    _logger.LogWarning("Cart not found for user {UserId}", userId);
+                    return;
+                }
 
                 var item = cart.CartItems.FirstOrDefault(i => i.ProductId == productId);
                 if (item != null)
                 {
                     cart.CartItems.Remove(item);
                     cart.UpdatedAt = DateTime.UtcNow;
-                    await _cartRepository.AddOrUpdateCartAsync(cart);
+                    await _repository.AddOrUpdateCartAsync(cart);
+                    _logger.LogInformation("Removed item {ProductId} from cart", productId);
                 }
             }
             catch (Exception ex)
@@ -202,19 +176,40 @@ namespace Cofinoy.Services.Services
             }
         }
 
-
-
         public async Task ClearCartAsync(string userId)
         {
             try
             {
-                await _cartRepository.ClearCartAsync(userId);
+                await _repository.ClearCartAsync(userId);
+                _logger.LogInformation("Cleared cart for user {UserId}", userId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error clearing cart for user {UserId}", userId);
                 throw;
             }
+        }
+
+        // Helper method to map ServiceModel to Entity
+        private CartItem MapToCartItem(string cartId, CartItemServiceModel item)
+        {
+            return new CartItem
+            {
+                Id = Guid.NewGuid().ToString(),
+                CartId = cartId,
+                ProductId = item.ProductId,
+                ProductName = item.Name,
+                Description = item.Description ?? string.Empty,
+                UnitPrice = item.UnitPrice,
+                Quantity = item.Quantity,
+                TotalPrice = item.UnitPrice * item.Quantity,
+                ImageUrl = item.ImageUrl ?? string.Empty,
+                Temperature = item.Temperature ?? string.Empty,
+                Size = item.Size ?? string.Empty,
+                MilkType = item.MilkType ?? string.Empty,
+                SweetnessLevel = item.SweetnessLevel ?? string.Empty,
+                ExtraShots = item.ExtraShots
+            };
         }
     }
 }

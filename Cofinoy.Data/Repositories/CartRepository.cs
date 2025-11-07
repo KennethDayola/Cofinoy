@@ -1,4 +1,5 @@
-﻿using Cofinoy.Data.Interfaces;
+﻿using Basecode.Data.Repositories;
+using Cofinoy.Data.Interfaces;
 using Cofinoy.Data.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -7,55 +8,60 @@ using System.Threading.Tasks;
 
 namespace Cofinoy.Data.Repositories
 {
-    public class CartRepository : ICartRepository
+    public class CartRepository : BaseRepository, ICartRepository
     {
-        private readonly CofinoyDbContext _context;
-
-        public CartRepository(CofinoyDbContext context)
+        public CartRepository(IUnitOfWork unitOfWork) : base(unitOfWork)
         {
-            _context = context;
         }
 
         public async Task<Cart> GetCartByUserIdAsync(string userId)
         {
-            return await _context.Carts
+            return await this.GetDbSet<Cart>()
                 .Include(c => c.CartItems)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
         }
 
         public async Task AddOrUpdateCartAsync(Cart cart)
         {
-            try
+            var existingCart = await this.GetDbSet<Cart>()
+                .Include(c => c.CartItems)
+                .AsNoTracking() // ✅ Critical: Prevent tracking conflicts
+                .FirstOrDefaultAsync(c => c.Id == cart.Id);
+
+            if (existingCart == null)
             {
-                Console.WriteLine("=== START: AddOrUpdateCartAsync ===");
-                Console.WriteLine($"Cart has {cart.CartItems.Count} items to save");
-
-                var existingCart = await _context.Carts
-                    .Include(c => c.CartItems)
-                    .FirstOrDefaultAsync(c => c.Id == cart.Id);
-
-                if (existingCart == null)
+                // New cart
+                if (string.IsNullOrEmpty(cart.Id))
                 {
-                    Console.WriteLine("Cart is new - adding to database");
-                    await _context.Carts.AddAsync(cart);
+                    cart.Id = Guid.NewGuid().ToString();
                 }
-                else
-                {
-                    Console.WriteLine("Cart exists - updating properties only");
-
-                    existingCart.UpdatedAt = cart.UpdatedAt;
-
-                    _context.Carts.Update(existingCart);
-                }
-
-                await _context.SaveChangesAsync();
-                Console.WriteLine("=== SUCCESS: Cart saved without replacing items ===");
+                cart.CreatedAt = DateTime.UtcNow;
+                cart.UpdatedAt = DateTime.UtcNow;
+                this.GetDbSet<Cart>().Add(cart);
             }
-            catch (Exception ex)
+            else
             {
-                Console.WriteLine($"=== ERROR: {ex.Message}");
-                throw;
+                // Update existing cart
+                cart.UpdatedAt = DateTime.UtcNow;
+
+                // ✅ Critical: Remove items that no longer exist
+                var existingItemIds = existingCart.CartItems.Select(i => i.Id).ToList();
+                var currentItemIds = cart.CartItems.Select(i => i.Id).ToList();
+                var itemsToRemove = existingItemIds.Except(currentItemIds).ToList();
+
+                foreach (var itemId in itemsToRemove)
+                {
+                    var itemToRemove = this.GetDbSet<CartItem>().FirstOrDefault(i => i.Id == itemId);
+                    if (itemToRemove != null)
+                    {
+                        this.GetDbSet<CartItem>().Remove(itemToRemove);
+                    }
+                }
+
+                this.GetDbSet<Cart>().Update(cart);
             }
+
+            UnitOfWork.SaveChanges();
         }
 
         public async Task ClearCartAsync(string userId)
@@ -63,8 +69,8 @@ namespace Cofinoy.Data.Repositories
             var cart = await GetCartByUserIdAsync(userId);
             if (cart != null)
             {
-                _context.Carts.Remove(cart);
-                await _context.SaveChangesAsync();
+                this.GetDbSet<Cart>().Remove(cart);
+                UnitOfWork.SaveChanges();
             }
         }
     }

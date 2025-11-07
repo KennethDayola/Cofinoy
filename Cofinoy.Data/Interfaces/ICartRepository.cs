@@ -1,5 +1,4 @@
 ﻿using Cofinoy.Data.Models;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Cofinoy.Data.Interfaces

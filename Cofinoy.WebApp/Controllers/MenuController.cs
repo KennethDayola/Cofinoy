@@ -1,6 +1,4 @@
 ﻿using AutoMapper;
-using Cofinoy.Data;
-using Cofinoy.Data.Models;
 using Cofinoy.Services.Interfaces;
 using Cofinoy.Services.ServiceModels;
 using Cofinoy.WebApp.Models;
@@ -8,7 +6,6 @@ using Cofinoy.WebApp.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
@@ -16,9 +13,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Security.Claims;
-using System.Text.Json;
-using System.Threading.Tasks;
 
 namespace Cofinoy.WebApp.Controllers
 {
@@ -45,6 +39,7 @@ namespace Cofinoy.WebApp.Controllers
             _mapper = mapper;
         }
 
+
         public IActionResult Index() => View();
 
         [Authorize(Roles = "Admin")]
@@ -62,6 +57,9 @@ namespace Cofinoy.WebApp.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+
+
+        [HttpGet]
         public JsonResult GetAllCategories()
         {
             try
@@ -77,6 +75,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult AddCategory([FromBody] CategoryViewModel model)
         {
             try
@@ -105,6 +104,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult UpdateCategory(string id, [FromBody] CategoryViewModel model)
         {
             try
@@ -137,6 +137,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult DeleteCategory(string id)
         {
             try
@@ -155,6 +156,7 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+        [HttpGet]
         public JsonResult GetAllCustomizations()
         {
             try
@@ -189,6 +191,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult AddCustomization([FromBody] CustomizationServiceModel model)
         {
             try
@@ -209,6 +212,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult UpdateCustomization(string id, [FromBody] CustomizationServiceModel model)
         {
             try
@@ -233,6 +237,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult DeleteCustomization(string id)
         {
             try
@@ -251,6 +256,8 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+
+        [HttpGet]
         public JsonResult GetProductsByCategory(string categoryName)
         {
             try
@@ -267,6 +274,7 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+        [HttpGet]
         public JsonResult GetAllProducts()
         {
             try
@@ -280,7 +288,6 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
-
 
         [HttpGet]
         public JsonResult GetProduct(string id)
@@ -302,6 +309,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult AddProduct([FromBody] ProductServiceModel model)
         {
             try
@@ -322,6 +330,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult UpdateProduct(string id, [FromBody] ProductServiceModel model)
         {
             try
@@ -346,6 +355,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult DeleteProduct(string id)
         {
             try
@@ -363,8 +373,5 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
-
-        
-
     }
 }
