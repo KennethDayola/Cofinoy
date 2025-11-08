@@ -125,7 +125,6 @@ namespace Cofinoy.Services.Services
             if (order == null)
                 return null;
 
-            // Resolve user by Id or Email stored in Order.UserId
             var user = _userRepository.GetUsers()
                 .FirstOrDefault(u => u.Id.ToString() == order.UserId || u.Email == order.UserId);
 

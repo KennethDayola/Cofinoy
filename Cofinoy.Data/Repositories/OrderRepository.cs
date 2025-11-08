@@ -44,18 +44,8 @@ namespace Cofinoy.Data.Repositories
 
         public void UpdateOrder(Order order)
         {
-            var existingOrder = GetOrderById(order.Id);
-            if (existingOrder != null)
-            {
-                existingOrder.Status = order.Status;
-                existingOrder.PaymentMethod = order.PaymentMethod;
-                existingOrder.AdditionalRequest = order.AdditionalRequest;
-                existingOrder.TotalPrice = order.TotalPrice;
-                existingOrder.Nickname = order.Nickname;
-
-                this.GetDbSet<Order>().Update(existingOrder);
-                UnitOfWork.SaveChanges();
-            }
+            this.GetDbSet<Order>().Update(order);
+            UnitOfWork.SaveChanges();
         }
 
         public void DeleteOrder(int id)

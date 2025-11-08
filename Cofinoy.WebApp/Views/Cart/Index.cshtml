@@ -156,26 +156,8 @@
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label class="form-label">Payment Method</label>
-                            <div class="radio-group">
-                                <label class="radio-option">
-                                    <input type="radio" name="PaymentMethod" value="Cash" checked />
-                                    <span class="radio-checkmark"></span>
-                                    <span class="radio-label">Cash</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="PaymentMethod" value="GCash" />
-                                    <span class="radio-checkmark"></span>
-                                    <span class="radio-label">GCash</span>
-                                </label>
-                                <label class="radio-option">
-                                    <input type="radio" name="PaymentMethod" value="Card" />
-                                    <span class="radio-checkmark"></span>
-                                    <span class="radio-label">Card</span>
-                                </label>
-                            </div>
-                        </div>
+                        @* Hidden field for default payment method *@
+                        <input type="hidden" name="PaymentMethod" value="Cash" />
                     </div>
 
                     <div class="order-summary-section">

@@ -62,6 +62,7 @@ namespace Cofinoy.Services.Services
                 if (cart == null)
                 {
                     _logger.LogInformation("Creating new cart for user {UserId}", userId);
+
                     cart = new Cart
                     {
                         Id = Guid.NewGuid().ToString(),
@@ -73,6 +74,8 @@ namespace Cofinoy.Services.Services
 
                     var cartItem = MapToCartItem(cart.Id, item);
                     cart.CartItems.Add(cartItem);
+
+                    _repository.AddCart(cart);
                 }
                 else
                 {
@@ -87,7 +90,7 @@ namespace Cofinoy.Services.Services
                         i.ExtraShots == item.ExtraShots);
 
                     if (existingItem != null)
-                    {           
+                    {
                         _logger.LogInformation("Updating existing item quantity");
                         existingItem.Quantity += item.Quantity;
                         existingItem.TotalPrice = existingItem.UnitPrice * existingItem.Quantity;
@@ -100,9 +103,10 @@ namespace Cofinoy.Services.Services
                     }
 
                     cart.UpdatedAt = DateTime.UtcNow;
+
+                    _repository.UpdateCart(cart);
                 }
 
-                await _repository.AddOrUpdateCartAsync(cart);
                 _logger.LogInformation("Cart updated successfully");
             }
             catch (Exception ex)
@@ -116,6 +120,7 @@ namespace Cofinoy.Services.Services
         {
             try
             {
+                // Get cart
                 var cart = await _repository.GetCartByUserIdAsync(userId);
                 if (cart == null)
                 {
@@ -123,9 +128,11 @@ namespace Cofinoy.Services.Services
                     return;
                 }
 
+                // Find item
                 var item = cart.CartItems.FirstOrDefault(i => i.ProductId == productId);
                 if (item != null)
                 {
+                    // Business rule: Remove if quantity <= 0
                     if (quantity <= 0)
                     {
                         cart.CartItems.Remove(item);
@@ -133,13 +140,16 @@ namespace Cofinoy.Services.Services
                     }
                     else
                     {
+                        // Update quantity and recalculate total
                         item.Quantity = quantity;
                         item.TotalPrice = item.UnitPrice * quantity;
                         _logger.LogInformation("Updated item {ProductId} quantity to {Quantity}", productId, quantity);
                     }
-                    
+
                     cart.UpdatedAt = DateTime.UtcNow;
-                    await _repository.AddOrUpdateCartAsync(cart);
+
+                    // Save changes
+                    _repository.UpdateCart(cart);
                 }
             }
             catch (Exception ex)
@@ -153,6 +163,7 @@ namespace Cofinoy.Services.Services
         {
             try
             {
+                // Get cart
                 var cart = await _repository.GetCartByUserIdAsync(userId);
                 if (cart == null)
                 {
@@ -160,12 +171,15 @@ namespace Cofinoy.Services.Services
                     return;
                 }
 
+                // Find and remove item
                 var item = cart.CartItems.FirstOrDefault(i => i.ProductId == productId);
                 if (item != null)
                 {
                     cart.CartItems.Remove(item);
                     cart.UpdatedAt = DateTime.UtcNow;
-                    await _repository.AddOrUpdateCartAsync(cart);
+
+                    // Save changes
+                    _repository.UpdateCart(cart);
                     _logger.LogInformation("Removed item {ProductId} from cart", productId);
                 }
             }

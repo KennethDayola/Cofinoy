@@ -21,46 +21,15 @@ namespace Cofinoy.Data.Repositories
                 .FirstOrDefaultAsync(c => c.UserId == userId);
         }
 
-        public async Task AddOrUpdateCartAsync(Cart cart)
+        public void AddCart(Cart cart)
         {
-            var existingCart = await this.GetDbSet<Cart>()
-                .Include(c => c.CartItems)
-                .AsNoTracking() // ✅ Critical: Prevent tracking conflicts
-                .FirstOrDefaultAsync(c => c.Id == cart.Id);
+            this.GetDbSet<Cart>().Add(cart);
+            UnitOfWork.SaveChanges();
+        }
 
-            if (existingCart == null)
-            {
-                // New cart
-                if (string.IsNullOrEmpty(cart.Id))
-                {
-                    cart.Id = Guid.NewGuid().ToString();
-                }
-                cart.CreatedAt = DateTime.UtcNow;
-                cart.UpdatedAt = DateTime.UtcNow;
-                this.GetDbSet<Cart>().Add(cart);
-            }
-            else
-            {
-                // Update existing cart
-                cart.UpdatedAt = DateTime.UtcNow;
-
-                // ✅ Critical: Remove items that no longer exist
-                var existingItemIds = existingCart.CartItems.Select(i => i.Id).ToList();
-                var currentItemIds = cart.CartItems.Select(i => i.Id).ToList();
-                var itemsToRemove = existingItemIds.Except(currentItemIds).ToList();
-
-                foreach (var itemId in itemsToRemove)
-                {
-                    var itemToRemove = this.GetDbSet<CartItem>().FirstOrDefault(i => i.Id == itemId);
-                    if (itemToRemove != null)
-                    {
-                        this.GetDbSet<CartItem>().Remove(itemToRemove);
-                    }
-                }
-
-                this.GetDbSet<Cart>().Update(cart);
-            }
-
+        public void UpdateCart(Cart cart)
+        {
+            this.GetDbSet<Cart>().Update(cart);
             UnitOfWork.SaveChanges();
         }
 

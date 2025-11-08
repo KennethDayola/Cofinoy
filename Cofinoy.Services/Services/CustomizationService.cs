@@ -45,14 +45,42 @@ namespace Cofinoy.Services.Services
 
         public void UpdateCustomization(string id, CustomizationServiceModel model)
         {
-            if (!_repository.CustomizationExists(id))
+            var existing = _repository.GetCustomizationById(id);
+            if (existing == null)
             {
                 throw new InvalidDataException("Customization not found");
             }
 
-            var customization = MapToEntity(model);
-            customization.Id = id;
-            _repository.UpdateCustomization(customization);
+            existing.Name = model.Name;
+            existing.Type = model.Type;
+            existing.Required = model.Required;
+            existing.DisplayOrder = model.DisplayOrder;
+            existing.Description = model.Description ?? string.Empty;
+            existing.MaxQuantity = model.MaxQuantity;
+            existing.PricePerUnit = model.PricePerUnit;
+
+           
+            existing.Options.Clear();
+
+            if (model.Options != null && model.Options.Any())
+            {
+                foreach (var optionModel in model.Options)
+                {
+                    var option = new CustomizationOption
+                    {
+                        Id = string.IsNullOrEmpty(optionModel.Id)
+                            ? Guid.NewGuid().ToString()
+                            : optionModel.Id,
+                        Name = optionModel.Name,
+                        PriceModifier = optionModel.PriceModifier,
+                        Description = optionModel.Description ?? string.Empty,
+                        Default = optionModel.Default
+                    };
+                    existing.Options.Add(option);
+                }
+            }
+
+            _repository.UpdateCustomization(existing);
         }
 
         public void DeleteCustomization(string id)
