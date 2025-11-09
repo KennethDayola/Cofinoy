@@ -40,6 +40,21 @@ namespace Cofinoy.Services.Services
         public void AddCustomization(CustomizationServiceModel model)
         {
             var customization = MapToEntity(model);
+            
+            // Auto-increment DisplayOrder for options if not set
+            if (customization.Options != null && customization.Options.Any())
+            {
+                int displayOrder = 1;
+                foreach (var option in customization.Options.OrderBy(o => o.DisplayOrder))
+                {
+                    if (option.DisplayOrder <= 0)
+                    {
+                        option.DisplayOrder = displayOrder;
+                    }
+                    displayOrder++;
+                }
+            }
+            
             _repository.AddCustomization(customization);
         }
 
@@ -59,12 +74,17 @@ namespace Cofinoy.Services.Services
             existing.MaxQuantity = model.MaxQuantity;
             existing.PricePerUnit = model.PricePerUnit;
 
-           
+            // Clear existing options
             existing.Options.Clear();
 
             if (model.Options != null && model.Options.Any())
             {
-                foreach (var optionModel in model.Options)
+                int displayOrder = 1;
+                
+                // Order by DisplayOrder from the model, then assign auto-increment if needed
+                var orderedOptions = model.Options.OrderBy(o => o.DisplayOrder > 0 ? o.DisplayOrder : int.MaxValue).ToList();
+                
+                foreach (var optionModel in orderedOptions)
                 {
                     var option = new CustomizationOption
                     {
@@ -74,9 +94,11 @@ namespace Cofinoy.Services.Services
                         Name = optionModel.Name,
                         PriceModifier = optionModel.PriceModifier,
                         Description = optionModel.Description ?? string.Empty,
-                        Default = optionModel.Default
+                        Default = optionModel.Default,
+                        DisplayOrder = optionModel.DisplayOrder > 0 ? optionModel.DisplayOrder : displayOrder
                     };
                     existing.Options.Add(option);
+                    displayOrder++;
                 }
             }
 
@@ -100,6 +122,20 @@ namespace Cofinoy.Services.Services
 
         private CustomizationServiceModel MapToServiceModel(Customization entity)
         {
+            var options = entity.Options?
+                .OrderBy(o => o.DisplayOrder)
+                .ThenBy(o => o.Name)
+                .Select(o => new CustomizationOptionServiceModel
+                {
+                    Id = o.Id,
+                    Name = o.Name,
+                    PriceModifier = o.PriceModifier,
+                    Description = o.Description ?? string.Empty,
+                    Default = o.Default,
+                    DisplayOrder = o.DisplayOrder > 0 ? o.DisplayOrder : 0 // Handle null/0 DisplayOrder
+                })
+                .ToList() ?? new List<CustomizationOptionServiceModel>();
+
             return new CustomizationServiceModel
             {
                 Id = entity.Id,
@@ -110,19 +146,22 @@ namespace Cofinoy.Services.Services
                 Description = entity.Description ?? string.Empty,
                 MaxQuantity = entity.MaxQuantity,
                 PricePerUnit = entity.PricePerUnit,
-                Options = entity.Options?.Select(o => new CustomizationOptionServiceModel
-                {
-                    Id = o.Id,
-                    Name = o.Name,
-                    PriceModifier = o.PriceModifier,
-                    Description = o.Description ?? string.Empty,
-                    Default = o.Default
-                }).ToList() ?? new List<CustomizationOptionServiceModel>()
+                Options = options
             };
         }
 
         private Customization MapToEntity(CustomizationServiceModel model)
         {
+            var options = model.Options?.Select((o, index) => new CustomizationOption
+            {
+                Id = string.IsNullOrEmpty(o.Id) ? Guid.NewGuid().ToString() : o.Id,
+                Name = o.Name,
+                PriceModifier = o.PriceModifier,
+                Description = o.Description ?? string.Empty,
+                Default = o.Default,
+                DisplayOrder = o.DisplayOrder > 0 ? o.DisplayOrder : (index + 1) // Auto-increment if not set
+            }).ToList() ?? new List<CustomizationOption>();
+
             return new Customization
             {
                 Name = model.Name,
@@ -132,14 +171,7 @@ namespace Cofinoy.Services.Services
                 Description = model.Description ?? string.Empty,
                 MaxQuantity = model.MaxQuantity,
                 PricePerUnit = model.PricePerUnit,
-                Options = model.Options?.Select(o => new CustomizationOption
-                {
-                    Id = string.IsNullOrEmpty(o.Id) ? Guid.NewGuid().ToString() : o.Id,
-                    Name = o.Name,
-                    PriceModifier = o.PriceModifier,
-                    Description = o.Description ?? string.Empty,
-                    Default = o.Default
-                }).ToList() ?? new List<CustomizationOption>()
+                Options = options
             };
         }
     }

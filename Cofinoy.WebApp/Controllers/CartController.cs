@@ -56,23 +56,23 @@ namespace Cofinoy.WebApp.Controllers
         {
             try
             {
-                Console.WriteLine("=== CART CONTROLLER ADD TO CART DEBUG ===");
-                Console.WriteLine($"Product: {item.Name}");
-                Console.WriteLine($"UnitPrice received: {item.UnitPrice}");
-                Console.WriteLine($"Quantity: {item.Quantity}");
-                Console.WriteLine($"Expected Total: {item.UnitPrice * item.Quantity}");
+                _logger.LogInformation("=== CART CONTROLLER ADD TO CART DEBUG ===");
+                _logger.LogInformation("Product: {ProductName}", item.Name);
+                _logger.LogInformation("UnitPrice received: {UnitPrice}", item.UnitPrice);
+                _logger.LogInformation("Quantity: {Quantity}", item.Quantity);
+                _logger.LogInformation("Expected Total: {Total}", item.UnitPrice * item.Quantity);
 
                 if (item.Customizations != null && item.Customizations.Any())
                 {
-                    Console.WriteLine($"Customizations count: {item.Customizations.Count}");
+                    _logger.LogInformation("Customizations count: {Count}", item.Customizations.Count);
                     foreach (var custom in item.Customizations)
                     {
-                        Console.WriteLine($"  - {custom.Name}: {custom.Value} ({custom.Type})");
+                        _logger.LogInformation("  - {Name}: {Value} ({Type})", custom.Name, custom.Value, custom.Type);
                     }
                 }
                 else
                 {
-                    Console.WriteLine("No customizations in request!");
+                    _logger.LogInformation("No customizations in request!");
                 }
 
                 var userId = GetCurrentUserId();
@@ -81,17 +81,11 @@ namespace Cofinoy.WebApp.Controllers
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
                 var cartCount = cartItems.Sum(i => i.Quantity);
 
-                var storedItem = cartItems.FirstOrDefault(i => i.ProductId == item.ProductId);
-                if (storedItem != null)
-                {
-                    Console.WriteLine($"Stored in cart - UnitPrice: {storedItem.UnitPrice}, Total: {storedItem.UnitPrice * storedItem.Quantity}");
-                }
-
                 return Json(new { success = true, cartCount = cartCount });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error: {ex.Message}");
+                _logger.LogError(ex, "Error adding to cart");
                 return Json(new { success = false, error = ex.Message });
             }
         }
@@ -102,10 +96,10 @@ namespace Cofinoy.WebApp.Controllers
             try
             {
                 var userId = GetCurrentUserId();
-                await _cartService.UpdateCartItemQuantityAsync(userId, model.ProductId, model.Quantity);
+                await _cartService.UpdateCartItemQuantityAsync(userId, model.CartItemId, model.Quantity);
 
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
-                var updatedItem = cartItems.FirstOrDefault(i => i.ProductId == model.ProductId);
+                var updatedItem = cartItems.FirstOrDefault(i => i.CartItemId == model.CartItemId);
                 var subtotal = cartItems.Sum(i => i.TotalPrice);
                 var cartCount = cartItems.Sum(i => i.Quantity);
 
@@ -114,7 +108,7 @@ namespace Cofinoy.WebApp.Controllers
                     success = true,
                     itemTotal = updatedItem?.TotalPrice ?? 0,
                     subtotal = subtotal,
-                    total = subtotal - 60,
+                    total = subtotal,
                     cartCount = cartCount
                 });
             }
@@ -131,7 +125,7 @@ namespace Cofinoy.WebApp.Controllers
             try
             {
                 var userId = GetCurrentUserId();
-                await _cartService.RemoveFromCartAsync(userId, model.ProductId);
+                await _cartService.RemoveFromCartAsync(userId, model.CartItemId);
 
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
                 var subtotal = cartItems.Sum(i => i.TotalPrice);
@@ -141,7 +135,7 @@ namespace Cofinoy.WebApp.Controllers
                 {
                     success = true,
                     subtotal = subtotal,
-                    total = subtotal - 0,
+                    total = subtotal,
                     cartCount = cartCount
                 });
             }
@@ -197,7 +191,9 @@ namespace Cofinoy.WebApp.Controllers
                         Name = oi.ProductName,
                         Description = oi.Description,
                         Quantity = oi.Quantity,
-                        UnitPrice = oi.UnitPrice
+                        UnitPrice = oi.UnitPrice,
+                        // Map customizations
+                        Customizations = oi.Customizations ?? new List<CustomizationData>()
                     }).ToList()
                 };
 
@@ -230,12 +226,12 @@ namespace Cofinoy.WebApp.Controllers
 
     public class UpdateQuantityModel
     {
-        public string ProductId { get; set; }
+        public string CartItemId { get; set; } // Changed from ProductId
         public int Quantity { get; set; }
     }
 
     public class RemoveFromCartModel
     {
-        public string ProductId { get; set; }
+        public string CartItemId { get; set; } // Changed from ProductId
     }
 }

@@ -49,31 +49,68 @@
                 <div class="cart-items-list">
                     @foreach (var item in Model)
                     {
-                        <div class="cart-item" id="cartItem-@item.ProductId">
+                        <div class="cart-item" id="cartItem-@item.CartItemId" data-cart-item-id="@item.CartItemId">
                             <div class="item-details">
                                 <img src="@item.ImageUrl" alt="@item.Name" class="item-image" />
                                 <div class="item-info">
                                     <h3 class="item-name">@item.Name</h3>
                                     <div class="item-description">@item.Description</div>
-                                    @* Display customizations if available *@
-                                    @if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.MilkType) || !string.IsNullOrEmpty(item.Temperature) || item.ExtraShots > 0)
+                                    @* Display customizations from the Customizations collection, ordered by DisplayOrder *@
+                                    @if (item.Customizations != null && item.Customizations.Any())
                                     {
                                         <div class="item-customizations">
-                                            <small>
-                                                @item.Size
-                                                @if (!string.IsNullOrEmpty(item.MilkType))
-                                                {
-                                                    <text>• @item.MilkType</text>
-                                                }
-                                                @if (!string.IsNullOrEmpty(item.Temperature))
-                                                {
-                                                    <text>• @item.Temperature</text>
-                                                }
-                                                @if (item.ExtraShots > 0)
-                                                {
-                                                    <text>• @item.ExtraShots extra shots</text>
-                                                }
-                                            </small>
+                                            @foreach (var customization in item.Customizations.OrderBy(c => c.DisplayOrder ?? int.MaxValue).ThenBy(c => c.Name))
+                                            {
+                                                <div class="customization-row">
+                                                    <span class="customization-label">@customization.Name:</span>
+                                                    <span class="customization-value">@customization.Value</span>
+                                                    @if (customization.Price > 0)
+                                                    {
+                                                        <span class="customization-price">(+₱@customization.Price.ToString("N2"))</span>
+                                                    }
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                    else if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.MilkType) || !string.IsNullOrEmpty(item.Temperature) || item.ExtraShots > 0)
+                                    {
+                                        @* Fallback to legacy fields if customizations collection is empty *@
+                                        <div class="item-customizations">
+                                            @if (!string.IsNullOrEmpty(item.Size))
+                                            {
+                                                <div class="customization-row">
+                                                    <span class="customization-label">Size:</span>
+                                                    <span class="customization-value">@item.Size</span>
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.MilkType))
+                                            {
+                                                <div class="customization-row">
+                                                    <span class="customization-label">Milk:</span>
+                                                    <span class="customization-value">@item.MilkType</span>
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.Temperature))
+                                            {
+                                                <div class="customization-row">
+                                                    <span class="customization-label">Temperature:</span>
+                                                    <span class="customization-value">@item.Temperature</span>
+                                                </div>
+                                            }
+                                            @if (item.ExtraShots > 0)
+                                            {
+                                                <div class="customization-row">
+                                                    <span class="customization-label">Extra Shots:</span>
+                                                    <span class="customization-value">@item.ExtraShots</span>
+                                                </div>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.SweetnessLevel))
+                                            {
+                                                <div class="customization-row">
+                                                    <span class="customization-label">Sweetness:</span>
+                                                    <span class="customization-value">@item.SweetnessLevel</span>
+                                                </div>
+                                            }
                                         </div>
                                     }
                                 </div>
@@ -82,19 +119,19 @@
                             <div class="item-price">₱@item.UnitPrice.ToString("N2")</div>
                             <div class="item-quantity">
                                 <div class="quantity-controls">
-                                    <button type="button" class="quantity-btn" onclick="updateQuantity('@item.ProductId', 'decrease')">
+                                    <button type="button" class="quantity-btn" onclick="updateQuantity('@item.CartItemId', 'decrease')">
                                         <span class="material-symbols-rounded">remove</span>
                                     </button>
-                                    <span class="quantity-value" id="quantity-@item.ProductId">@item.Quantity</span>
-                                    <button type="button" class="quantity-btn" onclick="updateQuantity('@item.ProductId', 'increase')">
+                                    <span class="quantity-value" id="quantity-@item.CartItemId">@item.Quantity</span>
+                                    <button type="button" class="quantity-btn" onclick="updateQuantity('@item.CartItemId', 'increase')">
                                         <span class="material-symbols-rounded">add</span>
                                     </button>
                                 </div>
                             </div>
 
-                            <div class="item-total" id="total-@item.ProductId">₱@((item.UnitPrice * item.Quantity).ToString("N2"))</div>
+                            <div class="item-total" id="total-@item.CartItemId">₱@((item.UnitPrice * item.Quantity).ToString("N2"))</div>
                             <div class="item-actions">
-                                <button type="button" class="remove-btn" onclick="removeFromCart('@item.ProductId')" title="Remove item">
+                                <button type="button" class="remove-btn" onclick="removeFromCart('@item.CartItemId')" title="Remove item">
                                     <span class="material-symbols-rounded">delete</span>
                                 </button>
                             </div>

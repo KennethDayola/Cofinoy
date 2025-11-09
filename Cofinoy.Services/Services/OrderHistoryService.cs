@@ -12,13 +12,16 @@ namespace Cofinoy.Services.Services
     public class OrderHistoryService : IOrderHistoryService
     {
         private readonly IOrderHistoryRepository _orderHistoryRepository;
+        private readonly IProductRepository _productRepository;
         private readonly ILogger<OrderHistoryService> _logger;
 
         public OrderHistoryService(
             IOrderHistoryRepository orderHistoryRepository,
+            IProductRepository productRepository,
             ILogger<OrderHistoryService> logger)
         {
             _orderHistoryRepository = orderHistoryRepository;
+            _productRepository = productRepository;
             _logger = logger;
         }
 
@@ -39,21 +42,40 @@ namespace Cofinoy.Services.Services
                     Status = o.Status,
                     AdditionalRequest = o.AdditionalRequest,
                     TotalPrice = o.TotalPrice,
-                    OrderItems = o.OrderItems.Select(oi => new OrderItemServiceModel
+                    OrderItems = o.OrderItems.Select(oi => 
                     {
-                        Id = oi.Id,
-                        ProductId = oi.ProductId,
-                        ProductName = oi.ProductName,
-                        Description = oi.Description,
-                        Quantity = oi.Quantity,
-                        UnitPrice = oi.UnitPrice,
-                        TotalPrice = oi.TotalPrice,
-                        Size = oi.Size,
-                        Temperature = oi.Temperature,
-                        MilkType = oi.MilkType,
-                        ExtraShots = oi.ExtraShots,
-                        SweetnessLevel = oi.SweetnessLevel,
-                        ImageUrl = oi.Product?.ImageUrl ?? oi.Product?.ImagePath
+                        // Get product image URL from Product table
+                        var product = _productRepository.GetProductById(oi.ProductId);
+                        var imageUrl = product?.ImageUrl ?? string.Empty;
+
+                        return new OrderItemServiceModel
+                        {
+                            Id = oi.Id,
+                            ProductId = oi.ProductId,
+                            ProductName = oi.ProductName,
+                            Description = oi.Description,
+                            Quantity = oi.Quantity,
+                            UnitPrice = oi.UnitPrice,
+                            TotalPrice = oi.TotalPrice,
+                            Size = oi.Size,
+                            Temperature = oi.Temperature,
+                            MilkType = oi.MilkType,
+                            ExtraShots = oi.ExtraShots,
+                            SweetnessLevel = oi.SweetnessLevel,
+                            ImageUrl = imageUrl,
+                            // Map customizations
+                            Customizations = oi.Customizations?
+                                .OrderBy(c => c.DisplayOrder ?? int.MaxValue)
+                                .ThenBy(c => c.Name)
+                                .Select(c => new CustomizationData
+                                {
+                                    Name = c.Name,
+                                    Value = c.Value,
+                                    Type = c.Type,
+                                    DisplayOrder = c.DisplayOrder,
+                                    Price = c.Price
+                                }).ToList() ?? new List<CustomizationData>()
+                        };
                     }).ToList()
                 }).ToList();
 
@@ -88,21 +110,40 @@ namespace Cofinoy.Services.Services
                     Status = order.Status,
                     AdditionalRequest = order.AdditionalRequest,
                     TotalPrice = order.TotalPrice,
-                    OrderItems = order.OrderItems.Select(oi => new OrderItemServiceModel
+                    OrderItems = order.OrderItems.Select(oi => 
                     {
-                        Id = oi.Id,
-                        ProductId = oi.ProductId,
-                        ProductName = oi.ProductName,
-                        Description = oi.Description,
-                        Quantity = oi.Quantity,
-                        UnitPrice = oi.UnitPrice,
-                        TotalPrice = oi.TotalPrice,
-                        Size = oi.Size,
-                        Temperature = oi.Temperature,
-                        MilkType = oi.MilkType,
-                        ExtraShots = oi.ExtraShots,
-                        SweetnessLevel = oi.SweetnessLevel,
-                        ImageUrl = oi.Product?.ImageUrl ?? oi.Product?.ImagePath
+                        // Get product image URL from Product table
+                        var product = _productRepository.GetProductById(oi.ProductId);
+                        var imageUrl = product?.ImageUrl ?? string.Empty;
+
+                        return new OrderItemServiceModel
+                        {
+                            Id = oi.Id,
+                            ProductId = oi.ProductId,
+                            ProductName = oi.ProductName,
+                            Description = oi.Description,
+                            Quantity = oi.Quantity,
+                            UnitPrice = oi.UnitPrice,
+                            TotalPrice = oi.TotalPrice,
+                            Size = oi.Size,
+                            Temperature = oi.Temperature,
+                            MilkType = oi.MilkType,
+                            ExtraShots = oi.ExtraShots,
+                            SweetnessLevel = oi.SweetnessLevel,
+                            ImageUrl = imageUrl,
+                            // Map customizations
+                            Customizations = oi.Customizations?
+                                .OrderBy(c => c.DisplayOrder ?? int.MaxValue)
+                                .ThenBy(c => c.Name)
+                                .Select(c => new CustomizationData
+                                {
+                                    Name = c.Name,
+                                    Value = c.Value,
+                                    Type = c.Type,
+                                    DisplayOrder = c.DisplayOrder,
+                                    Price = c.Price
+                                }).ToList() ?? new List<CustomizationData>()
+                        };
                     }).ToList()
                 };
 

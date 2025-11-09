@@ -1,4 +1,4 @@
-﻿const CustomizationAPI = {
+const CustomizationAPI = {
     async getAllCustomizations() {
         const response = await fetch('/Menu/GetAllCustomizations');
         return await response.json();
@@ -219,7 +219,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         updateAddonsCount(visibleCount);
 
-        // Update no addons message based on filter results
         if (visibleCount === 0) {
             updateNoAddonsMessage();
         } else {
@@ -229,11 +228,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
+    
     function addOptionField(existingOption = null) {
         optionCounter++;
         const optionItem = document.createElement('div');
         optionItem.className = 'option-item';
         optionItem.setAttribute('data-option-id', optionCounter);
+
+        const currentOptionsCount = document.querySelectorAll('.option-item').length;
+        const displayOrder = existingOption?.displayOrder || (currentOptionsCount + 1);
 
         optionItem.innerHTML = `
         <div class="option-header">
@@ -243,6 +246,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </button>
         </div>
         <div class="option-fields">
+            <input type="hidden" name="option_displayorder_${optionCounter}" value="${displayOrder}">
             <div class="option-field">
                 <label>Option Name *</label>
                 <input type="text" name="option_name_${optionCounter}" 
@@ -251,7 +255,7 @@ document.addEventListener('DOMContentLoaded', function () {
                        value="${existingOption ? existingOption.name : ''}">
             </div>
             <div class="option-field">
-                <label>Price Modifier (₱)</label>
+                <label>Price Modifier (?)</label>
                 <input type="number" name="option_price_${optionCounter}" 
                        placeholder="0.00" step="0.01" min="0"
                        value="${existingOption ? existingOption.priceModifier : ''}">
@@ -300,14 +304,20 @@ document.addEventListener('DOMContentLoaded', function () {
             optionItem.remove();
             clearValidationErrors();
 
-            if (isDefault) {
-                const remainingOptions = document.querySelectorAll('.option-item');
-                if (remainingOptions.length > 0) {
-                    const firstOption = remainingOptions[0];
-                    const firstRadio = firstOption.querySelector('input[type="radio"]');
-                    if (firstRadio) {
-                        firstRadio.checked = true;
-                    }
+            const remainingOptions = document.querySelectorAll('.option-item');
+            remainingOptions.forEach((item, index) => {
+                const optionIdAttr = item.getAttribute('data-option-id');
+                const displayOrderInput = item.querySelector(`[name="option_displayorder_${optionIdAttr}"]`);
+                if (displayOrderInput) {
+                    displayOrderInput.value = index + 1;
+                }
+            });
+
+            if (isDefault && remainingOptions.length > 0) {
+                const firstOption = remainingOptions[0];
+                const firstRadio = firstOption.querySelector('input[type="radio"]');
+                if (firstRadio) {
+                    firstRadio.checked = true;
                 }
             }
         }
@@ -427,13 +437,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (optionName) {
                         const optionPrice = parseFloat(item.querySelector(`[name="option_price_${optionId}"]`).value) || 0;
                         const optionDescription = item.querySelector(`[name="option_description_${optionId}"]`).value.trim();
+                        const optionDisplayOrder = parseInt(item.querySelector(`[name="option_displayorder_${optionId}"]`).value) || 0;
                         const isDefault = optionId === selectedDefaultId;
 
                         formData.options.push({
                             name: optionName,
                             priceModifier: optionPrice,
                             description: optionDescription,
-                            default: isDefault
+                            default: isDefault,
+                            displayOrder: optionDisplayOrder
                         });
                     }
                 });
@@ -513,7 +525,10 @@ document.addEventListener('DOMContentLoaded', function () {
         addonCard.className = 'addon-card';
         addonCard.setAttribute('data-id', addonData.id);
 
-        const optionsCount = addonData.options ? addonData.options.length : 0;
+        const sortedOptions = addonData.options ? 
+            [...addonData.options].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)) : 
+            [];
+        const optionsCount = sortedOptions.length;
 
         addonCard.innerHTML = `
             <div class="addon-header">
@@ -547,9 +562,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 ${addonData.type !== 'quantity' && optionsCount > 0 ? `
                 <div class="addon-options">
-                    <div class="options-title">Options Preview</div>
+                    <div class="options-title">Options Preview (Ordered)</div>
                     <div class="options-preview">
-                        ${addonData.options.slice(0, 4).map(option =>
+                        ${sortedOptions.slice(0, 4).map(option =>
                     `<span class="option-tag">${option.name}</span>`
                 ).join('')}
                         ${optionsCount > 4 ? `<span class="option-tag">+${optionsCount - 4} more</span>` : ''}
@@ -559,7 +574,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="addon-footer">
                     <span class="addon-stats">
                         ${addonData.type === 'quantity' ?
-                `Max: ${addonData.maxQuantity || 100} | ₱${addonData.pricePerUnit || 0}/unit` :
+                `Max: ${addonData.maxQuantity || 100} | ?${addonData.pricePerUnit || 0}/unit` :
                 `${optionsCount} options available`}
                     </span>
                     <div class="addon-actions">
@@ -602,7 +617,11 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('pricePerUnit').required = false;
 
             if (addonData.options && addonData.options.length > 0) {
-                addonData.options.forEach(option => {
+                const sortedOptions = [...addonData.options].sort((a, b) => 
+                    (a.displayOrder || 0) - (b.displayOrder || 0)
+                );
+                
+                sortedOptions.forEach(option => {
                     addOptionField(option);
                 });
 

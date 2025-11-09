@@ -147,11 +147,24 @@ namespace Cofinoy.Services.Services
                     Quantity = oi.Quantity,
                     UnitPrice = oi.UnitPrice,
                     TotalPrice = oi.TotalPrice,
+                    // Legacy fields
                     Size = oi.Size,
                     MilkType = oi.MilkType,
                     Temperature = oi.Temperature,
                     ExtraShots = oi.ExtraShots,
-                    SweetnessLevel = oi.SweetnessLevel
+                    SweetnessLevel = oi.SweetnessLevel,
+                    // Map customizations
+                    Customizations = oi.Customizations?
+                        .OrderBy(c => c.DisplayOrder ?? int.MaxValue)
+                        .ThenBy(c => c.Name)
+                        .Select(c => new CustomizationData
+                        {
+                            Name = c.Name,
+                            Value = c.Value,
+                            Type = c.Type,
+                            DisplayOrder = c.DisplayOrder,
+                            Price = c.Price
+                        }).ToList() ?? new List<CustomizationData>()
                 }).ToList(),
                 CustomerInfo = user != null
                     ? new CustomerInfoServiceModel
@@ -255,19 +268,46 @@ namespace Cofinoy.Services.Services
                     PaymentMethod = paymentMethod,
                     TotalPrice = cartItems.Sum(i => i.TotalPrice),
                     Status = "Pending",
-                    OrderItems = cartItems.Select(item => new OrderItem
+                    OrderItems = cartItems.Select(item => 
                     {
-                        ProductId = item.ProductId,
-                        ProductName = item.Name,
-                        Description = item.Description ?? "",
-                        UnitPrice = item.UnitPrice,
-                        Quantity = item.Quantity,
-                        TotalPrice = item.TotalPrice,
-                        Size = item.Size ?? "",
-                        MilkType = item.MilkType ?? "",
-                        Temperature = item.Temperature ?? "",
-                        ExtraShots = item.ExtraShots,
-                        SweetnessLevel = item.SweetnessLevel ?? ""
+                        var orderItem = new OrderItem
+                        {
+                            ProductId = item.ProductId,
+                            ProductName = item.Name,
+                            Description = item.Description ?? "",
+                            UnitPrice = item.UnitPrice,
+                            Quantity = item.Quantity,
+                            TotalPrice = item.TotalPrice,
+                            // Legacy fields for backward compatibility
+                            Size = item.Size ?? "",
+                            MilkType = item.MilkType ?? "",
+                            Temperature = item.Temperature ?? "",
+                            ExtraShots = item.ExtraShots,
+                            SweetnessLevel = item.SweetnessLevel ?? "",
+                            Customizations = new List<OrderItemCustomization>()
+                        };
+
+                        // Map customizations from cart item to order item
+                        if (item.Customizations != null && item.Customizations.Any())
+                        {
+                            _logger.LogInformation("Mapping {Count} customizations for product {ProductName}", 
+                                item.Customizations.Count, item.Name);
+
+                            foreach (var customization in item.Customizations)
+                            {
+                                orderItem.Customizations.Add(new OrderItemCustomization
+                                {
+                                    Id = Guid.NewGuid().ToString(),
+                                    Name = customization.Name,
+                                    Value = customization.Value,
+                                    Type = customization.Type,
+                                    DisplayOrder = customization.DisplayOrder,
+                                    Price = customization.Price
+                                });
+                            }
+                        }
+
+                        return orderItem;
                     }).ToList()
                 };
 

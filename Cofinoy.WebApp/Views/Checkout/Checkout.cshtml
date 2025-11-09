@@ -67,6 +67,23 @@
                                 {
                                     <p class="item-description">@item.Description</p>
                                 }
+                                @* Display customizations if available *@
+                                @if (item.Customizations != null && item.Customizations.Any())
+                                {
+                                    <div class="item-customizations" style="margin-top: 8px; font-size: 0.85em; color: #666;">
+                                        @foreach (var customization in item.Customizations.OrderBy(c => c.DisplayOrder ?? int.MaxValue).ThenBy(c => c.Name))
+                                        {
+                                            <div style="margin-bottom: 4px;">
+                                                <span style="font-weight: 500;">@customization.Name:</span>
+                                                <span>@customization.Value</span>
+                                                @if (customization.Price > 0)
+                                                {
+                                                    <span style="color: #4caf50;">(+₱@customization.Price.ToString("N2"))</span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             </td>
                             <td style="text-align: center;" class="item-quantity">@item.Quantity</td>
                             <td style="text-align: right;" class="item-price">₱@item.UnitPrice.ToString("N2")</td>

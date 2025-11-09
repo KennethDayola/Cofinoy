@@ -4,6 +4,7 @@ using Cofinoy.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Cofinoy.Data.Migrations
 {
     [DbContext(typeof(CofinoyDbContext))]
-    partial class CofinoyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251109051800_newDisplayOrder")]
+    partial class newDisplayOrder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -114,16 +117,10 @@ namespace Cofinoy.Data.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<int?>("DisplayOrder")
-                        .HasColumnType("int");
-
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("Type")
                         .IsRequired()
@@ -361,42 +358,6 @@ namespace Cofinoy.Data.Migrations
                     b.ToTable("OrderItems");
                 });
 
-            modelBuilder.Entity("Cofinoy.Data.Models.OrderItemCustomization", b =>
-                {
-                    b.Property<string>("Id")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int?>("DisplayOrder")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("nvarchar(100)");
-
-                    b.Property<int>("OrderItemId")
-                        .HasColumnType("int");
-
-                    b.Property<decimal>("Price")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Type")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("nvarchar(50)");
-
-                    b.Property<string>("Value")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("OrderItemId");
-
-                    b.ToTable("OrderItemCustomizations");
-                });
-
             modelBuilder.Entity("Cofinoy.Data.Models.ProductCategory", b =>
                 {
                     b.Property<string>("ProductId")
@@ -576,17 +537,6 @@ namespace Cofinoy.Data.Migrations
                     b.Navigation("Order");
                 });
 
-            modelBuilder.Entity("Cofinoy.Data.Models.OrderItemCustomization", b =>
-                {
-                    b.HasOne("Cofinoy.Data.Models.OrderItem", "OrderItem")
-                        .WithMany("Customizations")
-                        .HasForeignKey("OrderItemId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("OrderItem");
-                });
-
             modelBuilder.Entity("Cofinoy.Data.Models.ProductCategory", b =>
                 {
                     b.HasOne("Cofinoy.Data.Models.Category", "Category")
@@ -650,11 +600,6 @@ namespace Cofinoy.Data.Migrations
             modelBuilder.Entity("Cofinoy.Data.Models.Order", b =>
                 {
                     b.Navigation("OrderItems");
-                });
-
-            modelBuilder.Entity("Cofinoy.Data.Models.OrderItem", b =>
-                {
-                    b.Navigation("Customizations");
                 });
 
             modelBuilder.Entity("Product", b =>

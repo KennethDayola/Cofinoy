@@ -18,6 +18,7 @@ namespace Cofinoy.Data.Repositories
         {
             return await this.GetDbSet<Cart>()
                 .Include(c => c.CartItems)
+                    .ThenInclude(ci => ci.Customizations)
                 .FirstOrDefaultAsync(c => c.UserId == userId);
         }
 

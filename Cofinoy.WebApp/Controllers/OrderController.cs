@@ -137,11 +137,21 @@ namespace Cofinoy.WebApp.Controllers
                         oi.Quantity,
                         oi.UnitPrice,
                         oi.TotalPrice,
+                        // Legacy fields
                         oi.Size,
                         oi.MilkType,
                         oi.Temperature,
                         oi.ExtraShots,
-                        oi.SweetnessLevel
+                        oi.SweetnessLevel,
+                        // New: Include customizations
+                        Customizations = oi.Customizations.Select(c => new
+                        {
+                            c.Name,
+                            c.Value,
+                            c.Type,
+                            c.DisplayOrder,
+                            c.Price
+                        }).ToList()
                     }).ToList()
                 };
 

@@ -31,6 +31,7 @@ namespace Cofinoy.Services.Services
 
                 return cart.CartItems.Select(item => new CartItemServiceModel
                 {
+                    CartItemId = item.Id, // Include the unique cart item ID
                     ProductId = item.ProductId,
                     Name = item.ProductName,
                     Description = item.Description,
@@ -41,7 +42,18 @@ namespace Cofinoy.Services.Services
                     MilkType = item.MilkType,
                     Temperature = item.Temperature,
                     ExtraShots = item.ExtraShots,
-                    SweetnessLevel = item.SweetnessLevel
+                    SweetnessLevel = item.SweetnessLevel,
+                    Customizations = item.Customizations?
+                        .OrderBy(c => c.DisplayOrder ?? int.MaxValue) // Handle null DisplayOrder
+                        .ThenBy(c => c.Name)
+                        .Select(c => new CustomizationData
+                        {
+                            Name = c.Name,
+                            Value = c.Value,
+                            Type = c.Type,
+                            DisplayOrder = c.DisplayOrder,
+                            Price = c.Price
+                        }).ToList() ?? new List<CustomizationData>()
                 }).ToList();
             }
             catch (Exception ex)
@@ -56,6 +68,16 @@ namespace Cofinoy.Services.Services
             try
             {
                 _logger.LogInformation("Adding item to cart for user {UserId}, Product: {ProductId}", userId, item.ProductId);
+
+                if (item.Customizations != null && item.Customizations.Any())
+                {
+                    _logger.LogInformation("Item has {Count} customizations", item.Customizations.Count);
+                    foreach (var custom in item.Customizations)
+                    {
+                        _logger.LogInformation("  - {Name}: {Value} ({Type}) - Order: {DisplayOrder}, Price: {Price}", 
+                            custom.Name, custom.Value, custom.Type, custom.DisplayOrder, custom.Price);
+                    }
+                }
 
                 var cart = await _repository.GetCartByUserIdAsync(userId);
 
@@ -81,13 +103,8 @@ namespace Cofinoy.Services.Services
                 {
                     _logger.LogInformation("Found existing cart with {Count} items", cart.CartItems?.Count ?? 0);
 
-                    var existingItem = cart.CartItems.FirstOrDefault(i =>
-                        i.ProductId == item.ProductId &&
-                        i.Size == item.Size &&
-                        i.MilkType == item.MilkType &&
-                        i.Temperature == item.Temperature &&
-                        i.SweetnessLevel == item.SweetnessLevel &&
-                        i.ExtraShots == item.ExtraShots);
+                    // Check for matching item with same customizations
+                    var existingItem = FindMatchingCartItem(cart.CartItems, item);
 
                     if (existingItem != null)
                     {
@@ -97,7 +114,7 @@ namespace Cofinoy.Services.Services
                     }
                     else
                     {
-                        _logger.LogInformation("Adding new item to cart");
+                        _logger.LogInformation("Adding new item to cart (different customizations or new product)");
                         var cartItem = MapToCartItem(cart.Id, item);
                         cart.CartItems.Add(cartItem);
                     }
@@ -116,7 +133,7 @@ namespace Cofinoy.Services.Services
             }
         }
 
-        public async Task UpdateCartItemQuantityAsync(string userId, string productId, int quantity)
+        public async Task UpdateCartItemQuantityAsync(string userId, string cartItemId, int quantity)
         {
             try
             {
@@ -128,22 +145,22 @@ namespace Cofinoy.Services.Services
                     return;
                 }
 
-                // Find item
-                var item = cart.CartItems.FirstOrDefault(i => i.ProductId == productId);
+                // Find item by CartItemId (not ProductId)
+                var item = cart.CartItems.FirstOrDefault(i => i.Id == cartItemId);
                 if (item != null)
                 {
                     // Business rule: Remove if quantity <= 0
                     if (quantity <= 0)
                     {
                         cart.CartItems.Remove(item);
-                        _logger.LogInformation("Removed item {ProductId} from cart", productId);
+                        _logger.LogInformation("Removed item {CartItemId} from cart", cartItemId);
                     }
                     else
                     {
                         // Update quantity and recalculate total
                         item.Quantity = quantity;
                         item.TotalPrice = item.UnitPrice * quantity;
-                        _logger.LogInformation("Updated item {ProductId} quantity to {Quantity}", productId, quantity);
+                        _logger.LogInformation("Updated item {CartItemId} quantity to {Quantity}", cartItemId, quantity);
                     }
 
                     cart.UpdatedAt = DateTime.UtcNow;
@@ -159,7 +176,7 @@ namespace Cofinoy.Services.Services
             }
         }
 
-        public async Task RemoveFromCartAsync(string userId, string productId)
+        public async Task RemoveFromCartAsync(string userId, string cartItemId)
         {
             try
             {
@@ -171,8 +188,8 @@ namespace Cofinoy.Services.Services
                     return;
                 }
 
-                // Find and remove item
-                var item = cart.CartItems.FirstOrDefault(i => i.ProductId == productId);
+                // Find and remove item by CartItemId (not ProductId)
+                var item = cart.CartItems.FirstOrDefault(i => i.Id == cartItemId);
                 if (item != null)
                 {
                     cart.CartItems.Remove(item);
@@ -180,7 +197,7 @@ namespace Cofinoy.Services.Services
 
                     // Save changes
                     _repository.UpdateCart(cart);
-                    _logger.LogInformation("Removed item {ProductId} from cart", productId);
+                    _logger.LogInformation("Removed item {CartItemId} from cart", cartItemId);
                 }
             }
             catch (Exception ex)
@@ -204,10 +221,54 @@ namespace Cofinoy.Services.Services
             }
         }
 
+        // Helper method to find matching cart item with same customizations
+        private CartItem FindMatchingCartItem(ICollection<CartItem> cartItems, CartItemServiceModel item)
+        {
+            foreach (var cartItem in cartItems)
+            {
+                if (cartItem.ProductId != item.ProductId)
+                    continue;
+
+                // Check if customizations match
+                if (!CustomizationsMatch(cartItem.Customizations, item.Customizations))
+                    continue;
+
+                return cartItem;
+            }
+
+            return null;
+        }
+
+        // Helper method to compare customizations
+        private bool CustomizationsMatch(ICollection<CartItemCustomization> dbCustomizations, List<CustomizationData> serviceCustomizations)
+        {
+            var dbList = dbCustomizations?.ToList() ?? new List<CartItemCustomization>();
+            var serviceList = serviceCustomizations ?? new List<CustomizationData>();
+
+            if (dbList.Count != serviceList.Count)
+                return false;
+
+            // Sort both lists by name for comparison
+            var dbSorted = dbList.OrderBy(c => c.Name).ToList();
+            var serviceSorted = serviceList.OrderBy(c => c.Name).ToList();
+
+            for (int i = 0; i < dbSorted.Count; i++)
+            {
+                if (dbSorted[i].Name != serviceSorted[i].Name ||
+                    dbSorted[i].Value != serviceSorted[i].Value ||
+                    dbSorted[i].Type != serviceSorted[i].Type)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
         // Helper method to map ServiceModel to Entity
         private CartItem MapToCartItem(string cartId, CartItemServiceModel item)
         {
-            return new CartItem
+            var cartItem = new CartItem
             {
                 Id = Guid.NewGuid().ToString(),
                 CartId = cartId,
@@ -222,8 +283,29 @@ namespace Cofinoy.Services.Services
                 Size = item.Size ?? string.Empty,
                 MilkType = item.MilkType ?? string.Empty,
                 SweetnessLevel = item.SweetnessLevel ?? string.Empty,
-                ExtraShots = item.ExtraShots
+                ExtraShots = item.ExtraShots,
+                Customizations = new List<CartItemCustomization>()
             };
+
+            // Map customizations
+            if (item.Customizations != null && item.Customizations.Any())
+            {
+                foreach (var customization in item.Customizations)
+                {
+                    cartItem.Customizations.Add(new CartItemCustomization
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        CartItemId = cartItem.Id,
+                        Name = customization.Name,
+                        Value = customization.Value,
+                        Type = customization.Type,
+                        DisplayOrder = customization.DisplayOrder,
+                        Price = customization.Price
+                    });
+                }
+            }
+
+            return cartItem;
         }
     }
 }

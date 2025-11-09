@@ -89,7 +89,16 @@ namespace Cofinoy.WebApp.Controllers
                             extraShots = oi.ExtraShots,
                             sweetnessLevel = oi.SweetnessLevel,
                             productImageUrl = oi.ImageUrl,
-                            imageUrl = oi.ImageUrl
+                            imageUrl = oi.ImageUrl,
+                            // Include customizations
+                            customizations = oi.Customizations.Select(c => new
+                            {
+                                name = c.Name,
+                                value = c.Value,
+                                type = c.Type,
+                                displayOrder = c.DisplayOrder,
+                                price = c.Price
+                            }).ToList()
                         }).ToList()
                     }
                 };

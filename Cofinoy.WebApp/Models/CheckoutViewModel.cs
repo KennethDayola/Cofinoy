@@ -26,10 +26,15 @@ namespace Cofinoy.WebApp.Models
         public int Quantity { get; set; }
         public decimal UnitPrice { get; set; }
         public decimal TotalPrice { get; set; }
+        
+        // Legacy customization fields (kept for backward compatibility)
         public string Size { get; set; }
         public string MilkType { get; set; }
         public string Temperature { get; set; }
         public int ExtraShots { get; set; }
         public string SweetnessLevel { get; set; }
+        
+        // New: Store customizations as collection
+        public List<CustomizationData> Customizations { get; set; } = new List<CustomizationData>();
     }
 }

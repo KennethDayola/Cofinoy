@@ -560,9 +560,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function loadCustomizations() {
         const result = await ProductsService.getAllCustomizations();
         if (!result.success) return;
+        
+        // Sort customizations by displayOrder
         allCustomizations = result.data
             .slice()
-            .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+            .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
+            .map(cz => {
+                // Also sort options within each customization by displayOrder
+                if (cz.options && Array.isArray(cz.options)) {
+                    cz.options = cz.options
+                        .slice()
+                        .sort((optA, optB) => (optA.displayOrder ?? 0) - (optB.displayOrder ?? 0));
+                }
+                return cz;
+            });
     }
 
     function renderCustomizationsForProduct(product) {
@@ -575,7 +586,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         const allowedIds = new Set(product.customizations);
-        const filtered = allCustomizations.filter(cz => allowedIds.has(cz.id));
+        // Filter and sort customizations by displayOrder
+        const filtered = allCustomizations
+            .filter(cz => allowedIds.has(cz.id))
+            .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
 
         addonsContainer.innerHTML = '';
 
@@ -591,6 +605,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             const body = document.createElement('div');
             body.className = 'addon-body';
+
+            // Sort options by displayOrder before rendering
+            const sortedOptions = (cz.options || [])
+                .slice()
+                .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
 
             if (type === 'quantity') {
                 const maxQ = Number(cz.maxQuantity ?? 5);
@@ -629,7 +648,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     toggle.className = 'temp-toggle';
                     toggle.setAttribute('role', 'tablist');
 
-                    (cz.options || []).forEach((opt, idx) => {
+                    sortedOptions.forEach((opt, idx) => {
                         const id = `cz_${cz.id}_${idx}`;
                         // hidden radio for pricing and form-like semantics
                         const hidden = document.createElement('input');
@@ -678,7 +697,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     // Standard single select as dropdown
                     const select = document.createElement('select');
                     select.className = 'customize-select addon-select';
-                    (cz.options || []).forEach((opt, idx) => {
+                    sortedOptions.forEach((opt, idx) => {
                         const option = document.createElement('option');
                         option.value = String(idx);
                         option.textContent = `${opt.name}${Number(opt.priceModifier || 0) ? ` (₱${Number(opt.priceModifier).toFixed(2)})` : ''}`;
@@ -696,7 +715,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             } else if (type === 'multi_select') {
                 const optionsGrid = document.createElement('div');
                 optionsGrid.className = 'options-grid';
-                (cz.options || []).forEach((opt, idx) => {
+                sortedOptions.forEach((opt, idx) => {
                     const id = `cz_${cz.id}_${idx}`;
                     const item = document.createElement('div');
                     item.className = 'checkbox-item';
@@ -711,7 +730,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     item.querySelector('input')?.addEventListener('change', recalcTotal);
                     optionsGrid.appendChild(item);
                 });
-                if ((cz.options || []).length >= 4) optionsGrid.classList.add('two-cols');
+                if (sortedOptions.length >= 4) optionsGrid.classList.add('two-cols');
                 body.appendChild(optionsGrid);
             }
 

@@ -27,6 +27,7 @@ namespace Cofinoy.Data.Models
         public int Quantity { get; set; }
         public decimal TotalPrice { get; set; }
 
+        // Legacy customization fields (kept for backward compatibility)
         public string Size { get; set; }
         public string MilkType { get; set; }
         public string Temperature { get; set; }
@@ -35,9 +36,8 @@ namespace Cofinoy.Data.Models
 
         public Order Order { get; set; }
 
-        public virtual Product Product { get; set; }
-
-
+        // New: Collection of customizations for this order item
+        public virtual ICollection<OrderItemCustomization> Customizations { get; set; } = new List<OrderItemCustomization>();
     }
 
 }

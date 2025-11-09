@@ -21,14 +21,17 @@
             </div>
         </div>
 
-        <button class="sort-button" id="sortButton" aria-label="Sort orders">
-            <svg class="sort-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M3 7H21" stroke="#322708" stroke-width="2" stroke-linecap="round" />
-                <path d="M6 12H18" stroke="#322708" stroke-width="2" stroke-linecap="round" />
-                <path d="M10 17H14" stroke="#322708" stroke-width="2" stroke-linecap="round" />
-            </svg>
-            <span id="sortText">Newest First</span>
-        </button>
+        @if (Model != null && Model.Any())
+        {
+            <button class="sort-button" id="sortButton" aria-label="Sort orders">
+                <svg class="sort-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 7H21" stroke="#322708" stroke-width="2" stroke-linecap="round" />
+                    <path d="M6 12H18" stroke="#322708" stroke-width="2" stroke-linecap="round" />
+                    <path d="M10 17H14" stroke="#322708" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <span id="sortText">Newest First</span>
+            </button>
+        }
     </div>
 
     <div class="order-container">
@@ -81,12 +84,9 @@
                 <header class="order-detail-header">
                     <div class="order-header-info">
                         <p class="order-invoice">Order #@firstOrder.InvoiceNumber</p>
-                        
                     </div>
                     <p class="order-date-time">@firstOrder.OrderDate.ToString("MMMM d, yyyy - h:mm tt")</p>
                 </header>
-
-               
 
                 <div class="order-items">
                     <div class="order-items-header">
@@ -112,28 +112,48 @@
                                 </div>
                                 <div class="item-info">
                                     <h3 class="item-name">@item.ProductName</h3>
-                                    <p class="item-desc">
-                                        @if (!string.IsNullOrEmpty(item.Size))
-                                        {
-                                            <span class="item-attribute">@item.Size</span>
-                                        }
-                                        @if (!string.IsNullOrEmpty(item.Temperature))
-                                        {
-                                            <span class="item-attribute">• @item.Temperature</span>
-                                        }
-                                        @if (!string.IsNullOrEmpty(item.MilkType))
-                                        {
-                                            <span class="item-attribute">• @item.MilkType</span>
-                                        }
-                                        @if (item.ExtraShots > 0)
-                                        {
-                                            <span class="item-attribute">• @item.ExtraShots extra shot(s)</span>
-                                        }
-                                        @if (!string.IsNullOrEmpty(item.SweetnessLevel))
-                                        {
-                                            <span class="item-attribute">• @item.SweetnessLevel sweetness</span>
-                                        }
-                                    </p>
+                                    @if (item.Customizations != null && item.Customizations.Any())
+                                    {
+                                        <div class="item-desc">
+                                            @foreach (var customization in item.Customizations.OrderBy(c => c.DisplayOrder ?? int.MaxValue).ThenBy(c => c.Name))
+                                            {
+                                                var hasPrice = customization.Price > 0;
+                                                var badgeClass = hasPrice ? "item-attribute has-price" : "item-attribute";
+                                                <span class="@badgeClass">
+                                                    @customization.Name: @customization.Value
+                                                    @if (hasPrice)
+                                                    {
+                                                        <span class="item-attribute-price">+₱@customization.Price.ToString("N2")</span>
+                                                    }
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                    else if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.Temperature) || !string.IsNullOrEmpty(item.MilkType) || item.ExtraShots > 0 || !string.IsNullOrEmpty(item.SweetnessLevel))
+                                    {
+                                        <div class="item-desc">
+                                            @if (!string.IsNullOrEmpty(item.Size))
+                                            {
+                                                <span class="item-attribute">Size: @item.Size</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.Temperature))
+                                            {
+                                                <span class="item-attribute">Temp: @item.Temperature</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.MilkType))
+                                            {
+                                                <span class="item-attribute">Milk: @item.MilkType</span>
+                                            }
+                                            @if (item.ExtraShots > 0)
+                                            {
+                                                <span class="item-attribute has-price">Extra Shots: @item.ExtraShots</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.SweetnessLevel))
+                                            {
+                                                <span class="item-attribute">Sweetness: @item.SweetnessLevel</span>
+                                            }
+                                        </div>
+                                    }
                                 </div>
                                 <div class="item-pricing">
                                     <p class="item-price">₱@item.UnitPrice.ToString("N2")</p>
@@ -149,8 +169,6 @@
                     <span class="total-label">TOTAL</span>
                     <span class="amount">₱@firstOrder.TotalPrice.ToString("N2")</span>
                 </footer>
-
-             
 
                 <!-- TRACK ORDER -->
                 <section class="track-order-section">

@@ -23,9 +23,20 @@ namespace Cofinoy.Data.Repositories
 
         public Customization GetCustomizationById(string id)
         {
-            return this.GetDbSet<Customization>()
+            var customization = this.GetDbSet<Customization>()
                 .Include(c => c.Options)
                 .FirstOrDefault(c => c.Id == id);
+
+            // Order options by DisplayOrder
+            if (customization?.Options != null)
+            {
+                customization.Options = customization.Options
+                    .OrderBy(o => o.DisplayOrder)
+                    .ThenBy(o => o.Name)
+                    .ToList();
+            }
+
+            return customization;
         }
 
         public void AddCustomization(Customization customization)

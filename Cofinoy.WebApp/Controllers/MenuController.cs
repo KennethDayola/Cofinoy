@@ -60,11 +60,18 @@ namespace Cofinoy.WebApp.Controllers
 
 
         [HttpGet]
+        [HttpPost]
         public JsonResult GetAllCategories()
         {
             try
             {
                 var categories = _categoryService.GetAllCategories();
+                
+                if (categories == null)
+                {
+                    categories = new List<CategoryServiceModel>();
+                }
+                
                 return Json(new { success = true, data = categories });
             }
             catch (Exception ex)
