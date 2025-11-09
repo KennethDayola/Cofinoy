@@ -562,7 +562,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 </div>
                 ${addonData.type !== 'quantity' && optionsCount > 0 ? `
                 <div class="addon-options">
-                    <div class="options-title">Options Preview (Ordered)</div>
+                    <div class="options-title">Options Preview</div>
                     <div class="options-preview">
                         ${sortedOptions.slice(0, 4).map(option =>
                     `<span class="option-tag">${option.name}</span>`

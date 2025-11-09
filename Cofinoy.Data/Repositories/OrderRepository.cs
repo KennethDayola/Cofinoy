@@ -17,6 +17,7 @@ namespace Cofinoy.Data.Repositories
         {
             return this.GetDbSet<Order>()
                 .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Customizations)
                 .OrderByDescending(o => o.OrderDate);
         }
 
@@ -24,6 +25,7 @@ namespace Cofinoy.Data.Repositories
         {
             return this.GetDbSet<Order>()
                 .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Customizations)
                 .Where(o => o.UserId == userId)
                 .OrderByDescending(o => o.OrderDate);
         }
@@ -32,6 +34,7 @@ namespace Cofinoy.Data.Repositories
         {
             return this.GetDbSet<Order>()
                 .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Customizations)
                 .FirstOrDefault(o => o.Id == id);
         }
 

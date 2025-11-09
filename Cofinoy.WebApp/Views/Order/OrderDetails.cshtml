@@ -28,29 +28,51 @@
                     <div>
                         <strong>@item.ProductName</strong><br />
                         <small>Quantity: @item.Quantity</small><br />
-                        @if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.Temperature))
+                        
+                        @* Display new customizations if available *@
+                        @if (item.Customizations != null && item.Customizations.Any())
                         {
-                            <small>
-                                Add-ons: @item.Size@(string.IsNullOrEmpty(item.Size) || string.IsNullOrEmpty(item.Temperature) ? "" : ", ")@item.Temperature
-                            </small>
+                            <div class="customizations-section">
+                                @foreach (var customization in item.Customizations)
+                                {
+                                    <small class="customization-item">
+                                        <span class="customization-name">@customization.Name:</span>
+                                        <span class="customization-value">@customization.Value</span>
+                                        @if (customization.Price > 0)
+                                        {
+                                            <span class="customization-price">(+₱@customization.Price.ToString("N2"))</span>
+                                        }
+                                    </small>
+                                }
+                            </div>
                         }
-                        @if (!string.IsNullOrEmpty(item.MilkType))
+                        else
                         {
-                            <br />
-                    
-                            <small>Milk: @item.MilkType</small>
-                        }
-                        @if (item.ExtraShots.HasValue && item.ExtraShots.Value > 0)
-                        {
-                            <br />
-                    
-                            <small>Extra Shots: @item.ExtraShots</small>
-                        }
-                        @if (!string.IsNullOrEmpty(item.SweetnessLevel))
-                        {
-                            <br />
-                    
-                            <small>Sweetness: @item.SweetnessLevel</small>
+                            @* Fallback to legacy fields if no customizations *@
+                            @if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.Temperature))
+                            {
+                                <small>
+                                    Add-ons: @item.Size@(string.IsNullOrEmpty(item.Size) || string.IsNullOrEmpty(item.Temperature) ? "" : ", ")@item.Temperature
+                                </small>
+                            }
+                            @if (!string.IsNullOrEmpty(item.MilkType))
+                            {
+                                <br />
+                        
+                                <small>Milk: @item.MilkType</small>
+                            }
+                            @if (item.ExtraShots.HasValue && item.ExtraShots.Value > 0)
+                            {
+                                <br />
+                        
+                                <small>Extra Shots: @item.ExtraShots</small>
+                            }
+                            @if (!string.IsNullOrEmpty(item.SweetnessLevel))
+                            {
+                                <br />
+                        
+                                <small>Sweetness: @item.SweetnessLevel</small>
+                            }
                         }
                     </div>
                     <strong>₱@item.TotalPrice.ToString("N2")</strong>
@@ -95,14 +117,9 @@
             <p><i class="fas fa-envelope"></i> @(string.IsNullOrEmpty(email) ? "N/A" : email)</p>
             <p><i class="fas fa-map-marker-alt"></i> @(string.IsNullOrEmpty(location) ? "N/A" : location)</p>
 
-            @if (!string.IsNullOrEmpty(Model.PaymentMethod))
-            {
-                <hr style="margin: 15px 0; border: none; border-top: 1px solid #eee;" />
-                <p><i class="fas fa-credit-card"></i> Payment: @Model.PaymentMethod</p>
-            }
-
             @if (!string.IsNullOrEmpty(Model.AdditionalRequest) && Model.AdditionalRequest != "Discount")
             {
+                <hr style="margin: 15px 0; border: none; border-top: 1px solid #eee;" />
                 <p><i class="fas fa-comment"></i> Note: @Model.AdditionalRequest</p>
             }
         </div>
@@ -176,5 +193,14 @@
     console.log('Email:', customerInfo.email);
     console.log('Location:', customerInfo.location);
     console.log('Status:', customerInfo.status);
+    
+    // Log customizations for debugging
+    @foreach (var item in Model.OrderItems)
+    {
+        if (item.Customizations != null && item.Customizations.Any())
+        {
+            @:console.log('Item: @item.ProductName - Customizations:', @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.Customizations)));
+        }
+    }
     console.log('====================');
 </script>

@@ -1,26 +1,100 @@
 ﻿document.addEventListener('DOMContentLoaded', function () {
     loadOrders();
     setupEventListeners();
+    setupFilterModal();
     startAutoRefresh();
 });
 
 let autoRefreshInterval;
-let currentFilter = 'All';
+let currentFilters = {
+    status: 'All',
+    dateFrom: null,
+    dateTo: null
+};
 
 function setupEventListeners() {
     document.getElementById('searchOrders').addEventListener('keyup', function () {
-        loadOrders(currentFilter === 'All' ? null : currentFilter);
+        loadOrders();
     });
 
     document.querySelector('.btn-filter').addEventListener('click', function (e) {
         e.stopPropagation();
-        showStatusFilter();
+        openFilterModal();
     });
+}
+
+function setupFilterModal() {
+    // Status filter buttons
+    document.querySelectorAll('[data-status]').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('[data-status]').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+
+    // Close modal on overlay click
+    document.getElementById('filterModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeFilterModal();
+        }
+    });
+}
+
+function openFilterModal() {
+    document.getElementById('filterModal').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeFilterModal() {
+    document.getElementById('filterModal').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function clearFilters() {
+    currentFilters = {
+        status: 'All',
+        dateFrom: null,
+        dateTo: null
+    };
+    
+    // Reset UI
+    document.querySelectorAll('[data-status]').forEach(b => b.classList.remove('active'));
+    document.querySelector('[data-status="All"]').classList.add('active');
+    
+    document.getElementById('filterDateFrom').value = '';
+    document.getElementById('filterDateTo').value = '';
+    
+    document.querySelector('.btn-filter').innerHTML = '<i class="fas fa-filter"></i> Filters';
+    
+    loadOrders();
+    closeFilterModal();
+}
+
+function applyFilters() {
+    const selectedStatus = document.querySelector('[data-status].active').dataset.status;
+    const dateFrom = document.getElementById('filterDateFrom').value;
+    const dateTo = document.getElementById('filterDateTo').value;
+    
+    currentFilters = {
+        status: selectedStatus,
+        dateFrom: dateFrom || null,
+        dateTo: dateTo || null
+    };
+    
+    // Update filter button text
+    let filterText = 'Filters';
+    if (selectedStatus !== 'All') {
+        filterText = selectedStatus;
+    }
+    document.querySelector('.btn-filter').innerHTML = `<i class="fas fa-filter"></i> ${filterText}`;
+    
+    loadOrders();
+    closeFilterModal();
 }
 
 function startAutoRefresh() {
     autoRefreshInterval = setInterval(() => {
-        loadOrders(currentFilter === 'All' ? null : currentFilter, null, true);
+        loadOrders(true);
     }, 5000);
 }
 
@@ -30,18 +104,37 @@ window.addEventListener('beforeunload', () => {
     }
 });
 
-function loadOrders(status = null, searchTerm = null, silentRefresh = false) {
-    const search = document.getElementById('searchOrders').value || searchTerm || '';
+function loadOrders(silentRefresh = false) {
+    const search = document.getElementById('searchOrders').value || '';
+    const status = currentFilters.status !== 'All' ? currentFilters.status : '';
 
-    fetch(`${window.location.origin}/Order/GetAllOrders?status=${encodeURIComponent(status || '')}&searchTerm=${encodeURIComponent(search)}`)
+    fetch(`${window.location.origin}/Order/GetAllOrders?status=${encodeURIComponent(status)}&searchTerm=${encodeURIComponent(search)}`)
         .then(response => {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return response.json();
         })
         .then(data => {
             if (data.success) {
-                displayOrders(data.data);
-                updateOrderCount(data.count, currentFilter);
+                let filteredOrders = data.data;
+                
+                // Apply date range filter
+                if (currentFilters.dateFrom) {
+                    const fromDate = new Date(currentFilters.dateFrom);
+                    filteredOrders = filteredOrders.filter(order => 
+                        new Date(order.orderDate) >= fromDate
+                    );
+                }
+                
+                if (currentFilters.dateTo) {
+                    const toDate = new Date(currentFilters.dateTo);
+                    toDate.setHours(23, 59, 59, 999); // Include entire day
+                    filteredOrders = filteredOrders.filter(order => 
+                        new Date(order.orderDate) <= toDate
+                    );
+                }
+                
+                displayOrders(filteredOrders);
+                updateOrderCount(filteredOrders.length, currentFilters.status);
             } else {
                 console.error('Error loading orders:', data.error);
             }
@@ -62,15 +155,36 @@ function displayOrders(orders) {
         return;
     }
 
-    orders.forEach(order => {
+    // Sort orders: active orders first, then completed/cancelled orders
+    const sortedOrders = orders.sort((a, b) => {
+        const aStatus = (a.status || '').trim().toLowerCase();
+        const bStatus = (b.status || '').trim().toLowerCase();
+        
+        const aIsCompleted = aStatus === 'served' || aStatus === 'cancelled';
+        const bIsCompleted = bStatus === 'served' || bStatus === 'cancelled';
+        
+        // If one is completed and other is not, completed goes to bottom
+        if (aIsCompleted && !bIsCompleted) return 1;
+        if (!aIsCompleted && bIsCompleted) return -1;
+        
+        // Otherwise maintain original order (or sort by date)
+        return new Date(b.orderDate) - new Date(a.orderDate);
+    });
+
+    sortedOrders.forEach(order => {
         let status = (order.status || '').trim();
         if (status === '' || status.toLowerCase() === 'pending') {
             status = 'Brewing';
         }
 
         const statusClass = status.toLowerCase().replace(/\s+/g, '-');
+        const isCompleted = status.toLowerCase() === 'served' || status.toLowerCase() === 'cancelled';
 
         const row = document.createElement('tr');
+        if (isCompleted) {
+            row.classList.add('order-completed');
+        }
+        
         row.innerHTML = `
             <td><strong>${order.invoiceNumber}</strong></td>
             <td>${order.customerName || order.nickname || 'Guest'}</td>
@@ -95,68 +209,4 @@ function updateOrderCount(count, filter) {
 
 function viewOrderDetails(orderId) {
     window.location.href = `/Order/ViewOrder?orderId=${orderId}`;
-}
-
-function showStatusFilter() {
-    const existingDropdown = document.querySelector('.status-filter-dropdown');
-    if (existingDropdown) {
-        existingDropdown.remove();
-        return;
-    }
-
-    const statuses = [
-        { value: 'All', label: 'All Orders', icon: 'fa-list' },
-        { value: 'Brewing', label: 'Brewing', icon: 'fa-fire' },
-        { value: 'Ready', label: 'Ready', icon: 'fa-clock' },
-        { value: 'Serving', label: 'Serving', icon: 'fa-hand-holding' },
-        { value: 'Served', label: 'Served', icon: 'fa-check-double' },
-        { value: 'Cancelled', label: 'Cancelled', icon: 'fa-times-circle' }
-    ];
-
-    const dropdown = document.createElement('div');
-    dropdown.className = 'status-filter-dropdown';
-
-    statuses.forEach(status => {
-        const option = document.createElement('div');
-        option.className = 'filter-option' + (currentFilter === status.value ? ' active' : '');
-        option.innerHTML = `
-            <i class="fas ${status.icon}"></i>
-            <span>${status.label}</span>
-            ${currentFilter === status.value ? '<i class="fas fa-check check-icon"></i>' : ''}
-        `;
-
-        option.onclick = function (e) {
-            e.stopPropagation();
-            currentFilter = status.value;
-
-            const filterBtn = document.querySelector('.btn-filter');
-            filterBtn.innerHTML = `<i class="fas fa-filter"></i> ${status.label}`;
-
-            loadOrders(status.value === 'All' ? null : status.value);
-
-            dropdown.remove();
-        };
-
-        dropdown.appendChild(option);
-    });
-
-    document.body.appendChild(dropdown);
-
-    const filterButton = document.querySelector('.btn-filter');
-    const rect = filterButton.getBoundingClientRect();
-
-    dropdown.style.position = 'fixed';
-    dropdown.style.top = `${rect.bottom + 5}px`;
-    dropdown.style.left = `${rect.left}px`;
-    dropdown.style.minWidth = `${rect.width}px`;
-    dropdown.style.zIndex = 1000;
-
-    setTimeout(() => {
-        document.addEventListener('click', function handleOutsideClick(e) {
-            if (!dropdown.contains(e.target) && !filterButton.contains(e.target)) {
-                dropdown.remove();
-                document.removeEventListener('click', handleOutsideClick);
-            }
-        });
-    }, 0);
 }
