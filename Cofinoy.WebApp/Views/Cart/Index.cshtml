@@ -191,9 +191,9 @@
                             </div>
                         }
 
-                        <button type="submit" class="order-btn @(Model == null || !Model.Any() ? "order-btn-disabled" : "")"
+                        <button type="submit" class="btn btn-primary w-100 rounded-pill mt-4 @(Model == null || !Model.Any() ? "order-btn-disabled" : "")"
                                 id="placeOrderBtn" @(Model == null || !Model.Any() ? "disabled" : "")>
-                            <span class="btn-text" >Place Order</span>
+                            Place Order
                         </button>
                     </div>
                 </form>

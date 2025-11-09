@@ -59,12 +59,16 @@
                                 Menu
                             </a>
                             </li>
-                            <li class="nav-item mx-4">
-                                <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Order" ? "active text-dark" : "")" asp-area="" asp-controller="Order" asp-action="Index">Order</a>
-                            </li>
+                        <li class="nav-item mx-4">
+                            <a class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "OrderHistory" ? "active text-dark" : "")"
+                               asp-area=""
+                               asp-controller="OrderHistory"
+                               asp-action="OrderHistory">Order</a>
+                        </li>
                         </ul>
                         <div class="navbar-nav ms-auto">
                             <ul class="navbar-nav flex-row">
+
                             <li class="nav-item">
                                 <a class="btn btn-icon me-1 ms-1 @(ViewContext.RouteData.Values["controller"]?.ToString() == "Cart" ? "active" : "")"
                                    asp-area="" asp-controller="Cart" asp-action="Index" aria-label="Cart">

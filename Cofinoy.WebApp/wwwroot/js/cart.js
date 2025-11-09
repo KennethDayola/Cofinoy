@@ -1,16 +1,28 @@
-﻿
-document.addEventListener('DOMContentLoaded', function () {
+﻿document.addEventListener('DOMContentLoaded', function () {
     console.log('Cart page initialized');
 
     calculateCartTotals();
-    initializeCartEvents();
 });
 
 function calculateCartTotals() {
     let subtotal = 0;
 
-   
-    document.querySelectorAll('.cart-item').forEach(item => {
+    const cartItems = document.querySelectorAll('.cart-item');
+
+    if (cartItems.length === 0) {
+        const subtotalElement = document.getElementById('subtotalAmount');
+        const totalElement = document.getElementById('totalAmount');
+
+        if (subtotalElement) {
+            subtotalElement.textContent = '₱0.00';
+        }
+        if (totalElement) {
+            totalElement.textContent = '₱0.00';
+        }
+        return;
+    }
+
+    cartItems.forEach(item => {
         const quantity = parseInt(item.querySelector('.quantity-value').textContent);
         const unitPrice = parseFloat(item.querySelector('.item-price').textContent.replace('₱', ''));
         const itemTotal = quantity * unitPrice;
@@ -18,13 +30,18 @@ function calculateCartTotals() {
         subtotal += itemTotal;
     });
 
-    const total = subtotal - 60; 
+    const total = subtotal - 60;
 
-    document.getElementById('subtotalAmount').textContent = '₱' + subtotal.toFixed(2);
-    document.getElementById('totalAmount').textContent = '₱' + total.toFixed(2);
+    const subtotalElement = document.getElementById('subtotalAmount');
+    const totalElement = document.getElementById('totalAmount');
+
+    if (subtotalElement) {
+        subtotalElement.textContent = '₱' + subtotal.toFixed(2);
+    }
+    if (totalElement) {
+        totalElement.textContent = '₱' + total.toFixed(2);
+    }
 }
-
-
 
 async function updateQuantity(productId, action) {
     const quantityElement = document.getElementById(`quantity-${productId}`);
@@ -52,9 +69,21 @@ async function updateQuantity(productId, action) {
 
         if (result.success) {
             quantityElement.textContent = quantity;
-            document.getElementById(`total-${productId}`).textContent = `₱ ${result.itemTotal.toFixed(2)}`;
-            document.getElementById('subtotalAmount').textContent = `₱ ${result.subtotal.toFixed(2)}`;
-            document.getElementById('totalAmount').textContent = `₱ ${result.total.toFixed(2)}`;
+
+            const itemTotalElement = document.getElementById(`total-${productId}`);
+            const subtotalElement = document.getElementById('subtotalAmount');
+            const totalElement = document.getElementById('totalAmount');
+
+            if (itemTotalElement) {
+                itemTotalElement.textContent = `₱ ${result.itemTotal.toFixed(2)}`;
+            }
+            if (subtotalElement) {
+                subtotalElement.textContent = `₱ ${result.subtotal.toFixed(2)}`;
+            }
+            if (totalElement) {
+                totalElement.textContent = `₱ ${result.total.toFixed(2)}`;
+            }
+
             updateCartSummary(result.cartCount);
         } else {
             alert('Error updating quantity: ' + result.error);
@@ -84,8 +113,18 @@ async function removeFromCart(productId) {
 
         if (result.success) {
             document.getElementById(`cartItem-${productId}`).remove();
-            document.getElementById('subtotalAmount').textContent = `₱ ${result.subtotal.toFixed(2)}`;
-            document.getElementById('totalAmount').textContent = `₱ ${result.total.toFixed(2)}`;
+
+            // Safely update elements only if they exist
+            const subtotalElement = document.getElementById('subtotalAmount');
+            const totalElement = document.getElementById('totalAmount');
+
+            if (subtotalElement) {
+                subtotalElement.textContent = `₱ ${result.subtotal.toFixed(2)}`;
+            }
+            if (totalElement) {
+                totalElement.textContent = `₱ ${result.total.toFixed(2)}`;
+            }
+
             updateCartSummary(result.cartCount);
 
             if (result.cartCount === 0) {
@@ -101,7 +140,8 @@ async function removeFromCart(productId) {
 }
 
 function getAntiForgeryToken() {
-    return document.querySelector('input[name="__RequestVerificationToken"]').value;
+    const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
+    return tokenElement ? tokenElement.value : '';
 }
 
 function updateCartSummary(count) {

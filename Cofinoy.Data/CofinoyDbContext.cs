@@ -17,6 +17,9 @@ namespace Cofinoy.Data
         public DbSet<ProductCustomization> ProductCustomizations { get; set; }
         public DbSet<CartItem> CartItems { get; set; }
         public DbSet<Cart> Carts { get; set; }
+        public DbSet<Order> Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -76,7 +79,56 @@ namespace Cofinoy.Data
             modelBuilder.Entity<CartItem>()
                 .Property(ci => ci.TotalPrice)
                 .HasPrecision(18, 2);
+
+
+
+            modelBuilder.Entity<Order>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id)
+                      .HasColumnName("OrderId");
+
+                entity.Property(e => e.TotalPrice)
+                      .HasPrecision(18, 2);
+
+                entity.Property(e => e.OrderDate)
+                      .IsRequired();
+
+            
+                entity.HasMany(e => e.OrderItems)
+                      .WithOne(e => e.Order)
+                      .HasForeignKey(e => e.OrderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            modelBuilder.Entity<OrderItem>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Id)
+                      .HasColumnName("OrderItemId"); 
+
+                entity.Property(e => e.UnitPrice)
+                      .HasPrecision(18, 2);
+
+                entity.Property(e => e.TotalPrice)
+                      .HasPrecision(18, 2);
+
+                // Relationship with Order
+                entity.HasOne(e => e.Order)
+                      .WithMany(e => e.OrderItems)
+                      .HasForeignKey(e => e.OrderId)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
             // Temporarily remove Menu->Category relationship until DB migration adds MenuId
         }
+
+  
+
+
+
+
     }
+
+
+
 }
