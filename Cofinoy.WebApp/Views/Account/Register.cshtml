@@ -70,14 +70,14 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
-    <script>
+    @* <script>
             document.addEventListener('DOMContentLoaded', function () {
             const form = document.querySelector('form');
             form.addEventListener('submit', function (event) {
                 if (!$(form).valid()) { 
                     event.preventDefault();
                     form.classList.add('was-validated');
-                    showToast("Please fill all required fields correctly.", "danger", "Validation Error");
+                    //showToast("Please fill all required fields correctly.", "danger", "Validation Error");
                 }
             });
 
@@ -88,5 +88,5 @@
                 showToast(toastMessage, toastType, "Cofinoy");
             }
         });
-    </script>
+    </script> *@
 }
