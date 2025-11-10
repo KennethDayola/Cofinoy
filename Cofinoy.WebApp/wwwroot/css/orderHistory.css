@@ -546,18 +546,17 @@
             display: none;
         }
 
-        .progress-steps .step.active ~ .step::after {
-            background: #E9E9E9;
-        }
-
-        .progress-steps .step:has(+ .step.active)::after {
+        /* Only color the line if BOTH current step AND next step are active */
+        .progress-steps .step.active + .step.active::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: 50%;
+            width: 100%;
+            height: 5px;
             background: #322708;
-            animation: fillProgress 0.5s ease forwards;
-        }
-
-        .progress-steps .step.active::after {
-            background: #322708;
-            animation: fillProgress 0.5s ease forwards;
+            z-index: 1;
+            transition: background-color 0.5s ease;
         }
 
 @keyframes fillProgress {

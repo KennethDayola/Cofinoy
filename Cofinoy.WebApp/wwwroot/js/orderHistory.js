@@ -20,9 +20,10 @@
         if (firstOrderCard) {
             currentActiveOrderId = firstOrderCard.dataset.orderId;
             const statusElement = firstOrderCard.querySelector('.status-text');
-            const initialStatus = statusElement ? statusElement.textContent : 'Placed';
+            const initialStatus = statusElement ? statusElement.textContent.trim() : 'Placed';
             previousStatuses.set(currentActiveOrderId, initialStatus);
-            updateProgressBar(currentActiveOrderId);
+            // Initialize progress bar immediately
+            updateTrackOrderProgress(initialStatus, false);
         }
     }
 
@@ -201,9 +202,27 @@
         const statusOrder = ['Placed', 'Brewing', 'Ready', 'Serving', 'Served'];
         const currentIndex = statusOrder.indexOf(status);
 
-        if (status !== 'Cancelled' && currentIndex !== -1) {
-            // Activate all steps up to current status
-            for (let i = 0; i <= currentIndex; i++) {
+        // For cancelled orders, don't activate any steps
+        if (status === 'Cancelled') {
+            if (trackOrderText) {
+                trackOrderText.style.opacity = '0';
+                trackOrderText.style.transform = 'translateY(-10px)';
+                
+                setTimeout(() => {
+                    trackOrderText.textContent = `"Your order has been cancelled"`;
+                    trackOrderText.style.opacity = '1';
+                    trackOrderText.style.transform = 'translateY(0)';
+                }, 150);
+            }
+            return;
+        }
+
+        // Always activate Placed step for non-cancelled orders
+        progressSteps[0].classList.add('active');
+
+        // If status is found in our order, activate all steps up to it
+        if (currentIndex !== -1) {
+            for (let i = 1; i <= currentIndex; i++) {
                 progressSteps[i].classList.add('active');
                 
                 // Add animation to the newly activated step

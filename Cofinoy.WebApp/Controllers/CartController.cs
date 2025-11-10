@@ -199,7 +199,7 @@ namespace Cofinoy.WebApp.Controllers
 
                 _logger.LogInformation("=== CHECKOUT COMPLETE ===");
 
-                return View("~/Views/Checkout/Checkout.cshtml", invoiceModel);
+                return View("~/Views/Cart/Checkout.cshtml", invoiceModel);
             }
             catch (Exception ex)
             {

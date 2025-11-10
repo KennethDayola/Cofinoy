@@ -15,6 +15,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     const totalPriceEl = document.getElementById("totalPrice");
     const addToCartBtn = document.getElementById("addToCartBtn");
     const addonsContainer = document.getElementById("addonsContainer");
+    const loadingProgress = document.getElementById("loadingProgress");
+    
+    // Filter modal elements
+    const filterModal = document.getElementById("filterModal");
+    const closeFilterModal = document.getElementById("closeFilterModal");
+    const applyFilterBtn = document.getElementById("applyFilterBtn");
+    const clearFilterBtn = document.getElementById("clearFilterBtn");
+    const minPriceInput = document.getElementById("minPrice");
+    const maxPriceInput = document.getElementById("maxPrice");
+    const sortRadios = document.querySelectorAll('input[name="sortOption"]');
 
     let currentProduct = null;
     let allProducts = [];
@@ -22,24 +32,91 @@ document.addEventListener("DOMContentLoaded", async () => {
     let currentSort = "default";
     let currentCategory = "All";
     let allCustomizations = [];
+    let isInitialLoad = true;
+    let priceFilter = { min: null, max: null };
 
     // Expose currentProduct globally for cart functionality
     window.currentProduct = null;
 
+    // Filter modal functions
+    function openFilterModal() {
+        if (filterModal) {
+            filterModal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+    }
+
+    function closeFilterModalFunc() {
+        if (filterModal) {
+            filterModal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+
+    // Filter button click handler
+    filterButton?.addEventListener('click', openFilterModal);
+
+    // Close filter modal handlers
+    closeFilterModal?.addEventListener('click', closeFilterModalFunc);
+    filterModal?.addEventListener('click', (e) => {
+        if (e.target === filterModal) closeFilterModalFunc();
+    });
+
+    // Clear filters button
+    clearFilterBtn?.addEventListener('click', () => {
+        minPriceInput.value = '';
+        maxPriceInput.value = '';
+        document.querySelector('input[name="sortOption"][value="default"]').checked = true;
+        priceFilter = { min: null, max: null };
+        currentSort = "default";
+        applyFilters();
+    });
+
+    // Apply filter button handler
+    applyFilterBtn?.addEventListener('click', () => {
+        const selectedSort = document.querySelector('input[name="sortOption"]:checked')?.value || 'default';
+        currentSort = selectedSort;
+        
+        // Get price filter values
+        const minPrice = minPriceInput.value ? parseFloat(minPriceInput.value) : null;
+        const maxPrice = maxPriceInput.value ? parseFloat(maxPriceInput.value) : null;
+        priceFilter = { min: minPrice, max: maxPrice };
+        
+        applyFilters();
+        closeFilterModalFunc();
+    });
+
+    // Loading functions - only show on initial load
+    function showLoading() {
+        if (isInitialLoad && loadingProgress) {
+            loadingProgress.style.display = 'flex';
+        }
+        if (productsContainer) {
+            productsContainer.style.display = 'none';
+        }
+    }
+
+    function hideLoading() {
+        if (loadingProgress) {
+            loadingProgress.style.display = 'none';
+        }
+        if (productsContainer) {
+            productsContainer.style.display = 'grid';
+        }
+    }
+
     async function renderCategories() {
         if (!categoryList) return;
 
-        // Change "All Drinks" to "Drinks" but keep data-category="All" for functionality
         const allItem = document.createElement("li");
         allItem.innerHTML = '<a href="#" class="category-link" data-category="All">Drinks</a>';
         categoryList.appendChild(allItem);
 
         const result = await ProductsService.getAllCategories();
         if (!result.success || !Array.isArray(result.data)) {
-            return; // silently keep just All if categories fail to load
+            return;
         }
 
-        // Expecting items with Name/Status from service; normalize name
         const categories = result.data
             .filter(c => (c.status?.toLowerCase?.() ?? c.Status?.toLowerCase?.() ?? "active") === "active")
             .sort((a, b) => {
@@ -55,10 +132,8 @@ document.addEventListener("DOMContentLoaded", async () => {
             categoryList.appendChild(li);
         });
 
-        // Wire events after rendering
         wireCategoryClickHandlers();
 
-        // Set initial active state
         const initial = categoryList.querySelector('.category-link[data-category="All"]');
         initial?.classList.add('active');
     }
@@ -67,14 +142,24 @@ document.addEventListener("DOMContentLoaded", async () => {
         categoryList?.querySelectorAll('.category-link').forEach(link => {
             link.addEventListener('click', async (e) => {
                 e.preventDefault();
-                currentCategory = link.getAttribute('data-category') || 'All';
+                
+                // Add animation class
+                link.classList.add('animating');
+                
+                // Wait for animation to complete before changing category
+                setTimeout(async () => {
+                    currentCategory = link.getAttribute('data-category') || 'All';
 
-                // Update active state
-                categoryList.querySelectorAll('.category-link').forEach(l => l.classList.remove('active'));
-                link.classList.add('active');
+                    // Update active state with smooth transition
+                    categoryList.querySelectorAll('.category-link').forEach(l => {
+                        l.classList.remove('active');
+                        l.classList.remove('animating');
+                    });
+                    link.classList.add('active');
 
-                // Load products for the selected category
-                await loadProductsByCategory(currentCategory);
+                    // Load products for the selected category
+                    await loadProductsByCategory(currentCategory);
+                }, 250);
             });
         });
     }
@@ -111,7 +196,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     async function loadProductsByCategory(categoryName) {
-        productsContainer.innerHTML = "<p>Loading products...</p>";
+        // Don't show loading progress for category switches after initial load
+        if (!isInitialLoad) {
+            productsContainer.style.opacity = '0.5';
+        }
 
         console.log("Loading products for category:", categoryName);
 
@@ -127,31 +215,47 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (result.success) {
             currentCategoryProducts = result.data.filter(p => p.isActive);
             console.log("Filtered products:", currentCategoryProducts);
-            renderProducts(currentCategoryProducts);
+            
+            // Quick transition without progress bar for category switches
+            if (!isInitialLoad) {
+                productsContainer.style.opacity = '1';
+                applyFilters();
+            }
         } else {
+            if (!isInitialLoad) {
+                productsContainer.style.opacity = '1';
+            }
             productsContainer.innerHTML = `<p class="error">Error loading products: ${result.error}</p>`;
         }
     }
 
     async function loadProducts() {
-        productsContainer.innerHTML = "<p>Loading products...</p>";
+        showLoading();
         const result = await ProductsService.getAllProducts();
 
         if (result.success) {
             allProducts = result.data.filter(p => p.isActive);
-            currentCategoryProducts = allProducts; // Set as current category products for "All"
-            renderProducts(allProducts);
+            currentCategoryProducts = allProducts;
+            
+            // Show progress animation for initial load
+            setTimeout(() => {
+                hideLoading();
+                renderProducts(allProducts);
+                isInitialLoad = false; // Mark initial load as complete
+            }, 800);
         } else {
+            hideLoading();
             productsContainer.innerHTML = `<p class="error">Error loading products: ${result.error}</p>`;
+            isInitialLoad = false;
         }
     }
 
     function applyFilters() {
-        // Use current category products if we're filtering by category, otherwise use all products
         let baseProducts = currentCategory === "All" ? allProducts : currentCategoryProducts;
         let filtered = [...baseProducts];
         const query = searchInput.value.toLowerCase();
 
+        // Search filter
         if (query) {
             filtered = filtered.filter(p =>
                 p.name.toLowerCase().includes(query) ||
@@ -159,10 +263,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             );
         }
 
+        // Price range filter
+        if (priceFilter.min !== null) {
+            filtered = filtered.filter(p => p.price >= priceFilter.min);
+        }
+        if (priceFilter.max !== null) {
+            filtered = filtered.filter(p => p.price <= priceFilter.max);
+        }
+
+        // Sorting
         if (currentSort === "lowToHigh") {
             filtered.sort((a, b) => a.price - b.price);
         } else if (currentSort === "highToLow") {
             filtered.sort((a, b) => b.price - a.price);
+        } else if (currentSort === "nameAZ") {
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
         }
 
         renderProducts(filtered);
@@ -170,30 +285,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     searchInput.addEventListener("input", applyFilters);
 
-    filterButton.addEventListener("click", () => {
-        if (currentSort === "default") {
-            currentSort = "lowToHigh";
-            filterButton.querySelector("img").style.filter = "hue-rotate(120deg)";
-            filterButton.querySelector("span")?.remove();
-            filterButton.insertAdjacentHTML("beforeend", "<span> Low → High</span>");
-        } else if (currentSort === "lowToHigh") {
-            currentSort = "highToLow";
-            filterButton.querySelector("img").style.filter = "hue-rotate(60deg)";
-            filterButton.querySelector("span")?.remove();
-            filterButton.insertAdjacentHTML("beforeend", "<span> High → Low</span>");
-        } else {
-            currentSort = "default";
-            filterButton.querySelector("img").style.filter = "none";
-            filterButton.querySelector("span")?.remove();
-            filterButton.insertAdjacentHTML("beforeend", "<span> Default</span>");
-        }
-
-        applyFilters();
-    });
-
     await loadProducts();
-
-    // Build category list from API and wire filtering
     await renderCategories();
     await loadCustomizations();
 
@@ -213,15 +305,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             await loadCustomizations();
         }
 
-        // Reset quantity
         if (qtyValueEl) qtyValueEl.textContent = '1';
 
-        // Render only customizations linked to this product
         renderCustomizationsForProduct(product);
         recalcTotal();
 
         if (customizeModal) {
+            // Force reflow to ensure animation plays
             customizeModal.style.display = 'flex';
+            void customizeModal.offsetWidth;
             document.body.style.overflow = 'hidden';
         }
     }
@@ -267,27 +359,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const base = Number(currentProduct.price) || 0;
         const qty = parseInt(qtyValueEl?.textContent || '1');
-
-        // Dynamic add-ons: sum selected prices
         let addonsDelta = 0;
 
-        // Checkboxes
         addonsContainer?.querySelectorAll('input[type="checkbox"]:checked').forEach(cb => {
             addonsDelta += Number(cb.getAttribute('data-price') || '0');
         });
-
-        // Radio buttons
         addonsContainer?.querySelectorAll('input[type="radio"]:checked').forEach(rb => {
             addonsDelta += Number(rb.getAttribute('data-price') || '0');
         });
-
-        // Dropdown single-selects
         addonsContainer?.querySelectorAll('select.addon-select').forEach(sel => {
             const price = Number(sel.selectedOptions?.[0]?.getAttribute('data-price') || '0');
             addonsDelta += price;
         });
-
-        // Quantity-based addons
         addonsContainer?.querySelectorAll('.stepper[data-type="addon-qty"]').forEach(step => {
             const perUnit = Number(step.getAttribute('data-price-per-unit') || '0');
             const units = Number(step.querySelector('.stepper-value')?.textContent || '0');
@@ -325,7 +408,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             } else if (body?.querySelector('input[type="checkbox"]')) {
                 satisfied = Array.from(body.querySelectorAll('input[type="checkbox"]')).some(cb => cb.checked);
             } else if (body?.querySelector('select.addon-select')) {
-                satisfied = true; // Dropdowns always have a selection
+                satisfied = true;
             }
 
             if (!satisfied) {
@@ -352,7 +435,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const customizationName = title?.textContent?.replace('Required', '').trim();
             const body = section.querySelector('.addon-body');
 
-            // Quantity stepper
             const qtyStepper = body?.querySelector('.stepper[data-type="addon-qty"]');
             if (qtyStepper) {
                 const units = parseInt(qtyStepper.querySelector('.stepper-value')?.textContent || '0');
@@ -365,7 +447,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
             }
 
-            // Radio buttons (including hidden ones for temperature)
             const checkedRadio = body?.querySelector('input[type="radio"]:checked');
             if (checkedRadio) {
                 const label = body.querySelector(`label[for="${checkedRadio.id}"]`)?.textContent ||
@@ -377,7 +458,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 });
             }
 
-            // Checkboxes
             const checkedBoxes = body?.querySelectorAll('input[type="checkbox"]:checked');
             if (checkedBoxes && checkedBoxes.length > 0) {
                 const values = Array.from(checkedBoxes).map(cb => {
@@ -479,7 +559,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         addToCartBtn.addEventListener('click', async function () {
             console.log('Add to cart button clicked');
 
-            // Validate required customizations first
             if (!validateRequiredCustomizations()) {
                 const firstError = addonsContainer?.querySelector('.addon-validation:not(.hidden)');
                 firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -561,12 +640,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         const result = await ProductsService.getAllCustomizations();
         if (!result.success) return;
         
-        // Sort customizations by displayOrder
         allCustomizations = result.data
             .slice()
             .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
             .map(cz => {
-                // Also sort options within each customization by displayOrder
                 if (cz.options && Array.isArray(cz.options)) {
                     cz.options = cz.options
                         .slice()
@@ -580,13 +657,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!addonsContainer) return;
 
         if (!product || !Array.isArray(product.customizations)) {
-            // If no mapping, show none
             addonsContainer.innerHTML = '';
             return;
         }
 
         const allowedIds = new Set(product.customizations);
-        // Filter and sort customizations by displayOrder
         const filtered = allCustomizations
             .filter(cz => allowedIds.has(cz.id))
             .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
@@ -606,7 +681,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             const body = document.createElement('div');
             body.className = 'addon-body';
 
-            // Sort options by displayOrder before rendering
             const sortedOptions = (cz.options || [])
                 .slice()
                 .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
@@ -643,14 +717,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 let anyChecked = false;
 
                 if (isTemperature) {
-                    // Render as icon toggle buttons (Hot/Cold style)
                     const toggle = document.createElement('div');
                     toggle.className = 'temp-toggle';
                     toggle.setAttribute('role', 'tablist');
 
                     sortedOptions.forEach((opt, idx) => {
                         const id = `cz_${cz.id}_${idx}`;
-                        // hidden radio for pricing and form-like semantics
                         const hidden = document.createElement('input');
                         hidden.type = 'radio';
                         hidden.name = `cz_${cz.id}`;
@@ -669,14 +741,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                         const iconSrc = isCold ? '/images/cold-hot-icon.png' : '/images/flame-hot-icon.png';
                         btn.innerHTML = `<img src="${iconSrc}" alt="${opt.name}" /><span>${opt.name}</span>`;
                         btn.addEventListener('click', () => {
-                            // toggle active
                             toggle.querySelectorAll('.temp-btn').forEach(b => {
                                 b.classList.remove('active');
                                 b.setAttribute('aria-pressed', 'false');
                             });
                             btn.classList.add('active');
                             btn.setAttribute('aria-pressed', 'true');
-                            // check hidden radio and recalc
                             const target = body.querySelector(`#${btn.getAttribute('data-for')}`);
                             if (target) {
                                 target.checked = true;
@@ -686,7 +756,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                         toggle.appendChild(btn);
                     });
 
-                    // If required and no default, select first
                     if (cz.required && !anyChecked) {
                         const firstBtn = toggle.querySelector('.temp-btn');
                         firstBtn?.click();
@@ -694,7 +763,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
                     body.appendChild(toggle);
                 } else {
-                    // Standard single select as dropdown
                     const select = document.createElement('select');
                     select.className = 'customize-select addon-select';
                     sortedOptions.forEach((opt, idx) => {
@@ -705,7 +773,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                         if (opt.default) { option.selected = true; anyChecked = true; }
                         select.appendChild(option);
                     });
-                    // If required and no default, select first option
                     if (cz.required && !anyChecked && select.options.length > 0) {
                         select.selectedIndex = 0;
                     }
@@ -734,7 +801,6 @@ document.addEventListener("DOMContentLoaded", async () => {
                 body.appendChild(optionsGrid);
             }
 
-            // Inline validation placeholder
             const validation = document.createElement('div');
             validation.className = 'addon-validation hidden';
             body.appendChild(validation);

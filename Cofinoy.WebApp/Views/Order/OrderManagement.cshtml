@@ -28,7 +28,7 @@
 
             <button class="btn btn-filter">
                 <i class="fas fa-filter"></i>
-                Filters
+                All orders
             </button>
         </div>
 
@@ -55,67 +55,6 @@
     </div>
 
     <div id="modalContainer"></div>
-
-    <!-- Filter Modal -->
-    <div class="filter-modal-overlay" id="filterModal">
-        <div class="filter-modal">
-            <div class="filter-modal-header">
-                <h3>Filter Orders</h3>
-                <button class="filter-close-btn" onclick="closeFilterModal()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="filter-modal-body">
-                <div class="filter-section">
-                    <div class="filter-section-title">Order Status</div>
-                    <div class="filter-options">
-                        <button class="filter-option-btn active" data-status="All">
-                            <i class="fas fa-list"></i>
-                            All Orders
-                        </button>
-                        <button class="filter-option-btn" data-status="Brewing">
-                            <i class="fas fa-fire"></i>
-                            Brewing
-                        </button>
-                        <button class="filter-option-btn" data-status="Ready">
-                            <i class="fas fa-clock"></i>
-                            Ready
-                        </button>
-                        <button class="filter-option-btn" data-status="Serving">
-                            <i class="fas fa-hand-holding"></i>
-                            Serving
-                        </button>
-                        <button class="filter-option-btn" data-status="Served">
-                            <i class="fas fa-check-double"></i>
-                            Served
-                        </button>
-                        <button class="filter-option-btn" data-status="Cancelled">
-                            <i class="fas fa-times-circle"></i>
-                            Cancelled
-                        </button>
-                    </div>
-                </div>
-
-                <div class="filter-section">
-                    <div class="filter-section-title">Date Range</div>
-                    <div class="date-filter-inputs">
-                        <div class="date-input-group">
-                            <label for="filterDateFrom">From</label>
-                            <input type="date" id="filterDateFrom">
-                        </div>
-                        <div class="date-input-group">
-                            <label for="filterDateTo">To</label>
-                            <input type="date" id="filterDateTo">
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="filter-modal-footer">
-                <button class="filter-clear-btn" onclick="clearFilters()">Clear All</button>
-                <button class="filter-apply-btn" onclick="applyFilters()">Apply Filters</button>
-            </div>
-        </div>
-    </div>
 
     <script defer src="~/js/orderManagement.js"></script>
 </body>

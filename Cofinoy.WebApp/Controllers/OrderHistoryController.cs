@@ -31,7 +31,7 @@ namespace Cofinoy.WebApp.Controllers
             _mapper = mapper;
         }
 
-        public async Task<IActionResult> OrderHistory()
+        public async Task<IActionResult> Index()
         {
             try
             {
@@ -44,12 +44,12 @@ namespace Cofinoy.WebApp.Controllers
 
                 var orders = await _orderHistoryService.GetOrderHistoryByUserIdAsync(userId);
 
-                return View("~/Views/Order/OrderHistory.cshtml", orders);
+                return View(orders);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading order history");
-                return View("~/Views/Order/OrderHistory.cshtml", new System.Collections.Generic.List<Services.ServiceModels.OrderServiceModel>());
+                return View(new System.Collections.Generic.List<Services.ServiceModels.OrderServiceModel>());
             }
         }
 
