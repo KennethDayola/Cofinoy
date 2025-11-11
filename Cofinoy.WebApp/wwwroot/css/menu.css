@@ -874,11 +874,14 @@ body {
 .stepper {
     display: inline-flex;
     align-items: center;
-    gap: 10px;
+    justify-content: center;
+    gap: 8px;
     background: #fff;
     border: 2px solid #e5e7eb;
-    border-radius: 10px;
-    padding: 8px 12px;
+    border-radius: 12px;
+    padding: 6px 10px;
+    width: fit-content;
+    box-sizing: border-box;
 }
 
 .stepper-minus,
