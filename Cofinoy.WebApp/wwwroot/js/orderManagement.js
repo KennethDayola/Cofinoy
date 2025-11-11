@@ -62,36 +62,36 @@ function displayOrders(orders) {
         return;
     }
 
-    // Sort orders: active orders first, then completed/cancelled orders
     const sortedOrders = orders.sort((a, b) => {
         const aStatus = (a.status || '').trim().toLowerCase();
         const bStatus = (b.status || '').trim().toLowerCase();
-        
+
         const aIsCompleted = aStatus === 'served' || aStatus === 'cancelled';
         const bIsCompleted = bStatus === 'served' || bStatus === 'cancelled';
-        
-        // If one is completed and other is not, completed goes to bottom
+
         if (aIsCompleted && !bIsCompleted) return 1;
         if (!aIsCompleted && bIsCompleted) return -1;
-        
-        // Otherwise maintain original order (or sort by date)
+
         return new Date(b.orderDate) - new Date(a.orderDate);
     });
 
     sortedOrders.forEach(order => {
         let status = (order.status || '').trim();
-        if (status === '' || status.toLowerCase() === 'pending') {
-            status = 'Brewing';
-        }
+        if (status === '') status = 'Pending'; 
 
         const statusClass = status.toLowerCase().replace(/\s+/g, '-');
         const isCompleted = status.toLowerCase() === 'served' || status.toLowerCase() === 'cancelled';
 
         const row = document.createElement('tr');
-        if (isCompleted) {
-            row.classList.add('order-completed');
-        }
-        
+        if (isCompleted) row.classList.add('order-completed');
+
+       
+        const actionButtons = [
+            `<button class="btn-view" onclick="viewOrderDetails(${order.id})">
+                <i class="fas fa-eye"></i>
+            </button>`
+        ];
+
         row.innerHTML = `
             <td><strong>${order.invoiceNumber}</strong></td>
             <td>${order.customerName || order.nickname || 'Guest'}</td>
@@ -99,11 +99,7 @@ function displayOrders(orders) {
             <td>${order.itemCount}</td>
             <td>₱ ${parseFloat(order.totalPrice).toFixed(2)}</td>
             <td><span class="status ${statusClass}">${status}</span></td>
-            <td>
-                <button class="btn-view" onclick="viewOrderDetails(${order.id})">
-                    <i class="fas fa-eye"></i>
-                </button>
-            </td>
+            <td>${actionButtons.join('')}</td>
         `;
         orderList.appendChild(row);
     });
@@ -127,6 +123,7 @@ function showStatusFilter() {
 
     const statuses = [
         { value: 'All', label: 'All Orders', icon: 'fa-list' },
+        { value: 'Pending', label: 'Pending', icon: 'fa-hourglass-start' },
         { value: 'Brewing', label: 'Brewing', icon: 'fa-fire' },
         { value: 'Ready', label: 'Ready', icon: 'fa-clock' },
         { value: 'Serving', label: 'Serving', icon: 'fa-hand-holding' },

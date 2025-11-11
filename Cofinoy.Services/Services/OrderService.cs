@@ -262,7 +262,7 @@ namespace Cofinoy.Services.Services
                 {
                     UserId = userId,
                     InvoiceNumber = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
-                    OrderDate = DateTime.UtcNow,
+                    OrderDate = DateTime.Now,
                     Nickname = nickname,
                     AdditionalRequest = additionalRequest ?? "",
                     PaymentMethod = paymentMethod,

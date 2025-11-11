@@ -137,13 +137,11 @@ namespace Cofinoy.WebApp.Controllers
                         oi.Quantity,
                         oi.UnitPrice,
                         oi.TotalPrice,
-                        // Legacy fields
                         oi.Size,
                         oi.MilkType,
                         oi.Temperature,
                         oi.ExtraShots,
                         oi.SweetnessLevel,
-                        // New: Include customizations
                         Customizations = oi.Customizations.Select(c => new
                         {
                             c.Name,
@@ -176,6 +174,18 @@ namespace Cofinoy.WebApp.Controllers
 
                 int orderId = idProp.GetInt32();
                 string newStatus = statusProp.GetString();
+
+                var order = await _orderService.GetOrderDetailsAsync(orderId);
+                string currentStatus = order.Status?.Trim();
+
+                if (currentStatus == "Pending" && newStatus != "Brewing")
+                    return Json(new { success = false, error = "Pending orders can only move to Brewing" });
+                if (currentStatus == "Brewing" && newStatus != "Ready")
+                    return Json(new { success = false, error = "Brewing orders can only move to Ready" });
+                if (currentStatus == "Ready" && newStatus != "Serving")
+                    return Json(new { success = false, error = "Ready orders can only move to Serving" });
+                if (currentStatus == "Serving" && newStatus != "Served")
+                    return Json(new { success = false, error = "Serving orders can only move to Served" });
 
                 var result = await _orderService.UpdateOrderStatusAsync(orderId, newStatus);
 

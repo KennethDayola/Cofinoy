@@ -28,10 +28,12 @@
         background: #e53935;
     }
 
-    .toast.warning {
-        background: #ff9800;
+    .toast.warning,
+    .toast.pending {
+        background: #ff9800; 
     }
 
+/* Layout */
 body {
     background-color: #f4f5f6;
     font-family: 'Poppins', sans-serif;
@@ -91,8 +93,11 @@ body {
         font-size: 8px;
     }
 
-    /* Status Colors */
-    .order-status-badge.status-pending,
+    .order-status-badge.status-pending {
+        background-color: #fff3e0; 
+        color: #ff9800; 
+    }
+
     .order-status-badge.status-confirmed {
         background-color: #e3f2fd;
         color: #1976d2;
@@ -123,7 +128,6 @@ body {
         color: #721c24;
     }
 
-/* Layout */
 .order-details-body {
     display: flex;
     gap: 20px;
@@ -147,6 +151,7 @@ body {
         font-weight: 600;
     }
 
+/* Individual Items */
 .order-item {
     display: flex;
     justify-content: space-between;
@@ -170,7 +175,7 @@ body {
         line-height: 1.5;
     }
 
-/* ✅ Customizations Styling - Minimalistic Design */
+/* Customizations */
 .customizations-section {
     margin-top: 6px;
     padding-top: 6px;
@@ -359,3 +364,31 @@ body {
         justify-content: center;
     }
 }
+/* Pending / Brewing Button Styling */
+.btn-brewing {
+    background: #3b2f1e; 
+    color: white;
+    border: none;
+    border-radius: 25px;
+    padding: 10px 40px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .btn-brewing i {
+        font-size: 16px;
+    }
+
+    .btn-brewing:hover {
+        background: #2c2318;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 8px rgba(59, 47, 30, 0.2);
+    }
+
+    .btn-brewing:active {
+        transform: translateY(0);
+    }

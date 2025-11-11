@@ -28,8 +28,7 @@
                     <div>
                         <strong>@item.ProductName</strong><br />
                         <small>Quantity: @item.Quantity</small><br />
-                        
-                        @* Display new customizations if available *@
+
                         @if (item.Customizations != null && item.Customizations.Any())
                         {
                             <div class="customizations-section">
@@ -48,7 +47,6 @@
                         }
                         else
                         {
-                            @* Fallback to legacy fields if no customizations *@
                             @if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.Temperature))
                             {
                                 <small>
@@ -58,19 +56,16 @@
                             @if (!string.IsNullOrEmpty(item.MilkType))
                             {
                                 <br />
-                        
                                 <small>Milk: @item.MilkType</small>
                             }
                             @if (item.ExtraShots.HasValue && item.ExtraShots.Value > 0)
                             {
                                 <br />
-                        
                                 <small>Extra Shots: @item.ExtraShots</small>
                             }
                             @if (!string.IsNullOrEmpty(item.SweetnessLevel))
                             {
                                 <br />
-                        
                                 <small>Sweetness: @item.SweetnessLevel</small>
                             }
                         }
@@ -89,7 +84,6 @@
             </div>
         </div>
 
-        <!-- Right: Customer Info -->
         <div class="customer-info-card">
             <h3>Customer Information</h3>
             <p><i class="fas fa-user"></i> @(Model.CustomerName ?? Model.Nickname ?? "Guest")</p>
@@ -98,20 +92,9 @@
                 var email = Model.CustomerInfo?.Email;
                 var city = Model.CustomerInfo?.City;
                 var country = Model.CustomerInfo?.Country;
-                var location = "";
-
-                if (!string.IsNullOrEmpty(city) && !string.IsNullOrEmpty(country))
-                {
-                    location = $"{city}, {country}";
-                }
-                else if (!string.IsNullOrEmpty(city))
-                {
-                    location = city;
-                }
-                else if (!string.IsNullOrEmpty(country))
-                {
-                    location = country;
-                }
+                var location = !string.IsNullOrEmpty(city) && !string.IsNullOrEmpty(country) ? $"{city}, {country}" :
+                !string.IsNullOrEmpty(city) ? city :
+                !string.IsNullOrEmpty(country) ? country : "";
             }
 
             <p><i class="fas fa-envelope"></i> @(string.IsNullOrEmpty(email) ? "N/A" : email)</p>
@@ -128,10 +111,17 @@
     <!-- ORDER ACTION BUTTONS -->
     <div class="order-footer">
         @{
-            var status = Model.Status?.Trim() ?? "Brewing";
+            var status = Model.Status?.Trim() ?? "Pending";
         }
 
-        @if (status == "Brewing" || status == "Confirmed" || status == "Pending")
+        @**@
+        @if (status == "Pending")
+        {
+            <button class="btn-brewing" onclick="validatePending(@Model.Id)">
+                <i class="fas fa-fire"></i> Start Brewing
+            </button>
+        }
+        else if (status == "Brewing")
         {
             <button class="btn-ready" onclick="markAsReady(@Model.Id)">
                 <i class="fas fa-check"></i> Mark as Ready
@@ -156,6 +146,7 @@
             </div>
         }
 
+        @**@
         @if (status != "Cancelled" && status != "Served")
         {
             <button class="btn-cancel-outline" onclick="cancelOrder(@Model.Id)">
@@ -172,11 +163,9 @@
     </div>
 </div>
 
-<!-- ✅ External JS file for order actions -->
 <script src="~/js/orderDetails.js" asp-append-version="true"></script>
 
 <script>
-    // ✅ Customer Information Logging
     const customerInfo = {
         orderId: @Model.Id,
         invoiceNumber: '@Model.InvoiceNumber',
@@ -193,14 +182,13 @@
     console.log('Email:', customerInfo.email);
     console.log('Location:', customerInfo.location);
     console.log('Status:', customerInfo.status);
-    
-    // Log customizations for debugging
+
     @foreach (var item in Model.OrderItems)
     {
-        if (item.Customizations != null && item.Customizations.Any())
-        {
-            @:console.log('Item: @item.ProductName - Customizations:', @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.Customizations)));
-        }
+            if (item.Customizations != null && item.Customizations.Any())
+            {
+                    @:console.log('Item: @item.ProductName - Customizations:', @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.Customizations)));
+            }
     }
     console.log('====================');
 </script>

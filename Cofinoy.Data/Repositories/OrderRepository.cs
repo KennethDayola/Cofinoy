@@ -40,7 +40,7 @@ namespace Cofinoy.Data.Repositories
 
         public void AddOrder(Order order)
         {
-            order.OrderDate = DateTime.UtcNow;
+            order.OrderDate = DateTime.Now; 
             this.GetDbSet<Order>().Add(order);
             UnitOfWork.SaveChanges();
         }

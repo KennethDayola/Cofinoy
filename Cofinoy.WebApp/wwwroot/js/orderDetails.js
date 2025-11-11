@@ -12,7 +12,29 @@ function showToast(message, type = 'success') {
     }, 2000);
 }
 
-// ✅ Mark as Ready
+// ✅ Validate Pending → Brewing
+function validatePending(orderId) {
+    fetch(`${window.location.origin}/Order/UpdateOrderStatus`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: orderId, newStatus: 'Brewing' })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('✅ Order validated and now Brewing', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast('⚠️ ' + data.error, 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            showToast('An unexpected error occurred', 'error');
+        });
+}
+
+// ✅ Mark as Brewing → Ready
 function markAsReady(orderId) {
     fetch(`${window.location.origin}/Order/UpdateOrderStatus`, {
         method: 'POST',
@@ -23,7 +45,51 @@ function markAsReady(orderId) {
         .then(data => {
             if (data.success) {
                 showToast('✅ Order marked as Ready', 'success');
-                setTimeout(() => window.location.href = '/Order/OrderManagement', 1800);
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast('⚠️ ' + data.error, 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            showToast('An unexpected error occurred', 'error');
+        });
+}
+
+// ✅ Mark as Ready → Serving
+function markAsServing(orderId) {
+    fetch(`${window.location.origin}/Order/UpdateOrderStatus`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: orderId, newStatus: 'Serving' })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('✅ Order marked as Serving', 'success');
+                setTimeout(() => window.location.reload(), 1000);
+            } else {
+                showToast('⚠️ ' + data.error, 'error');
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            showToast('An unexpected error occurred', 'error');
+        });
+}
+
+// ✅ Mark as Serving → Served
+function markAsServed(orderId) {
+    fetch(`${window.location.origin}/Order/UpdateOrderStatus`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: orderId, newStatus: 'Served' })
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                showToast('✅ Order marked as Served', 'success');
+                setTimeout(() => window.location.reload(), 1000);
             } else {
                 showToast('⚠️ ' + data.error, 'error');
             }
@@ -47,51 +113,7 @@ function cancelOrder(orderId) {
         .then(data => {
             if (data.success) {
                 showToast('❌ Order cancelled successfully', 'warning');
-                setTimeout(() => window.location.href = '/Order/OrderManagement', 1800);
-            } else {
-                showToast('⚠️ ' + data.error, 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            showToast('An unexpected error occurred', 'error');
-        });
-}
-
-// ✅ Mark as Served
-function markAsServed(orderId) {
-    fetch(`${window.location.origin}/Order/UpdateOrderStatus`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: orderId, newStatus: 'Served' })
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showToast('✅ Order marked as Served', 'success');
-                setTimeout(() => window.location.href = '/Order/OrderManagement', 1800);
-            } else {
-                showToast('⚠️ ' + data.error, 'error');
-            }
-        })
-        .catch(err => {
-            console.error('Error:', err);
-            showToast('An unexpected error occurred', 'error');
-        });
-}
-
-// ✅ Mark as Serving
-function markAsServing(orderId) {
-    fetch(`${window.location.origin}/Order/UpdateOrderStatus`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: orderId, newStatus: 'Serving' })
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                showToast('✅ Order marked as Serving', 'success');
-                setTimeout(() => window.location.reload(), 1800);
+                setTimeout(() => window.location.reload(), 1000);
             } else {
                 showToast('⚠️ ' + data.error, 'error');
             }
