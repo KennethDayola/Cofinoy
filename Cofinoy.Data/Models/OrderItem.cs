@@ -36,10 +36,8 @@ namespace Cofinoy.Data.Models
 
         public Order Order { get; set; }
 
-
         // New: Collection of customizations for this order item
         public virtual ICollection<OrderItemCustomization> Customizations { get; set; } = new List<OrderItemCustomization>();
-
     }
 
 }

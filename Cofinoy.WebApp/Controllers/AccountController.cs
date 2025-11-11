@@ -388,6 +388,60 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+
+
+        [Authorize]
+        [HttpPost]
+        public IActionResult ChangePassword([FromBody] ChangePasswordViewModel model)
+        {
+            try
+            {
+                var email = User.FindFirstValue(ClaimTypes.Email);
+                if (string.IsNullOrEmpty(email))
+                    return Json(new { success = false, message = "User not authenticated." });
+
+                var user = _userService.GetUserByEmail(email);
+                if (user == null)
+                    return Json(new { success = false, message = "User not found." });
+
+                // Verify current password
+                if (!PasswordManager.VerifyPassword(model.CurrentPassword, user.Password))
+                {
+                    return Json(new { success = false, message = "The current password is incorrect." });
+                }
+
+                // Validate new password rules
+                if (model.NewPassword.Length < 6)
+                {
+                    return Json(new { success = false, message = "Password must have at least 6 characters" });
+                }
+
+                // Prevent same password reuse
+                if (PasswordManager.VerifyPassword(model.NewPassword, user.Password))
+                {
+                    return Json(new { success = false, message = "The new password cannot be the same as the old password." });
+                }
+
+                // Check match with confirm
+                if (model.NewPassword != model.ConfirmPassword)
+                {
+                    return Json(new { success = false, message = "New password and confirm password do not match." });
+                }
+
+                // Encrypt and save new password
+                user.Password = PasswordManager.EncryptPassword(model.NewPassword);
+                _userService.UpdateUser(user);
+
+                return Json(new { success = true, message = "Password changed successfully." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "An error occurred while changing password." });
+            }
+        }
+
+
+
         [HttpGet]
         public JsonResult IsAuthenticated()
         {

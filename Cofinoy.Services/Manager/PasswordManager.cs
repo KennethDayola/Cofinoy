@@ -93,6 +93,23 @@ namespace Cofinoy.Services.Manager
                 }
             }
         }
-
+        /// <summary>
+        /// Verifies whether the input password matches the encrypted stored password.
+        /// </summary>
+        /// <param name="inputPassword">The plaintext password provided by the user.</param>
+        /// <param name="encryptedPassword">The stored encrypted password from the database.</param>
+        /// <returns>True if passwords match; otherwise, false.</returns>
+        public static bool VerifyPassword(string inputPassword, string encryptedPassword)
+        {
+            try
+            {
+                var decryptedPassword = DecryptPassword(encryptedPassword);
+                return decryptedPassword == inputPassword;
+            }
+            catch
+            {
+                return false; // Return false if decryption fails
+            }
+        }
     }
 }
