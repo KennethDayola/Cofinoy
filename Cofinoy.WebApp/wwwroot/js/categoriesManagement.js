@@ -84,20 +84,27 @@
     async function loadCategories() {
         try {
             const response = await fetch('/Menu/GetAllCategories', {
-                method: 'POST'
+                method: 'GET'
             });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
             const result = await response.json();
 
             if (result.success) {
                 const tbody = document.querySelector('.categories-table tbody');
                 tbody.innerHTML = '';
 
-                result.data.forEach(category => {
-                    addCategoryToTable(category);
-                });
+                if (result.data && Array.isArray(result.data)) {
+                    result.data.forEach(category => {
+                        addCategoryToTable(category);
+                    });
+                }
 
                 updateEmptyState();
-                updateResultsCount(result.data.length);
+                updateResultsCount(result.data ? result.data.length : 0);
             } else {
                 console.error('Error loading categories:', result.error);
                 showToastMessage('Error loading categories: ' + result.error, 'Error');

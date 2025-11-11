@@ -12,12 +12,12 @@ namespace Cofinoy.Services.Services
 {
     public class CartService : ICartService
     {
-        private readonly ICartRepository _cartRepository;
+        private readonly ICartRepository _repository;
         private readonly ILogger<CartService> _logger;
 
-        public CartService(ICartRepository cartRepository, ILogger<CartService> logger)
+        public CartService(ICartRepository repository, ILogger<CartService> logger)
         {
-            _cartRepository = cartRepository;
+            _repository = repository;
             _logger = logger;
         }
 
@@ -25,12 +25,13 @@ namespace Cofinoy.Services.Services
         {
             try
             {
-                var cart = await _cartRepository.GetCartByUserIdAsync(userId);
+                var cart = await _repository.GetCartByUserIdAsync(userId);
                 if (cart == null || cart.CartItems == null || !cart.CartItems.Any())
                     return new List<CartItemServiceModel>();
 
                 return cart.CartItems.Select(item => new CartItemServiceModel
                 {
+                    CartItemId = item.Id, // Include the unique cart item ID
                     ProductId = item.ProductId,
                     Name = item.ProductName,
                     Description = item.Description,
@@ -41,7 +42,18 @@ namespace Cofinoy.Services.Services
                     MilkType = item.MilkType,
                     Temperature = item.Temperature,
                     ExtraShots = item.ExtraShots,
-                    SweetnessLevel = item.SweetnessLevel
+                    SweetnessLevel = item.SweetnessLevel,
+                    Customizations = item.Customizations?
+                        .OrderBy(c => c.DisplayOrder ?? int.MaxValue) // Handle null DisplayOrder
+                        .ThenBy(c => c.Name)
+                        .Select(c => new CustomizationData
+                        {
+                            Name = c.Name,
+                            Value = c.Value,
+                            Type = c.Type,
+                            DisplayOrder = c.DisplayOrder,
+                            Price = c.Price
+                        }).ToList() ?? new List<CustomizationData>()
                 }).ToList();
             }
             catch (Exception ex)
@@ -55,14 +67,24 @@ namespace Cofinoy.Services.Services
         {
             try
             {
-                Console.WriteLine("=== START: AddToCartAsync ===");
-                Console.WriteLine($"User: {userId}, Product: {item.ProductId}, Quantity: {item.Quantity}");
+                _logger.LogInformation("Adding item to cart for user {UserId}, Product: {ProductId}", userId, item.ProductId);
 
-                var cart = await _cartRepository.GetCartByUserIdAsync(userId);
+                if (item.Customizations != null && item.Customizations.Any())
+                {
+                    _logger.LogInformation("Item has {Count} customizations", item.Customizations.Count);
+                    foreach (var custom in item.Customizations)
+                    {
+                        _logger.LogInformation("  - {Name}: {Value} ({Type}) - Order: {DisplayOrder}, Price: {Price}", 
+                            custom.Name, custom.Value, custom.Type, custom.DisplayOrder, custom.Price);
+                    }
+                }
+
+                var cart = await _repository.GetCartByUserIdAsync(userId);
 
                 if (cart == null)
                 {
-                    Console.WriteLine("Creating new cart...");
+                    _logger.LogInformation("Creating new cart for user {UserId}", userId);
+
                     cart = new Cart
                     {
                         Id = Guid.NewGuid().ToString(),
@@ -72,78 +94,79 @@ namespace Cofinoy.Services.Services
                         CartItems = new List<CartItem>()
                     };
 
-                  
-                    var cartItem = CreateCartItem(cart.Id, item);
+                    var cartItem = MapToCartItem(cart.Id, item);
                     cart.CartItems.Add(cartItem);
-                    Console.WriteLine("Added first item to new cart");
+
+                    _repository.AddCart(cart);
                 }
                 else
                 {
-                    Console.WriteLine($"Found existing cart with {cart.CartItems.Count} items");
+                    _logger.LogInformation("Found existing cart with {Count} items", cart.CartItems?.Count ?? 0);
 
-                 
-                    var existingItem = cart.CartItems.FirstOrDefault(i =>
-                        i.ProductId == item.ProductId &&
-                        i.Size == item.Size &&
-                        i.MilkType == item.MilkType &&
-                        i.Temperature == item.Temperature &&
-                        i.SweetnessLevel == item.SweetnessLevel &&
-                        i.ExtraShots == item.ExtraShots);
+                    // Check for matching item with same customizations
+                    var existingItem = FindMatchingCartItem(cart.CartItems, item);
 
                     if (existingItem != null)
                     {
-                     
-                        Console.WriteLine("Updating quantity of existing item");
+                        _logger.LogInformation("Updating existing item quantity");
                         existingItem.Quantity += item.Quantity;
                         existingItem.TotalPrice = existingItem.UnitPrice * existingItem.Quantity;
-                        Console.WriteLine($"Item quantity updated to: {existingItem.Quantity}");
                     }
                     else
                     {
-                       
-                        Console.WriteLine("Adding as new item to existing cart");
-                        var cartItem = CreateCartItem(cart.Id, item);
+                        _logger.LogInformation("Adding new item to cart (different customizations or new product)");
+                        var cartItem = MapToCartItem(cart.Id, item);
                         cart.CartItems.Add(cartItem);
-                        Console.WriteLine("New item added to cart");
                     }
 
                     cart.UpdatedAt = DateTime.UtcNow;
+
+                    _repository.UpdateCart(cart);
                 }
 
-                Console.WriteLine($"Cart now has {cart.CartItems.Count} total items");
-                await _cartRepository.AddOrUpdateCartAsync(cart);
-                Console.WriteLine("=== SUCCESS: Item added/updated in cart ===");
+                _logger.LogInformation("Cart updated successfully");
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"=== ERROR: {ex.Message}");
+                _logger.LogError(ex, "Error adding item to cart");
                 throw;
             }
         }
 
-        
-
-        public async Task UpdateCartItemQuantityAsync(string userId, string productId, int quantity)
+        public async Task UpdateCartItemQuantityAsync(string userId, string cartItemId, int quantity)
         {
             try
             {
-                var cart = await _cartRepository.GetCartByUserIdAsync(userId);
-                if (cart == null) return;
+                // Get cart
+                var cart = await _repository.GetCartByUserIdAsync(userId);
+                if (cart == null)
+                {
+                    _logger.LogWarning("Cart not found for user {UserId}", userId);
+                    return;
+                }
 
-                var item = cart.CartItems.FirstOrDefault(i => i.ProductId == productId);
+                // Find item by CartItemId (not ProductId)
+                var item = cart.CartItems.FirstOrDefault(i => i.Id == cartItemId);
                 if (item != null)
                 {
+                    // Business rule: Remove if quantity <= 0
                     if (quantity <= 0)
                     {
                         cart.CartItems.Remove(item);
+                        _logger.LogInformation("Removed item {CartItemId} from cart", cartItemId);
                     }
                     else
                     {
+                        // Update quantity and recalculate total
                         item.Quantity = quantity;
                         item.TotalPrice = item.UnitPrice * quantity;
+                        _logger.LogInformation("Updated item {CartItemId} quantity to {Quantity}", cartItemId, quantity);
                     }
+
                     cart.UpdatedAt = DateTime.UtcNow;
-                    await _cartRepository.AddOrUpdateCartAsync(cart);
+
+                    // Save changes
+                    _repository.UpdateCart(cart);
                 }
             }
             catch (Exception ex)
@@ -153,42 +176,28 @@ namespace Cofinoy.Services.Services
             }
         }
 
-
-        //helper
-        private CartItem CreateCartItem(string cartId, CartItemServiceModel item)
-        {
-            return new CartItem
-            {
-                Id = Guid.NewGuid().ToString(),
-                CartId = cartId,
-                ProductId = item.ProductId,
-                ProductName = item.Name,
-                Description = item.Description,
-                UnitPrice = item.UnitPrice,
-                Quantity = item.Quantity,
-                TotalPrice = item.UnitPrice * item.Quantity,
-                ImageUrl = item.ImageUrl,
-                Temperature = item.Temperature,
-                Size = item.Size,
-                MilkType = item.MilkType,
-                SweetnessLevel = item.SweetnessLevel,
-                ExtraShots = item.ExtraShots
-            };
-        }
-
-        public async Task RemoveFromCartAsync(string userId, string productId)
+        public async Task RemoveFromCartAsync(string userId, string cartItemId)
         {
             try
             {
-                var cart = await _cartRepository.GetCartByUserIdAsync(userId);
-                if (cart == null) return;
+                // Get cart
+                var cart = await _repository.GetCartByUserIdAsync(userId);
+                if (cart == null)
+                {
+                    _logger.LogWarning("Cart not found for user {UserId}", userId);
+                    return;
+                }
 
-                var item = cart.CartItems.FirstOrDefault(i => i.ProductId == productId);
+                // Find and remove item by CartItemId (not ProductId)
+                var item = cart.CartItems.FirstOrDefault(i => i.Id == cartItemId);
                 if (item != null)
                 {
                     cart.CartItems.Remove(item);
                     cart.UpdatedAt = DateTime.UtcNow;
-                    await _cartRepository.AddOrUpdateCartAsync(cart);
+
+                    // Save changes
+                    _repository.UpdateCart(cart);
+                    _logger.LogInformation("Removed item {CartItemId} from cart", cartItemId);
                 }
             }
             catch (Exception ex)
@@ -198,19 +207,105 @@ namespace Cofinoy.Services.Services
             }
         }
 
-
-
         public async Task ClearCartAsync(string userId)
         {
             try
             {
-                await _cartRepository.ClearCartAsync(userId);
+                await _repository.ClearCartAsync(userId);
+                _logger.LogInformation("Cleared cart for user {UserId}", userId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error clearing cart for user {UserId}", userId);
                 throw;
             }
+        }
+
+        // Helper method to find matching cart item with same customizations
+        private CartItem FindMatchingCartItem(ICollection<CartItem> cartItems, CartItemServiceModel item)
+        {
+            foreach (var cartItem in cartItems)
+            {
+                if (cartItem.ProductId != item.ProductId)
+                    continue;
+
+                // Check if customizations match
+                if (!CustomizationsMatch(cartItem.Customizations, item.Customizations))
+                    continue;
+
+                return cartItem;
+            }
+
+            return null;
+        }
+
+        // Helper method to compare customizations
+        private bool CustomizationsMatch(ICollection<CartItemCustomization> dbCustomizations, List<CustomizationData> serviceCustomizations)
+        {
+            var dbList = dbCustomizations?.ToList() ?? new List<CartItemCustomization>();
+            var serviceList = serviceCustomizations ?? new List<CustomizationData>();
+
+            if (dbList.Count != serviceList.Count)
+                return false;
+
+            // Sort both lists by name for comparison
+            var dbSorted = dbList.OrderBy(c => c.Name).ToList();
+            var serviceSorted = serviceList.OrderBy(c => c.Name).ToList();
+
+            for (int i = 0; i < dbSorted.Count; i++)
+            {
+                if (dbSorted[i].Name != serviceSorted[i].Name ||
+                    dbSorted[i].Value != serviceSorted[i].Value ||
+                    dbSorted[i].Type != serviceSorted[i].Type)
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        // Helper method to map ServiceModel to Entity
+        private CartItem MapToCartItem(string cartId, CartItemServiceModel item)
+        {
+            var cartItem = new CartItem
+            {
+                Id = Guid.NewGuid().ToString(),
+                CartId = cartId,
+                ProductId = item.ProductId,
+                ProductName = item.Name,
+                Description = item.Description ?? string.Empty,
+                UnitPrice = item.UnitPrice,
+                Quantity = item.Quantity,
+                TotalPrice = item.UnitPrice * item.Quantity,
+                ImageUrl = item.ImageUrl ?? string.Empty,
+                Temperature = item.Temperature ?? string.Empty,
+                Size = item.Size ?? string.Empty,
+                MilkType = item.MilkType ?? string.Empty,
+                SweetnessLevel = item.SweetnessLevel ?? string.Empty,
+                ExtraShots = item.ExtraShots,
+                Customizations = new List<CartItemCustomization>()
+            };
+
+            // Map customizations
+            if (item.Customizations != null && item.Customizations.Any())
+            {
+                foreach (var customization in item.Customizations)
+                {
+                    cartItem.Customizations.Add(new CartItemCustomization
+                    {
+                        Id = Guid.NewGuid().ToString(),
+                        CartItemId = cartItem.Id,
+                        Name = customization.Name,
+                        Value = customization.Value,
+                        Type = customization.Type,
+                        DisplayOrder = customization.DisplayOrder,
+                        Price = customization.Price
+                    });
+                }
+            }
+
+            return cartItem;
         }
     }
 }

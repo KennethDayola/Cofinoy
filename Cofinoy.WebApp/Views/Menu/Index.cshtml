@@ -1,4 +1,4 @@
-﻿﻿﻿@{
+﻿@{
 ViewData["Title"] = "Coffee Menu";
 }
 <!DOCTYPE html>
@@ -33,14 +33,75 @@ ViewData["Title"] = "Coffee Menu";
                 </div>
                 <button class="filter-btn">
                     <img src="~/images/filter.png" asp-append-version="true" alt="Filter" />
-                    Filter
+                    Filter & Sort
                 </button>
             </div>
 
+            <!-- Circular progress bar for loading state -->
+            <div id="loadingProgress" class="loading-progress" style="display:none;">
+                <div class="circular-progress">
+                    <svg width="120" height="120" viewBox="0 0 120 120">
+                        <circle class="progress-circle-bg" cx="60" cy="60" r="45"></circle>
+                        <circle class="progress-circle" cx="60" cy="60" r="45"></circle>
+                    </svg>
+                </div>
+                <p class="loading-text">Loading your menu...</p>
+            </div>
+
             <div class="products" id="productsContainer">
-                <p>Loading products...</p>
+                <!-- Products will be loaded here -->
             </div>
         </section>
+
+        <!-- Filter Modal - Minimalistic -->
+        <div id="filterModal" class="filter-modal" style="display:none;">
+            <div class="filter-dialog">
+                <div class="filter-header">
+                    <h2>Filter & Sort</h2>
+                    <button id="closeFilterModal" class="filter-close" aria-label="Close">×</button>
+                </div>
+                
+                <div class="filter-body">
+                    <!-- Price Range Filter -->
+                    <div class="filter-section">
+                        <label class="filter-label">Price Range</label>
+                        <div class="price-range-inputs">
+                            <input type="number" id="minPrice" placeholder="Min" min="0" step="10">
+                            <span class="range-separator">—</span>
+                            <input type="number" id="maxPrice" placeholder="Max" min="0" step="10">
+                        </div>
+                    </div>
+
+                    <!-- Sort Options -->
+                    <div class="filter-section">
+                        <label class="filter-label">Sort By</label>
+                        <div class="filter-options">
+                            <label class="filter-option-label">
+                                <input type="radio" name="sortOption" value="default" checked>
+                                <span>Default</span>
+                            </label>
+                            <label class="filter-option-label">
+                                <input type="radio" name="sortOption" value="lowToHigh">
+                                <span>Price: Low to High</span>
+                            </label>
+                            <label class="filter-option-label">
+                                <input type="radio" name="sortOption" value="highToLow">
+                                <span>Price: High to Low</span>
+                            </label>
+                            <label class="filter-option-label">
+                                <input type="radio" name="sortOption" value="nameAZ">
+                                <span>Name: A to Z</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="filter-footer">
+                    <button id="clearFilterBtn" class="clear-filter-btn">Clear All</button>
+                    <button id="applyFilterBtn" class="apply-filter-btn">Apply Filters</button>
+                </div>
+            </div>
+        </div>
 
         <!-- Display the kopi here mwehehehe -->
 
@@ -67,7 +128,7 @@ ViewData["Title"] = "Coffee Menu";
 						<label>Quantity</label>
 						<div class="stepper" data-type="quantity">
 							<button class="stepper-minus" aria-label="Decrease quantity">−</button>
-							<span class="stepper-value" id="qtyValue">2</span>
+							<span class="stepper-value" id="qtyValue">1</span>
 							<button class="stepper-plus" aria-label="Increase quantity">+</button>
 						</div>
 					</div>

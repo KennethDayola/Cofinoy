@@ -1,5 +1,4 @@
 ﻿using AutoMapper;
-using Cofinoy.Data.Models;
 using Cofinoy.Services.Interfaces;
 using Cofinoy.Services.ServiceModels;
 using Cofinoy.WebApp.Models;
@@ -22,50 +21,35 @@ namespace Cofinoy.WebApp.Controllers
         private readonly ICategoryService _categoryService;
         private readonly ICustomizationService _customizationService;
         private readonly IProductService _productService;
+        private readonly IMapper _mapper;
 
         public MenuController(
-             IHttpContextAccessor httpContextAccessor,
-             ILoggerFactory loggerFactory,
-             IConfiguration configuration,
-             IMapper mapper,
-             ICategoryService categoryService,
-             ICustomizationService customizationService,
-             IProductService productService) : base(httpContextAccessor, loggerFactory, configuration, mapper)
+            IHttpContextAccessor httpContextAccessor,
+            ILoggerFactory loggerFactory,
+            IConfiguration configuration,
+            IMapper mapper,
+            ICategoryService categoryService,
+            ICustomizationService customizationService,
+            IProductService productService)
+            : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
             _categoryService = categoryService;
             _customizationService = customizationService;
             _productService = productService;
+            _mapper = mapper;
         }
 
 
-        public IActionResult Index()
-        {
-            return View();
-        }
+        public IActionResult Index() => View();
 
         [Authorize(Roles = "Admin")]
-        public IActionResult DrinkManagement()
-        {
-            return View();
-        }
+        public IActionResult DrinkManagement() => View();
 
         [Authorize(Roles = "Admin")]
-        public IActionResult CategoriesManagement()
-        {
-            return View();
-        }
+        public IActionResult CategoriesManagement() => View();
 
         [Authorize(Roles = "Admin")]
-        public IActionResult CustomizationManagement()
-        {
-            return View();
-        }
-
-        [Authorize(Roles = "Admin")]
-        public IActionResult OrderManagement()
-        {
-            return View();
-        }
+        public IActionResult CustomizationManagement() => View();
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
@@ -73,11 +57,21 @@ namespace Cofinoy.WebApp.Controllers
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
 
+
+
+        [HttpGet]
+        [HttpPost]
         public JsonResult GetAllCategories()
         {
             try
             {
                 var categories = _categoryService.GetAllCategories();
+                
+                if (categories == null)
+                {
+                    categories = new List<CategoryServiceModel>();
+                }
+                
                 return Json(new { success = true, data = categories });
             }
             catch (Exception ex)
@@ -88,6 +82,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult AddCategory([FromBody] CategoryViewModel model)
         {
             try
@@ -116,6 +111,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult UpdateCategory(string id, [FromBody] CategoryViewModel model)
         {
             try
@@ -148,6 +144,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult DeleteCategory(string id)
         {
             try
@@ -166,6 +163,7 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+        [HttpGet]
         public JsonResult GetAllCustomizations()
         {
             try
@@ -200,6 +198,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult AddCustomization([FromBody] CustomizationServiceModel model)
         {
             try
@@ -220,6 +219,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult UpdateCustomization(string id, [FromBody] CustomizationServiceModel model)
         {
             try
@@ -244,6 +244,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult DeleteCustomization(string id)
         {
             try
@@ -262,6 +263,8 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+
+        [HttpGet]
         public JsonResult GetProductsByCategory(string categoryName)
         {
             try
@@ -278,6 +281,7 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+        [HttpGet]
         public JsonResult GetAllProducts()
         {
             try
@@ -291,7 +295,6 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
-
 
         [HttpGet]
         public JsonResult GetProduct(string id)
@@ -313,6 +316,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult AddProduct([FromBody] ProductServiceModel model)
         {
             try
@@ -333,6 +337,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult UpdateProduct(string id, [FromBody] ProductServiceModel model)
         {
             try
@@ -357,6 +362,7 @@ namespace Cofinoy.WebApp.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Admin")]
         public JsonResult DeleteProduct(string id)
         {
             try
@@ -374,8 +380,5 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
-
-        
-
     }
 }

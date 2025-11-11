@@ -105,6 +105,43 @@ namespace Cofinoy.Data.Migrations
                     b.ToTable("CartItems");
                 });
 
+            modelBuilder.Entity("Cofinoy.Data.Models.CartItemCustomization", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("CartItemId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CartItemId");
+
+                    b.ToTable("CartItemCustomizations");
+                });
+
             modelBuilder.Entity("Cofinoy.Data.Models.Category", b =>
                 {
                     b.Property<string>("Id")
@@ -185,6 +222,9 @@ namespace Cofinoy.Data.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -239,9 +279,6 @@ namespace Cofinoy.Data.Migrations
                     b.Property<string>("AdditionalRequest")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Dummy")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("InvoiceNumber")
                         .HasColumnType("nvarchar(max)");
 
@@ -258,6 +295,7 @@ namespace Cofinoy.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<string>("UserId")
@@ -278,9 +316,6 @@ namespace Cofinoy.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Dummy")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ExtraShots")
@@ -312,9 +347,11 @@ namespace Cofinoy.Data.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("TotalPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("UnitPrice")
+                        .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
                     b.HasKey("Id");
@@ -322,6 +359,42 @@ namespace Cofinoy.Data.Migrations
                     b.HasIndex("OrderId");
 
                     b.ToTable("OrderItems");
+                });
+
+            modelBuilder.Entity("Cofinoy.Data.Models.OrderItemCustomization", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int?>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("OrderItemId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("Price")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Value")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OrderItemId");
+
+                    b.ToTable("OrderItemCustomizations");
                 });
 
             modelBuilder.Entity("Cofinoy.Data.Models.ProductCategory", b =>
@@ -471,6 +544,17 @@ namespace Cofinoy.Data.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("Cofinoy.Data.Models.CartItemCustomization", b =>
+                {
+                    b.HasOne("Cofinoy.Data.Models.CartItem", "CartItem")
+                        .WithMany("Customizations")
+                        .HasForeignKey("CartItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CartItem");
+                });
+
             modelBuilder.Entity("Cofinoy.Data.Models.CustomizationOption", b =>
                 {
                     b.HasOne("Cofinoy.Data.Models.Customization", "Customization")
@@ -490,6 +574,17 @@ namespace Cofinoy.Data.Migrations
                         .IsRequired();
 
                     b.Navigation("Order");
+                });
+
+            modelBuilder.Entity("Cofinoy.Data.Models.OrderItemCustomization", b =>
+                {
+                    b.HasOne("Cofinoy.Data.Models.OrderItem", "OrderItem")
+                        .WithMany("Customizations")
+                        .HasForeignKey("OrderItemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("OrderItem");
                 });
 
             modelBuilder.Entity("Cofinoy.Data.Models.ProductCategory", b =>
@@ -535,6 +630,11 @@ namespace Cofinoy.Data.Migrations
                     b.Navigation("CartItems");
                 });
 
+            modelBuilder.Entity("Cofinoy.Data.Models.CartItem", b =>
+                {
+                    b.Navigation("Customizations");
+                });
+
             modelBuilder.Entity("Cofinoy.Data.Models.Category", b =>
                 {
                     b.Navigation("ProductCategories");
@@ -550,6 +650,11 @@ namespace Cofinoy.Data.Migrations
             modelBuilder.Entity("Cofinoy.Data.Models.Order", b =>
                 {
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("Cofinoy.Data.Models.OrderItem", b =>
+                {
+                    b.Navigation("Customizations");
                 });
 
             modelBuilder.Entity("Product", b =>
