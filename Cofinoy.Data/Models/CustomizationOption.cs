@@ -18,6 +18,9 @@ namespace Cofinoy.Data.Models
 
         public bool Default { get; set; } = false;
 
+        [Range(0, int.MaxValue)]
+        public int DisplayOrder { get; set; } = 0;
+
         public string CustomizationId { get; set; }
         public Customization Customization { get; set; }
     }

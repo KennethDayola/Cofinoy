@@ -23,9 +23,20 @@ namespace Cofinoy.Data.Repositories
 
         public Customization GetCustomizationById(string id)
         {
-            return this.GetDbSet<Customization>()
+            var customization = this.GetDbSet<Customization>()
                 .Include(c => c.Options)
                 .FirstOrDefault(c => c.Id == id);
+
+            // Order options by DisplayOrder
+            if (customization?.Options != null)
+            {
+                customization.Options = customization.Options
+                    .OrderBy(o => o.DisplayOrder)
+                    .ThenBy(o => o.Name)
+                    .ToList();
+            }
+
+            return customization;
         }
 
         public void AddCustomization(Customization customization)
@@ -37,30 +48,8 @@ namespace Cofinoy.Data.Repositories
 
         public void UpdateCustomization(Customization customization)
         {
-            var existing = GetCustomizationById(customization.Id);
-            if (existing != null)
-            {
-                existing.Name = customization.Name;
-                existing.Type = customization.Type;
-                existing.Required = customization.Required;
-                existing.DisplayOrder = customization.DisplayOrder;
-                existing.Description = customization.Description;
-                existing.MaxQuantity = customization.MaxQuantity;
-                existing.PricePerUnit = customization.PricePerUnit;
-
-                // Remove old options
-                var existingOptions = existing.Options.ToList();
-                foreach (var option in existingOptions)
-                {
-                    this.GetDbSet<CustomizationOption>().Remove(option);
-                }
-
-                // Add new options
-                existing.Options = customization.Options;
-
-                this.GetDbSet<Customization>().Update(existing);
-                UnitOfWork.SaveChanges();
-            }
+            this.GetDbSet<Customization>().Update(customization);
+            UnitOfWork.SaveChanges();
         }
 
         public void DeleteCustomization(string id)

@@ -1,0 +1,227 @@
+@model List<Cofinoy.Services.ServiceModels.OrderServiceModel>
+@{
+    ViewData["Title"] = "Order History";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<link rel="stylesheet" href="~/css/orderHistory.css" asp-append-version="true" />
+
+<div class="order-history">
+    <div class="order-history-header">
+        <div class="order-header-content">
+            <h1 class="order-history-title">Order History</h1>
+            <div class="orderHistory-summary">
+                @if (Model == null || !Model.Any())
+                {
+                    <span>No orders found</span>
+                }
+                else
+                {
+                    <span id="orderHistorySummary">@Model.Count order(s) found</span>
+                }
+            </div>
+        </div>
+
+        @if (Model != null && Model.Any())
+        {
+            <button class="sort-button" id="sortButton" aria-label="Sort orders">
+                <svg class="sort-icon" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M3 7H21" stroke="#322708" stroke-width="2" stroke-linecap="round" />
+                    <path d="M6 12H18" stroke="#322708" stroke-width="2" stroke-linecap="round" />
+                    <path d="M10 17H14" stroke="#322708" stroke-width="2" stroke-linecap="round" />
+                </svg>
+                <span id="sortText">Newest First</span>
+            </button>
+        }
+    </div>
+
+    <div class="order-container">
+        <!-- ORDER LIST -->
+        <div class="order-list-container">
+            <div class="order-list-header">
+                <h2>Order List</h2>
+                <button class="mobile-toggle-list" id="mobileToggleList" aria-label="Toggle order list">
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+            <div class="order-list" id="orderList">
+                @if (Model != null && Model.Any())
+                {
+                    var firstOrder = true;
+                    foreach (var order in Model)
+                    {
+                        <article class="order-card @(firstOrder ? "active" : "")" data-order-id="@order.Id">
+                            <div class="order-card-content">
+                                <h3 class="order-id">Order #@order.InvoiceNumber</h3>
+                                <p class="order-date">@order.OrderDate.ToString("MMMM d, yyyy")</p>
+                                <div class="order-time">
+                                    <span>@order.OrderDate.ToString("dddd h:mm tt")</span>
+                                    <div class="order-status">
+                                        <span class="status-dot status-@order.Status.ToLower().Replace(" ", "-")"></span>
+                                        <span class="status-text status-@order.Status.ToLower().Replace(" ", "-")">@order.Status</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </article>
+                        firstOrder = false;
+                    }
+                }
+                else
+                {
+                    <div class="no-orders">
+                        <i class="fas fa-receipt"></i>
+                        <p>No orders found. Start ordering to see your history!</p>
+                        <a href="@Url.Action("Index", "Menu")" class="btn-primary">Start Ordering</a>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- ORDER DETAILS -->
+        <section class="order-detail-section" id="orderDetailSection">
+            @if (Model != null && Model.Any())
+            {
+                var firstOrder = Model.First();
+                <header class="order-detail-header">
+                    <div class="order-header-info">
+                        <p class="order-invoice">Order #@firstOrder.InvoiceNumber</p>
+                    </div>
+                    <p class="order-date-time">@firstOrder.OrderDate.ToString("MMMM d, yyyy - h:mm tt")</p>
+                </header>
+
+                <div class="order-items">
+                    <div class="order-items-header">
+                        <span class="header-product">Product</span>
+                        <span class="header-price">Price</span>
+                        <span class="header-quantity">Quantity</span>
+                        <span class="header-total">Total</span>
+                    </div>
+
+                    <div class="order-items-container" id="orderItemsContainer">
+                        @foreach (var item in firstOrder.OrderItems)
+                        {
+                            <article class="order-item">
+                                <div class="item-image">
+                                    @if (!string.IsNullOrEmpty(item.ImageUrl))
+                                    {
+                                        <img src="@item.ImageUrl" alt="@item.ProductName" class="product-image" />
+                                    }
+                                    else
+                                    {
+                                        <i class="fas fa-coffee"></i>
+                                    }
+                                </div>
+                                <div class="item-info">
+                                    <h3 class="item-name">@item.ProductName</h3>
+                                    @if (item.Customizations != null && item.Customizations.Any())
+                                    {
+                                        <div class="item-desc">
+                                            @foreach (var customization in item.Customizations.OrderBy(c => c.DisplayOrder ?? int.MaxValue).ThenBy(c => c.Name))
+                                            {
+                                                var hasPrice = customization.Price > 0;
+                                                var badgeClass = hasPrice ? "item-attribute has-price" : "item-attribute";
+                                                <span class="@badgeClass">
+                                                    @customization.Name: @customization.Value
+                                                    @if (hasPrice)
+                                                    {
+                                                        <span class="item-attribute-price">+P@(customization.Price.ToString("N2"))</span>
+                                                    }
+                                                </span>
+                                            }
+                                        </div>
+                                    }
+                                    else if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.Temperature) || !string.IsNullOrEmpty(item.MilkType) || item.ExtraShots > 0 || !string.IsNullOrEmpty(item.SweetnessLevel))
+                                    {
+                                        <div class="item-desc">
+                                            @if (!string.IsNullOrEmpty(item.Size))
+                                            {
+                                                <span class="item-attribute">Size: @item.Size</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.Temperature))
+                                            {
+                                                <span class="item-attribute">Temp: @item.Temperature</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.MilkType))
+                                            {
+                                                <span class="item-attribute">Milk: @item.MilkType</span>
+                                            }
+                                            @if (item.ExtraShots > 0)
+                                            {
+                                                <span class="item-attribute has-price">Extra Shots: @item.ExtraShots</span>
+                                            }
+                                            @if (!string.IsNullOrEmpty(item.SweetnessLevel))
+                                            {
+                                                <span class="item-attribute">Sweetness: @item.SweetnessLevel</span>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                                <div class="item-pricing">
+                                    <p class="item-price">P@(item.UnitPrice.ToString("N2"))</p>
+                                    <p class="item-quantity">@item.Quantity</p>
+                                    <p class="item-total">P@(item.TotalPrice.ToString("N2"))</p>
+                                </div>
+                            </article>
+                        }
+                    </div>
+                </div>
+
+                <footer class="order-total">
+                    <span class="total-label">TOTAL</span>
+                    <span class="amount">P@(firstOrder.TotalPrice.ToString("N2"))</span>
+                </footer>
+
+                <!-- TRACK ORDER -->
+                <section class="track-order-section">
+                    <h2>Track Order</h2>
+                    <p class="track-text" id="trackOrderText">"Your order is @firstOrder.Status.ToLower()"</p>
+
+                    <!-- Progress Bar -->
+                    <div class="progress-container">
+                        <div class="progress-bar-wrapper">
+                            <ul id="progressbar" class="progress-steps">
+                                <li class="step @(firstOrder.Status != "Cancelled" ? "active" : "")" data-status="Placed">
+                                    <div class="step-icon">1</div>
+                                </li>
+                                <li class="step @(firstOrder.Status == "Brewing" || firstOrder.Status == "Ready" || firstOrder.Status == "Serving" || firstOrder.Status == "Served" ? "active" : "")" data-status="Brewing">
+                                    <div class="step-icon">2</div>
+                                </li>
+                                <li class="step @(firstOrder.Status == "Ready" || firstOrder.Status == "Serving" || firstOrder.Status == "Served" ? "active" : "")" data-status="Ready">
+                                    <div class="step-icon">3</div>
+                                </li>
+                                <li class="step @(firstOrder.Status == "Serving" || firstOrder.Status == "Served" ? "active" : "")" data-status="Serving">
+                                    <div class="step-icon">4</div>
+                                </li>
+                                <li class="step @(firstOrder.Status == "Served" ? "active" : "")" data-status="Served">
+                                    <div class="step-icon">5</div>
+                                </li>
+                            </ul>
+                            <div class="progress-line" id="progressLine"></div>
+                        </div>
+                        <div class="progress-labels">
+                            <div class="progress-label">Placed</div>
+                            <div class="progress-label">Brewing</div>
+                            <div class="progress-label">Ready</div>
+                            <div class="progress-label">Serving</div>
+                            <div class="progress-label">Served</div>
+                        </div>
+                    </div>
+                </section>
+            }
+            else
+            {
+                <div class="no-order-selected">
+                    <div class="empty-state">
+                        <i class="fas fa-shopping-bag"></i>
+                        <h3>No Orders Yet</h3>
+                        <p>Your order history will appear here once you start ordering.</p>
+                        <a href="@Url.Action("Index", "Menu")" class="btn-primary">Browse Menu</a>
+                    </div>
+                </div>
+            }
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/orderHistory.js" asp-append-version="true"></script>
+}

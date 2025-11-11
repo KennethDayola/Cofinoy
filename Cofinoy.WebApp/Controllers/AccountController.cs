@@ -104,7 +104,7 @@ namespace Cofinoy.WebApp.Controllers
 
                 if (user.Email != null && user.Email.Equals("admin@cofinoy.com", StringComparison.OrdinalIgnoreCase))
                 {
-                    return RedirectToAction("DrinkManagement", "Menu");
+                    return RedirectToAction("Dashboard", "Home");
                 }
 
                 return RedirectToAction("Index", "Home");
@@ -273,7 +273,7 @@ namespace Cofinoy.WebApp.Controllers
 
             _userService.UpdateUser(user); // ensure SaveChanges is called inside
 
-            TempData["ToastMessage"] = "Password successfully reset!";
+            TempData["ToastMessage"] = "Password has been sucessfully reset!";
             TempData["ToastType"] = "success";
 
             return RedirectToAction("Login");
