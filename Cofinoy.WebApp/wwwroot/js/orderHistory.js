@@ -121,7 +121,7 @@
                     const customizationBadges = sortedCustomizations.map(custom => {
                         const hasPrice = custom.price > 0;
                         const priceClass = hasPrice ? ' has-price' : '';
-                        const priceText = hasPrice ? `<span class="item-attribute-price">+₱${parseFloat(custom.price).toFixed(2)}</span>` : '';
+                        const priceText = hasPrice ? `<span class="item-attribute-price">+P${parseFloat(custom.price).toFixed(2)}</span>` : '';
                         return `<span class="item-attribute${priceClass}">${custom.name}: ${custom.value}${priceText}</span>`;
                     });
 
@@ -158,9 +158,9 @@
                             ${description}
                         </div>
                         <div class="item-pricing">
-                            <p class="item-price">₱${parseFloat(item.unitPrice).toFixed(2)}</p>
+                            <p class="item-price">P${parseFloat(item.unitPrice).toFixed(2)}</p>
                             <p class="item-quantity">${item.quantity}</p>
-                            <p class="item-total">₱${parseFloat(item.totalPrice).toFixed(2)}</p>
+                            <p class="item-total">P${parseFloat(item.totalPrice).toFixed(2)}</p>
                         </div>
                     </article>
                 `;
@@ -173,7 +173,7 @@
 
         const orderTotal = orderDetailSection.querySelector('.order-total .amount');
         if (orderTotal) {
-            orderTotal.textContent = `₱${parseFloat(order.totalPrice).toFixed(2)}`;
+            orderTotal.textContent = `P${parseFloat(order.totalPrice).toFixed(2)}`;
         }
 
         if (trackOrderText) {

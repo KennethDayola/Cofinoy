@@ -78,7 +78,7 @@
                                                 <span>@customization.Value</span>
                                                 @if (customization.Price > 0)
                                                 {
-                                                    <span style="color: #4caf50;">(+?@customization.Price.ToString("N2"))</span>
+                                                    <span style="color: #4caf50;">(+P@(customization.Price.ToString("N2")))</span>
                                                 }
                                             </div>
                                         }
@@ -86,8 +86,8 @@
                                 }
                             </td>
                             <td style="text-align: center;" class="item-quantity">@item.Quantity</td>
-                            <td style="text-align: right;" class="item-price">?@item.UnitPrice.ToString("N2")</td>
-                            <td style="text-align: right;" class="item-total">?@((item.UnitPrice * item.Quantity).ToString("N2"))</td>
+                            <td style="text-align: right;" class="item-price">P@(item.UnitPrice.ToString("N2"))</td>
+                            <td style="text-align: right;" class="item-total">P@((item.UnitPrice * item.Quantity).ToString("N2"))</td>
                         </tr>
                     }
                 </tbody>
@@ -105,11 +105,11 @@
                 <div class="totals-box">
                     <div class="total-row">
                         <span class="total-label">Coupon Discount:</span>
-                        <span class="discount-value">-?@Model.CouponCode.ToString("N2")</span>
+                        <span class="discount-value">-P@(Model.CouponCode.ToString("N2"))</span>
                     </div>
                     <div class="total-row grand-total">
                         <span class="grand-total-label">TOTAL:</span>
-                        <span class="grand-total-value">?@Model.TotalPrice.ToString("N2")</span>
+                        <span class="grand-total-value">P@(Model.TotalPrice.ToString("N2"))</span>
                     </div>
                 </div>
             </div>

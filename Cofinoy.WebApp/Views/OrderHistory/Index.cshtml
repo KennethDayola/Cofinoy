@@ -123,7 +123,7 @@
                                                     @customization.Name: @customization.Value
                                                     @if (hasPrice)
                                                     {
-                                                        <span class="item-attribute-price">+?@customization.Price.ToString("N2")</span>
+                                                        <span class="item-attribute-price">+P@(customization.Price.ToString("N2"))</span>
                                                     }
                                                 </span>
                                             }
@@ -156,9 +156,9 @@
                                     }
                                 </div>
                                 <div class="item-pricing">
-                                    <p class="item-price">?@item.UnitPrice.ToString("N2")</p>
+                                    <p class="item-price">P@(item.UnitPrice.ToString("N2"))</p>
                                     <p class="item-quantity">@item.Quantity</p>
-                                    <p class="item-total">?@item.TotalPrice.ToString("N2")</p>
+                                    <p class="item-total">P@(item.TotalPrice.ToString("N2"))</p>
                                 </div>
                             </article>
                         }
@@ -167,7 +167,7 @@
 
                 <footer class="order-total">
                     <span class="total-label">TOTAL</span>
-                    <span class="amount">?@firstOrder.TotalPrice.ToString("N2")</span>
+                    <span class="amount">P@(firstOrder.TotalPrice.ToString("N2"))</span>
                 </footer>
 
                 <!-- TRACK ORDER -->
