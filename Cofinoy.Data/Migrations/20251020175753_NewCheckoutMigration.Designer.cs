@@ -4,6 +4,7 @@ using Cofinoy.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Cofinoy.Data.Migrations
 {
     [DbContext(typeof(CofinoyDbContext))]
-    partial class CofinoyDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251020175753_NewCheckoutMigration")]
+    partial class NewCheckoutMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -239,6 +242,9 @@ namespace Cofinoy.Data.Migrations
                     b.Property<string>("AdditionalRequest")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Dummys")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("InvoiceNumber")
                         .HasColumnType("nvarchar(max)");
 
@@ -275,6 +281,9 @@ namespace Cofinoy.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Dummys")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ExtraShots")

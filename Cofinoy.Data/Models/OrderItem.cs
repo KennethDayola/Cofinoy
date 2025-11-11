@@ -35,8 +35,6 @@ namespace Cofinoy.Data.Models
 
         public Order Order { get; set; }
 
-
-     
     }
 
 }
