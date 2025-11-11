@@ -273,7 +273,7 @@ namespace Cofinoy.WebApp.Controllers
 
             _userService.UpdateUser(user); // ensure SaveChanges is called inside
 
-            TempData["ToastMessage"] = "Password successfully reset!";
+            TempData["ToastMessage"] = "Password has been sucessfully reset!";
             TempData["ToastType"] = "success";
 
             return RedirectToAction("Login");
