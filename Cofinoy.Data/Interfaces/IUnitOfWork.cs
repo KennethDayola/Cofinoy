@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Threading.Tasks;
 
 namespace Cofinoy.Data.Interfaces
 {
@@ -18,5 +19,7 @@ namespace Cofinoy.Data.Interfaces
         /// Saves the changes to database
         /// </summary>
         void SaveChanges();
+        Task SaveChangesAsync();
+
     }
 }
