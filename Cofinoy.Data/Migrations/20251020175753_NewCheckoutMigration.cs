@@ -6,12 +6,12 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Cofinoy.Data.Migrations
 {
     /// <inheritdoc />
-    public partial class CheckoutMigration : Migration
+    public partial class NewCheckoutMigration : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // ===== ORDERS TABLE =====
+            
             migrationBuilder.CreateTable(
                 name: "Orders",
                 columns: table => new
@@ -25,14 +25,16 @@ namespace Cofinoy.Data.Migrations
                     AdditionalRequest = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     PaymentMethod = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     TotalPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
-                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    Status = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                   
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Orders", x => x.OrderId);
                 });
 
-            // ===== ORDER ITEMS TABLE =====
+           
+
             migrationBuilder.CreateTable(
                 name: "OrderItems",
                 columns: table => new
@@ -50,7 +52,8 @@ namespace Cofinoy.Data.Migrations
                     MilkType = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     Temperature = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ExtraShots = table.Column<int>(type: "int", nullable: false),
-                    SweetnessLevel = table.Column<string>(type: "nvarchar(max)", nullable: true)
+                    SweetnessLevel = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                  
                 },
                 constraints: table =>
                 {
@@ -63,7 +66,8 @@ namespace Cofinoy.Data.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            // ===== INDEXES =====
+           
+
             migrationBuilder.CreateIndex(
                 name: "IX_OrderItems_OrderId",
                 table: "OrderItems",
@@ -73,8 +77,11 @@ namespace Cofinoy.Data.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
+           
             migrationBuilder.DropTable(
                 name: "OrderItems");
+
+          
 
             migrationBuilder.DropTable(
                 name: "Orders");
