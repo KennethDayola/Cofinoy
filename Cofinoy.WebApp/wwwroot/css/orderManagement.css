@@ -203,23 +203,22 @@
     }
 
 .btn-filter {
-    background: #C8A97E;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 16px;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background 0.2s ease;
+    background-color: white;
+    color: #4a5568;
+    padding: 8px 20px;
+    border: 2px solid #322708;
+    border-radius: 50px;
 }
 
     .btn-filter:hover,
     .btn-filter.active {
-        background-color: #B38E6A;
+        background-color: #695829;
+        border-color: #795f17;
+        color: white;
     }
 
 /* Orders Table */
-.orders-table-container {
+    .orders-table-container {
     background: white;
     border-radius: 12px;
     overflow: hidden;
@@ -457,15 +456,15 @@
     padding: 10px 16px;
     border: 1px solid #dee2e6;
     background: white;
-    border-radius: 8px;
+    border-radius: 50px; 
     font-size: 14px;
     color: #495057;
     cursor: pointer;
-    transition: all 0.2s ease;
     display: flex;
     align-items: center;
     gap: 8px;
     justify-content: center;
+    transition: all 0.2s ease;
 }
 
     .filter-option-btn:hover {

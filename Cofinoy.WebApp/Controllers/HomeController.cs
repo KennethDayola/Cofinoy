@@ -69,10 +69,18 @@ namespace Cofinoy.WebApp.Controllers
                 // Get all orders for total revenue
                 var allOrders = await _context.Orders.ToListAsync();
 
-                // Calculate stats
-                var revenueToday = todayOrders.Sum(o => o.TotalPrice);
-                var revenueYesterday = yesterdayOrders.Sum(o => o.TotalPrice);
-                var totalRevenue = allOrders.Sum(o => o.TotalPrice);
+                // ✅ Calculate stats (excluding cancelled orders from revenue)
+                var revenueToday = todayOrders
+                    .Where(o => o.Status != "Cancelled")
+                    .Sum(o => o.TotalPrice);
+
+                var revenueYesterday = yesterdayOrders
+                    .Where(o => o.Status != "Cancelled")
+                    .Sum(o => o.TotalPrice);
+
+                var totalRevenue = allOrders
+                    .Where(o => o.Status != "Cancelled")
+                    .Sum(o => o.TotalPrice);
 
                 var ordersToday = todayOrders.Count;
                 var ordersYesterday = yesterdayOrders.Count;
