@@ -57,25 +57,51 @@ document.addEventListener('DOMContentLoaded', function () {
     const clearFiltersBtn = document.querySelector('.clear-filters-btn');
     const applyFiltersBtn = document.querySelector('.apply-filters-btn');
 
+    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+    const closeDeleteModalBtn = deleteConfirmModal.querySelector('.modal-close');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const deleteAddonName = document.getElementById('deleteAddonName');
+
     const modalTitle = document.getElementById('modalTitle');
     const saveAddonBtn = document.getElementById('saveAddonBtn');
+
+    const loadingProgress = document.getElementById('loadingProgress');
 
     let currentEditingId = null;
     let optionCounter = 0;
     let isSubmitting = false;
     let allAddons = [];
+    let pendingDeleteId = null;
+    let pendingDeleteCard = null;
 
     initializeApp();
 
     async function initializeApp() {
         try {
+            showLoadingProgress();
             await loadCustomizations();
             setupEventListeners();
         } catch (error) {
             console.error('Error initializing app:', error);
             showToastMessage('Error initializing application: ' + error.message, 'Error');
+        } finally {
+            hideLoadingProgress();
         }
     }
+
+    function showLoadingProgress() {
+        if (loadingProgress) {
+            loadingProgress.style.display = 'flex';
+        }
+    }
+
+    function hideLoadingProgress() {
+        if (loadingProgress) {
+            loadingProgress.style.display = 'none';
+        }
+    }
+
     function setupEventListeners() {
         addAddonBtn.addEventListener('click', openModal);
         closeModalBtn.addEventListener('click', closeModalFunc);
@@ -88,6 +114,17 @@ document.addEventListener('DOMContentLoaded', function () {
         closeFilterModalBtn.addEventListener('click', closeFilterModal);
         filterModal.addEventListener('click', function (e) {
             if (e.target === filterModal) closeFilterModal();
+        });
+
+        if (closeDeleteModalBtn) {
+            closeDeleteModalBtn.addEventListener('click', closeDeleteModal);
+        }
+        
+        cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+        confirmDeleteBtn.addEventListener('click', confirmDelete);
+
+        deleteConfirmModal.addEventListener('click', function (e) {
+            if (e.target === deleteConfirmModal) closeDeleteModal();
         });
 
         customizationTypeSelect.addEventListener('change', handleTypeChange);
@@ -126,6 +163,53 @@ document.addEventListener('DOMContentLoaded', function () {
     function closeFilterModal() {
         filterModal.classList.remove('active');
         document.body.style.overflow = 'auto';
+    }
+
+    function openDeleteModal(addonName, addonId, card) {
+        deleteAddonName.textContent = addonName;
+        pendingDeleteId = addonId;
+        pendingDeleteCard = card;
+        deleteConfirmModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeleteModal() {
+        deleteConfirmModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        pendingDeleteId = null;
+        pendingDeleteCard = null;
+    }
+
+    async function confirmDelete() {
+        if (!pendingDeleteId || !pendingDeleteCard) return;
+
+        try {
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+
+            pendingDeleteCard.style.opacity = '0.5';
+            pendingDeleteCard.style.pointerEvents = 'none';
+
+            const result = await CustomizationAPI.deleteCustomization(pendingDeleteId);
+
+            if (result.success) {
+                closeDeleteModal();
+                showToastMessage('Customization deleted successfully!');
+                await loadCustomizations();
+            } else {
+                throw new Error(result.error || 'Failed to delete customization');
+            }
+
+        } catch (error) {
+            console.error('Error deleting customization:', error);
+            showToastMessage('Error deleting customization: ' + error.message, 'Error');
+
+            pendingDeleteCard.style.opacity = '1';
+            pendingDeleteCard.style.pointerEvents = 'auto';
+        } finally {
+            confirmDeleteBtn.disabled = false;
+            confirmDeleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+        }
     }
 
     function resetForm() {
@@ -401,7 +485,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isSubmitting) return;
 
         if (!validateForm()) {
-            showToastMessage('Please fix the validation errors before submitting.', 'Validation Error');
+            // Don't show toast for validation errors, just show the inline error messages
             return;
         }
 
@@ -643,32 +727,10 @@ document.addEventListener('DOMContentLoaded', function () {
         openModal();
     }
 
-    async function deleteAddon(card) {
+    function deleteAddon(card) {
         const id = card.getAttribute('data-id');
         const addonName = card.querySelector('.addon-name').textContent;
-
-        if (confirm(`Are you sure you want to delete the "${addonName}" customization? This action cannot be undone.`)) {
-            try {
-                card.style.opacity = '0.5';
-                card.style.pointerEvents = 'none';
-
-                const result = await CustomizationAPI.deleteCustomization(id);
-
-                if (result.success) {
-                    showToastMessage('Customization deleted successfully!');
-                    await loadCustomizations();
-                } else {
-                    throw new Error(result.error || 'Failed to delete customization');
-                }
-
-            } catch (error) {
-                console.error('Error deleting customization:', error);
-                showToastMessage('Error deleting customization: ' + error.message, 'Error');
-
-                card.style.opacity = '1';
-                card.style.pointerEvents = 'auto';
-            }
-        }
+        openDeleteModal(addonName, id, card);
     }
 
     function addActionButtonListeners(card, addonData) {
@@ -690,6 +752,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 closeModalFunc();
             } else if (filterModal.classList.contains('active')) {
                 closeFilterModal();
+            } else if (deleteConfirmModal.classList.contains('active')) {
+                closeDeleteModal();
             }
         }
 
