@@ -1,4 +1,4 @@
-@model Cofinoy.WebApp.Models.CheckoutViewModel
+﻿@model Cofinoy.WebApp.Models.CheckoutViewModel
 
 @{
     ViewData["Title"] = "Checkout";
@@ -102,25 +102,12 @@
             }
 
             <div class="totals-section">
-                <div class="totals-box">
-                    <div class="total-row">
-                        <span class="total-label">Coupon Discount:</span>
-                        <span class="discount-value">-P@(Model.CouponCode.ToString("N2"))</span>
-                    </div>
-                    <div class="total-row grand-total">
-                        <span class="grand-total-label">TOTAL:</span>
+               
+            
+                        <span class="grand-total-label">TOTAL: </span>
                         <span class="grand-total-value">P@(Model.TotalPrice.ToString("N2"))</span>
                     </div>
-                </div>
-            </div>
-
-            <div class="payment-info">
-                <div class="text-right">
-                    <p class="status-label">
-                        Status:
-                        <span class="status-badge">Pending</span>
-                    </p>
-                </div>
+               
             </div>
 
             <div class="invoice-footer">

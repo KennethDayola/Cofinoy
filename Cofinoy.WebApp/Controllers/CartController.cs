@@ -2,6 +2,7 @@
 using Cofinoy.Data.Models;
 using Cofinoy.Services.Interfaces;
 using Cofinoy.Services.ServiceModels;
+using Cofinoy.Services.Services;
 using Cofinoy.WebApp.Models;
 using Cofinoy.WebApp.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Cofinoy.WebApp.Controllers
@@ -21,6 +23,7 @@ namespace Cofinoy.WebApp.Controllers
         private readonly ICartService _cartService;
         private readonly IOrderService _orderService;
         private readonly IMapper _mapper;
+        private readonly IUserService _userService;
 
         public CartController(
             IHttpContextAccessor httpContextAccessor,
@@ -28,10 +31,12 @@ namespace Cofinoy.WebApp.Controllers
             IConfiguration configuration,
             IMapper mapper,
             ICartService cartService,
-            IOrderService orderService) : base(httpContextAccessor, loggerFactory, configuration, mapper)
+            IOrderService orderService,
+             IUserService userService) : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
             _cartService = cartService;
             _orderService = orderService;
+            _userService = userService;
             _mapper = mapper;
         }
 
@@ -42,16 +47,31 @@ namespace Cofinoy.WebApp.Controllers
                 var userId = GetCurrentUserId();
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
 
+                // Get user's nickname if authenticated
+                string nickname = null;
+                if (User?.Identity?.IsAuthenticated == true)
+                {
+                    var email = User.FindFirstValue(System.Security.Claims.ClaimTypes.Email);
+                    if (!string.IsNullOrEmpty(email))
+                    {
+                        var user = _userService.GetUserByEmail(email);
+                        nickname = user?.Nickname;
+                    }
+                }
+
+                ViewBag.UserNickname = nickname;
+
                 return View(cartItems);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading cart page");
+                ViewBag.UserNickname = null;
                 return View(new List<CartItemServiceModel>());
             }
         }
 
-        [HttpPost]
+            [HttpPost]
         public async Task<JsonResult> AddToCart([FromBody] CartItemServiceModel item)
         {
             try

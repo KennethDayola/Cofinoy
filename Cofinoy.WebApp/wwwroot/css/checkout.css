@@ -572,12 +572,12 @@ body {
     font-weight: 500;
 }
 
-/* Totals */
+
 .totals-section {
     border-top: 2px solid #d1d5db;
     padding-top: 1rem;
     display: flex;
-    justify-content: flex-end;
+    justify-content: center; 
 }
 
 .totals-box {
