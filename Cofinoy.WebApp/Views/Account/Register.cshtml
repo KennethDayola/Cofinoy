@@ -1,5 +1,4 @@
-﻿@using Cofinoy.Services.ServiceModels
-@model UserViewModel
+﻿@model RegisterViewModel
 @{
     ViewBag.LoginView = true;
     ViewData["Title"] = "Register Page";
@@ -34,16 +33,16 @@
                             </div>
                             <div class="col-12 mb-2 mt-0">
                                 <label for="password" class="form-label fs-7">Password</label>
-                                <input type="password" class="form-control" id="password" asp-for="Password" placeholder="Enter your password" required minlength="6" />
+                                <input type="password" class="form-control" id="password" asp-for="Password" placeholder="Enter your password" required minlength="8" />
                                 <span asp-validation-for="Password" class="text-danger fs-8 mt-1"></span>
                             </div>
                             <div class="col-12 mb-4 mt-0">
                                 <label for="confirmPassword" class="form-label fs-7">Confirm password</label>
-                                <input type="password" class="form-control" id="confirmPassword" asp-for="ConfirmPassword" placeholder="Re-enter your password" required minlength="6" />
+                                <input type="password" class="form-control" id="confirmPassword" asp-for="ConfirmPassword" placeholder="Re-enter your password" required />
                                 <span asp-validation-for="ConfirmPassword" class="text-danger fs-8 mt-1"></span>
                             </div>
                             <div class="col-12">
-                                <button type="submit" class="btn btn-primary w-100 rounded-pill ">Register</button>
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill">Register</button>
                             </div>
                         </form>
                         <div class="d-flex mt-2 justify-content-center flex-wrap">
@@ -70,24 +69,4 @@
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
 
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const form = document.querySelector('form');
-            
-            form.addEventListener('submit', function (event) {
-                if (!$(form).valid()) { 
-                    event.preventDefault();
-                    event.stopPropagation();
-                    showToast("Please fill all required fields correctly.", "danger", "Validation Error");
-                }
-            });
-
-            const toastMessage = '@(TempData["ToastMessage"] ?? ViewData["ToastMessage"])';
-            const toastType = '@(TempData["ToastType"] ?? ViewData["ToastType"] ?? "info")';
-
-            if (toastMessage) {
-                showToast(toastMessage, toastType, "Cofinoy");
-            }
-        });
-    </script>
 }

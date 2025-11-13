@@ -32,7 +32,7 @@ namespace Cofinoy.Services.Services
             return user != null ? LoginResult.Success : LoginResult.Failed;
         }
 
-        public void AddUser(UserViewModel model)
+        public void AddUser(UserServiceModel model)
         {
             var user = new User();
             if (!_repository.UserExists(model.Email))
@@ -57,6 +57,7 @@ namespace Cofinoy.Services.Services
         public void UpdateUser(User user)
         {
             _repository.UpdateUser(user);
+
         }
 
         public bool UserExists(string email)

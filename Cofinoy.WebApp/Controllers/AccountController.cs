@@ -128,7 +128,7 @@ namespace Cofinoy.WebApp.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult Register(UserViewModel model)
+        public IActionResult Register(UserServiceModel model)
         {
             if (!ModelState.IsValid)
             {
