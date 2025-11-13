@@ -25,6 +25,9 @@ namespace Cofinoy.Services.ServiceModels
 
         // Calculated property - this ensures consistency
         public decimal TotalPrice => UnitPrice * Quantity;
+
+      
+
     }
 
     // Class to store customization details
