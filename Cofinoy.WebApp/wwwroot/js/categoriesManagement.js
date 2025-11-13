@@ -5,26 +5,79 @@
     const cancelBtn = document.getElementById('cancelBtn');
     const form = document.getElementById('addCategoryForm');
     const searchInput = document.querySelector('.search-input');
+    const loadingProgress = document.getElementById('loadingProgress');
+
+    // Filter modal elements
+    const filterBtn = document.querySelector('.filter-btn');
+    const filterModal = document.getElementById('filterModal');
+    const closeFilterModalBtn = document.getElementById('closeFilterModal');
+    const statusFilter = document.getElementById('statusFilter');
+    const clearFiltersBtn = document.querySelector('.clear-filters-btn');
+    const applyFiltersBtn = document.querySelector('.apply-filters-btn');
+
+    // Delete modal elements
+    const deleteModal = document.getElementById('deleteConfirmModal');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const deleteCategoryNameSpan = document.getElementById('deleteCategoryName');
 
     let currentEditingRow = null;
     let currentEditingId = null;
+    let allCategories = [];
+    let currentDeletingRow = null;
+    let currentDeletingCategory = null;
+
+    // Show loading progress initially
+    if (loadingProgress) {
+        loadingProgress.style.display = 'flex';
+    }
 
     loadCategories();
 
     function openModal() {
-        modal.style.display = 'flex';
+        modal.classList.add('active');
         document.body.style.overflow = 'hidden';
     }
 
     function closeModalFunc() {
-        modal.style.display = 'none';
+        modal.classList.remove('active');
         document.body.style.overflow = 'auto';
         resetForm();
         resetModalState();
     }
 
+    function openFilterModal() {
+        filterModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFilterModal() {
+        filterModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    function openDeleteModal(row, category) {
+        currentDeletingRow = row;
+        currentDeletingCategory = category;
+        
+        const categoryName = row.querySelector('.category-name').textContent;
+        deleteCategoryNameSpan.textContent = categoryName;
+        
+        deleteModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeleteModal() {
+        deleteModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        currentDeletingRow = null;
+        currentDeletingCategory = null;
+    }
+
     function resetForm() {
         form.reset();
+        document.getElementById('displayOrderHelp').textContent = '';
+        document.getElementById('displayOrderHelp').classList.remove('text-danger');
     }
 
     function resetModalState() {
@@ -34,11 +87,59 @@
         currentEditingId = null;
     }
 
+    // Validate display order for duplicates
+    function validateDisplayOrder(displayOrder, excludeId = null) {
+        const duplicate = allCategories.find(cat => 
+            cat.displayOrder === displayOrder && cat.id !== excludeId
+        );
+        
+        if (duplicate) {
+            return {
+                isValid: false,
+                message: `Display order ${displayOrder} is already used by "${duplicate.name}"`
+            };
+        }
+        
+        return { isValid: true };
+    }
+
+    // Real-time validation for display order
+    document.getElementById('categoryDisplayOrder').addEventListener('input', function() {
+        const displayOrder = parseInt(this.value);
+        const helpText = document.getElementById('displayOrderHelp');
+        
+        if (isNaN(displayOrder) || displayOrder < 0) {
+            helpText.textContent = '';
+            helpText.classList.remove('text-danger');
+            return;
+        }
+        
+        const validation = validateDisplayOrder(displayOrder, currentEditingId);
+        
+        if (!validation.isValid) {
+            helpText.textContent = validation.message;
+            helpText.classList.add('text-danger');
+        } else {
+            helpText.textContent = 'Display order is available';
+            helpText.classList.remove('text-danger');
+        }
+    });
+
     form.addEventListener('submit', async function (e) {
         e.preventDefault();
 
         const submitBtn = document.getElementById('addCategoryBtn');
         const originalBtnContent = submitBtn.innerHTML;
+        
+        const displayOrder = parseInt(document.getElementById('categoryDisplayOrder').value) || 0;
+        
+        // Validate display order
+        const validation = validateDisplayOrder(displayOrder, currentEditingId);
+        if (!validation.isValid) {
+            showToastMessage(validation.message, 'Validation Error');
+            return;
+        }
+
         submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
         submitBtn.disabled = true;
 
@@ -46,7 +147,7 @@
             name: document.getElementById('categoryName').value.trim(),
             description: document.getElementById('categoryDescription').value.trim(),
             status: document.getElementById('categoryStatus').value,
-            displayOrder: parseInt(document.getElementById('categoryDisplayOrder').value) || 0
+            displayOrder: displayOrder
         };
 
         try {
@@ -67,7 +168,7 @@
             if (result.success) {
                 showToastMessage(currentEditingId ? 'Category updated successfully!' : 'Category added successfully!');
                 closeModalFunc();
-                loadCategories();
+                await loadCategories();
             } else {
                 throw new Error(result.error || 'Failed to save category');
             }
@@ -83,6 +184,11 @@
 
     async function loadCategories() {
         try {
+            // Show loading progress
+            if (loadingProgress) {
+                loadingProgress.style.display = 'flex';
+            }
+
             const response = await fetch('/Menu/GetAllCategories', {
                 method: 'GET'
             });
@@ -94,17 +200,34 @@
             const result = await response.json();
 
             if (result.success) {
+                allCategories = result.data || [];
                 const tbody = document.querySelector('.categories-table tbody');
                 tbody.innerHTML = '';
 
-                if (result.data && Array.isArray(result.data)) {
-                    result.data.forEach(category => {
+                if (allCategories.length > 0) {
+                    allCategories.forEach(category => {
                         addCategoryToTable(category);
                     });
+                } else {
+                    // Show empty state
+                    const emptyStateRow = document.createElement('tr');
+                    emptyStateRow.className = 'empty-table-state';
+                    emptyStateRow.innerHTML = `
+                        <td colspan="6">
+                            <div class="empty-table-content">
+                                <div class="empty-table-icon">
+                                    <img src="https://cdn-icons-png.flaticon.com/512/2603/2603910.png" />
+                                </div>
+                                <h3 class="empty-table-message">No categories yet</h3>
+                                <p class="empty-table-submessage">Add your first category to get started</p>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(emptyStateRow);
                 }
 
-                updateEmptyState();
-                updateResultsCount(result.data ? result.data.length : 0);
+                updateResultsCount(allCategories.length);
+                applyFilters(); // Apply any active filters
             } else {
                 console.error('Error loading categories:', result.error);
                 showToastMessage('Error loading categories: ' + result.error, 'Error');
@@ -112,6 +235,11 @@
         } catch (error) {
             console.error('Error loading categories:', error);
             showToastMessage('Error loading categories: ' + error.message, 'Error');
+        } finally {
+            // Hide loading progress
+            if (loadingProgress) {
+                loadingProgress.style.display = 'none';
+            }
         }
     }
 
@@ -127,7 +255,7 @@
                     <span class="category-name">${categoryData.name}</span>
                 </div>
             </td>
-            <td class="category-description">${categoryData.description}</td>
+            <td class="category-description">${categoryData.description || ''}</td>
             <td><span class="items-count">${categoryData.itemsCount || 0} items</span></td>
             <td><span class="status-badge ${categoryData.status.toLowerCase()}">${categoryData.status}</span></td>
             <td class="display-order">
@@ -144,10 +272,10 @@
         `;
 
         tbody.appendChild(newRow);
-        addActionButtonListeners(newRow);
+        addActionButtonListeners(newRow, categoryData);
     }
 
-    function editCategory(row) {
+    function editCategory(row, categoryData) {
         const categoryId = row.getAttribute('data-category-id');
         const categoryName = row.querySelector('.category-name').textContent;
         const categoryDescription = row.querySelector('.category-description').textContent;
@@ -168,107 +296,174 @@
         openModal();
     }
 
-    async function deleteCategory(row) {
-        const categoryId = row.getAttribute('data-category-id');
-        const categoryName = row.querySelector('.category-name').textContent;
+    function deleteCategory(row, categoryData) {
+        openDeleteModal(row, categoryData);
+    }
 
-        if (confirm(`Are you sure you want to delete the "${categoryName}" category? This action cannot be undone.`)) {
-            try {
-                row.style.opacity = '0.5';
-                row.style.pointerEvents = 'none';
+    async function confirmDelete() {
+        if (!currentDeletingRow || !currentDeletingCategory) {
+            closeDeleteModal();
+            return;
+        }
 
-                const response = await fetch(`/Menu/DeleteCategory?id=${categoryId}`, {
-                    method: 'POST'
-                });
+        const categoryId = currentDeletingRow.getAttribute('data-category-id');
+        
+        const originalBtnContent = confirmDeleteBtn.innerHTML;
+        confirmDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+        confirmDeleteBtn.disabled = true;
 
-                const result = await response.json();
+        try {
+            currentDeletingRow.style.opacity = '0.5';
+            currentDeletingRow.style.pointerEvents = 'none';
 
-                if (result.success) {
-                    showToastMessage('Category deleted successfully!');
-                    loadCategories();
-                } else {
-                    throw new Error(result.error || 'Failed to delete category');
-                }
+            const response = await fetch(`/Menu/DeleteCategory?id=${categoryId}`, {
+                method: 'POST'
+            });
 
-            } catch (error) {
-                console.error('Error deleting category:', error);
-                showToastMessage('Error deleting category: ' + error.message, 'Error');
+            const result = await response.json();
 
-                row.style.opacity = '1';
-                row.style.pointerEvents = 'auto';
+            if (result.success) {
+                showToastMessage('Category deleted successfully!');
+                closeDeleteModal();
+                await loadCategories();
+            } else {
+                throw new Error(result.error || 'Failed to delete category');
             }
+
+        } catch (error) {
+            console.error('Error deleting category:', error);
+            showToastMessage('Error deleting category: ' + error.message, 'Error');
+
+            currentDeletingRow.style.opacity = '1';
+            currentDeletingRow.style.pointerEvents = 'auto';
+        } finally {
+            confirmDeleteBtn.innerHTML = originalBtnContent;
+            confirmDeleteBtn.disabled = false;
         }
     }
 
-    function addActionButtonListeners(row) {
+    function addActionButtonListeners(row, categoryData) {
         const editBtn = row.querySelector('.edit-btn');
         const deleteBtn = row.querySelector('.delete-btn');
 
         editBtn.addEventListener('click', function () {
-            editCategory(row);
+            editCategory(row, categoryData);
         });
 
         deleteBtn.addEventListener('click', function () {
-            deleteCategory(row);
+            deleteCategory(row, categoryData);
         });
     }
 
-    function showToastMessage(message, title = 'Cofinoy') {
-        let toastContainer = document.getElementById('toastStackContainer');
+    function clearAllFilters() {
+        if (statusFilter) statusFilter.value = '';
+        searchInput.value = '';
+        applyFilters();
+    }
+
+    function applyFiltersAndClose() {
+        applyFilters();
+        closeFilterModal();
+    }
+
+    function applyFilters() {
+        const searchTerm = searchInput.value.toLowerCase().trim();
+        const statusFilterValue = statusFilter?.value || '';
+
+        const allRows = document.querySelectorAll('.categories-table tbody tr:not(.empty-table-state)');
+        let visibleCount = 0;
+
+        allRows.forEach(row => {
+            const categoryName = row.querySelector('.category-name')?.textContent.toLowerCase() || '';
+            const categoryDescription = row.querySelector('.category-description')?.textContent.toLowerCase() || '';
+            const categoryStatus = row.querySelector('.status-badge')?.textContent || '';
+
+            const matchesSearch = !searchTerm || 
+                categoryName.includes(searchTerm) || 
+                categoryDescription.includes(searchTerm);
+
+            const matchesStatus = !statusFilterValue || categoryStatus === statusFilterValue;
+
+            if (matchesSearch && matchesStatus) {
+                row.style.display = '';
+                visibleCount++;
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        updateResultsCount(visibleCount);
+
+        // Show/hide empty state
+        const tbody = document.querySelector('.categories-table tbody');
+        const existingEmptyState = tbody.querySelector('.empty-table-state');
+        
+        if (visibleCount === 0 && !existingEmptyState) {
+            const emptyStateRow = document.createElement('tr');
+            emptyStateRow.className = 'empty-table-state';
+            emptyStateRow.innerHTML = `
+                <td colspan="6">
+                    <div class="empty-table-content">
+                        <div class="empty-table-icon">
+                            <img src="https://cdn-icons-png.flaticon.com/512/2603/2603910.png" />
+                        </div>
+                        <h3 class="empty-table-message">No categories found</h3>
+                        <p class="empty-table-submessage">Try adjusting your filters</p>
+                    </div>
+                </td>
+            `;
+            tbody.appendChild(emptyStateRow);
+        } else if (visibleCount > 0 && existingEmptyState) {
+            existingEmptyState.remove();
+        }
+    }
+
+    function showToastMessage(message, title = 'Success') {
+        const toastContainer = document.getElementById('toastStackContainer');
+        
         if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.id = 'toastStackContainer';
-            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-            document.body.appendChild(toastContainer);
+            console.error('Toast container not found');
+            console.log(title + ':', message);
+            return;
         }
 
-        const toastElement = document.createElement('div');
-        toastElement.className = 'toast';
-        toastElement.setAttribute('role', 'alert');
-        toastElement.setAttribute('aria-live', 'assertive');
-        toastElement.setAttribute('aria-atomic', 'true');
-
-        const currentTime = new Date().toLocaleTimeString('en-US', {
-            hour12: true,
-            hour: 'numeric',
-            minute: '2-digit'
-        });
-
-        toastElement.innerHTML = `
-        <div class="toast-header">
-            <img src="/images/Cofinoy.png" class="rounded me-2" alt="Logo" width="20" height="20">
-            <strong class="me-auto">${title}</strong>
-            <small>${currentTime}</small>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body">
-            ${message}
-        </div>
-    `;
-
-        toastContainer.appendChild(toastElement);
-
-        // Use the correct Bootstrap Toast initialization
-        try {
-            const toastBootstrap = new bootstrap.Toast(toastElement, {
-                delay: 4000,
-                autohide: true
-            });
-            toastBootstrap.show();
-
-            toastElement.addEventListener('hidden.bs.toast', function () {
-                toastElement.remove();
-            });
-        } catch (error) {
-            console.error('Toast initialization error:', error);
-            // Fallback: manual display
-            toastElement.classList.add('show');
+        const toastId = 'toast-' + Date.now();
+        const toast = document.createElement('div');
+        toast.id = toastId;
+        toast.className = 'toast';
+        
+        const iconClass = title === 'Error' || title === 'Validation Error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+        const toastClass = title === 'Error' || title === 'Validation Error' ? 'toast-error' : 'toast-success';
+        
+        toast.classList.add(toastClass);
+        
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas ${iconClass} toast-icon"></i>
+                <div class="toast-message">
+                    <strong>${title}</strong>
+                    <p>${message}</p>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `;
+        
+        toastContainer.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        
+        setTimeout(() => {
+            toast.classList.remove('show');
             setTimeout(() => {
-                toastElement.classList.remove('show');
-                setTimeout(() => toastElement.remove(), 300);
-            }, 4000);
-        }
+                toast.remove();
+            }, 300);
+        }, 5000);
     }
+
     function updateResultsCount(count) {
         const countElement = document.querySelector('.drinks-count');
         if (count === 0) {
@@ -280,38 +475,18 @@
         }
     }
 
-    function updateEmptyState() {
-        const tbody = document.querySelector('.categories-table tbody');
-        const rows = tbody.querySelectorAll('tr:not(.empty-table-state)');
-        const emptyState = tbody.querySelector('.empty-table-state');
-
-        if (rows.length === 0) {
-            if (!emptyState) {
-                const emptyStateRow = document.createElement('tr');
-                emptyStateRow.className = 'empty-table-state';
-                emptyStateRow.innerHTML = `
-                <td colspan="6">
-                    <div class="empty-table-content">
-                        <div class="empty-table-icon">
-                            <i class="fas fa-folder-open"></i>
-                        </div>
-                        <h3 class="empty-table-message">No categories yet</h3>
-                        <p class="empty-table-submessage">Add your first category to get started</p>
-                    </div>
-                </td>
-            `;
-                tbody.appendChild(emptyStateRow);
-            }
-        } else if (rows.length > 0) {
-            if (emptyState) {
-                emptyState.remove();
-            }
-        }
-    }
-
+    // Event listeners
     addCategoryBtn.addEventListener('click', openModal);
     closeModal.addEventListener('click', closeModalFunc);
     cancelBtn.addEventListener('click', closeModalFunc);
+
+    if (filterBtn) filterBtn.addEventListener('click', openFilterModal);
+    if (closeFilterModalBtn) closeFilterModalBtn.addEventListener('click', closeFilterModal);
+    if (clearFiltersBtn) clearFiltersBtn.addEventListener('click', clearAllFilters);
+    if (applyFiltersBtn) applyFiltersBtn.addEventListener('click', applyFiltersAndClose);
+    
+    if (cancelDeleteBtn) cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+    if (confirmDeleteBtn) confirmDeleteBtn.addEventListener('click', confirmDelete);
 
     modal.addEventListener('click', function (e) {
         if (e.target === modal) {
@@ -319,33 +494,46 @@
         }
     });
 
-    searchInput.addEventListener('input', function () {
-        const searchTerm = this.value.toLowerCase();
-        const allRows = document.querySelectorAll('.categories-table tbody tr:not(.empty-table-state)');
-
-        allRows.forEach(row => {
-            const categoryName = row.querySelector('.category-name')?.textContent.toLowerCase() || '';
-            const categoryDescription = row.querySelector('.category-description')?.textContent.toLowerCase() || '';
-
-            if (categoryName.includes(searchTerm) || categoryDescription.includes(searchTerm)) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
+    if (filterModal) {
+        filterModal.addEventListener('click', function (e) {
+            if (e.target === filterModal) {
+                closeFilterModal();
             }
         });
+    }
 
-        const visibleRows = Array.from(allRows).filter(row => row.style.display !== 'none');
-        updateResultsCount(visibleRows.length);
-    });
+    if (deleteModal) {
+        deleteModal.addEventListener('click', function (e) {
+            if (e.target === deleteModal) {
+                closeDeleteModal();
+            }
+        });
+    }
 
+    searchInput.addEventListener('input', applyFilters);
+
+    // Keyboard shortcuts
     document.addEventListener('keydown', function (e) {
-        if (e.key === 'Escape' && modal.style.display === 'flex') {
-            closeModalFunc();
+        if (e.key === 'Escape') {
+            if (modal.classList.contains('active')) {
+                closeModalFunc();
+            }
+            if (filterModal && filterModal.classList.contains('active')) {
+                closeFilterModal();
+            }
+            if (deleteModal && deleteModal.classList.contains('active')) {
+                closeDeleteModal();
+            }
         }
 
         if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
             e.preventDefault();
             openModal();
+        }
+
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            searchInput.focus();
         }
     });
 });

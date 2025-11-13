@@ -52,6 +52,12 @@
 
 function updateNoDrinksMessage() {
     const drinksGrid = document.querySelector('.drinks-grid');
+    const loadingProgress = document.getElementById('loadingProgress');
+
+    // Hide loading progress
+    if (loadingProgress) {
+        loadingProgress.style.display = 'none';
+    }
 
     const existingMessage = drinksGrid.querySelector('.no-drinks-message');
     if (existingMessage) {
@@ -63,14 +69,11 @@ function updateNoDrinksMessage() {
     noDrinksMessage.innerHTML = `
         <div class="no-drinks-icon"></div>
         <div class="no-drinks-text">No drinks yet</div>
-        <div class="no-drinks-subtext">Add your first drink to get started</div>
+        <div class="no-drinks-subtext">Loading drinks...</div>
     `;
 
     if (drinksGrid.children.length === 0) {
         drinksGrid.appendChild(noDrinksMessage);
-        drinksGrid.style.display = 'flex';
-        drinksGrid.style.justifyContent = 'center';
-        drinksGrid.style.alignItems = 'center';
         noDrinksMessage.style.display = 'block';
     }
 }
@@ -229,21 +232,43 @@ document.addEventListener('DOMContentLoaded', function () {
     let allDrinks = [];
     let allCategories = [];
     let allCustomizations = [];
+    let currentDeletingCard = null;
+    let currentDeletingDrink = null;
 
     initializeApp();
 
     async function initializeApp() {
         try {
-            updateNoDrinksMessage();
+            // Show loading progress and update drinks count text
+            const loadingProgress = document.getElementById('loadingProgress');
+            const drinksCountElement = document.querySelector('.drinks-count');
+            
+            if (loadingProgress) {
+                loadingProgress.style.display = 'flex';
+            }
+            
+            // Set loading text
+            if (drinksCountElement) {
+                drinksCountElement.textContent = 'Loading drinks...';
+            }
 
-            await Promise.all([
-                loadDrinksFromAPI(),
-                loadCategoriesFromAPI(),
-                loadCustomizationsFromAPI()
-            ]);
+            // Load categories and customizations FIRST, then drinks
+            await loadCategoriesFromAPI();
+            await loadCustomizationsFromAPI();
+            
+            console.log('Categories loaded:', allCategories.length, allCategories);
+            console.log('Customizations loaded:', allCustomizations.length, allCustomizations);
+            
+            // Now load drinks after categories are ready
+            await loadDrinksFromAPI();
 
             populateFilterCategories();
             setupEventListeners();
+
+            // Hide loading progress after everything is loaded
+            if (loadingProgress) {
+                loadingProgress.style.display = 'none';
+            }
 
             setInterval(async () => {
                 await loadDrinksFromAPI();
@@ -251,6 +276,18 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Error initializing app:', error);
             showToastMessage('Error initializing application: ' + error.message, 'Error');
+            
+            // Hide loading progress on error and reset text
+            const loadingProgress = document.getElementById('loadingProgress');
+            const drinksCountElement = document.querySelector('.drinks-count');
+            
+            if (loadingProgress) {
+                loadingProgress.style.display = 'none';
+            }
+            
+            if (drinksCountElement) {
+                drinksCountElement.textContent = '0 drinks in your menu.';
+            }
         }
     }
 
@@ -286,6 +323,22 @@ document.addEventListener('DOMContentLoaded', function () {
         form.addEventListener('submit', handleFormSubmit);
 
         document.addEventListener('keydown', handleKeyboardShortcuts);
+
+        // Delete modal event listeners with null checks
+        const deleteModal = document.getElementById('deleteConfirmModal');
+        const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+
+        if (deleteModal && cancelDeleteBtn && confirmDeleteBtn) {
+            cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+            confirmDeleteBtn.addEventListener('click', confirmDelete);
+
+            deleteModal.addEventListener('click', function (e) {
+                if (e.target === deleteModal) {
+                    closeDeleteModal();
+                }
+            });
+        }
 
         window.addEventListener('beforeunload', function () {
             if (drinksListener) {
@@ -514,11 +567,9 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             const drinkName = drink.name.toLowerCase();
-            const drinkDescription = (drink.description || '').toLowerCase();
 
-            const matchesSearch = !searchTerm ||
-                drinkName.includes(searchTerm) ||
-                drinkDescription.includes(searchTerm);
+            // Only search drink names, not categories or descriptions
+            const matchesSearch = !searchTerm || drinkName.includes(searchTerm);
 
             const matchesStatus = !statusFilter || drink.status === statusFilter;
 
@@ -534,10 +585,22 @@ document.addEventListener('DOMContentLoaded', function () {
 
         updateDrinksCount(visibleCount);
 
+        const drinksGrid = document.querySelector('.drinks-grid');
+        const existingMessage = drinksGrid.querySelector('.no-drinks-message');
+        
         if (visibleCount === 0) {
-            updateNoDrinksMessage();
+            if (!existingMessage) {
+                const noDrinksMessage = document.createElement('div');
+                noDrinksMessage.className = 'no-drinks-message';
+                noDrinksMessage.innerHTML = `
+                    <div class="no-drinks-icon"></div>
+                    <div class="no-drinks-text">No drinks found</div>
+                    <div class="no-drinks-subtext">Try adjusting your filters</div>
+                `;
+                noDrinksMessage.style.display = 'block';
+                drinksGrid.appendChild(noDrinksMessage);
+            }
         } else {
-            const existingMessage = document.querySelector('.no-drinks-message');
             if (existingMessage) {
                 existingMessage.remove();
             }
@@ -677,6 +740,12 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Error loading drinks:', error);
             showToastMessage('Error loading drinks: ' + error.message, 'Error');
             displayDrinks([]);
+        } finally {
+            // Hide loading progress and update drinks count when drinks are loaded
+            const loadingProgress = document.getElementById('loadingProgress');
+            if (loadingProgress) {
+                loadingProgress.style.display = 'none';
+            }
         }
     }
 
@@ -723,16 +792,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function displayDrinks(drinks) {
         const drinksGrid = document.querySelector('.drinks-grid');
+        const loadingProgress = document.getElementById('loadingProgress');
+
+        // Hide loading progress
+        if (loadingProgress) {
+            loadingProgress.style.display = 'none';
+        }
 
         drinksGrid.innerHTML = '';
 
         if (drinks.length === 0) {
             updateNoDrinksMessage();
         } else {
-            drinksGrid.style.display = 'grid';
-            drinksGrid.style.justifyContent = '';
-            drinksGrid.style.alignItems = '';
-
             drinks.forEach(drink => {
                 addDrinkToGrid(drink, drink.id);
             });
@@ -765,24 +836,43 @@ document.addEventListener('DOMContentLoaded', function () {
         drinkCard.className = 'drink-card';
         drinkCard.setAttribute('data-firebase-id', firebaseId);
 
-        const categoryNames = drinkData.categories.map(catId => {
-            const category = allCategories.find(c => c.id === catId);
-            return category ? category.name : catId;
-        }).join(', ');
+        // Map category IDs to names with better error handling
+        let categoryNames = 'No categories';
+        if (drinkData.categories && drinkData.categories.length > 0) {
+            const names = drinkData.categories.map(catId => {
+                const category = allCategories.find(c => c.id === catId);
+                if (category) {
+                    return category.name;
+                } else {
+                    console.warn('Category not found for ID:', catId);
+                    return null;
+                }
+            }).filter(name => name !== null);
+            
+            if (names.length > 0) {
+                categoryNames = names.join(', ');
+            }
+        }
 
         const imageUrl = drinkData.imageUrl || '/images/placeholder-drink.png';
+        
+        // Determine status badge class and text
+        const statusClass = drinkData.status === 'Available' ? 'status-available' : 'status-unavailable';
+        const statusText = drinkData.status || 'Available';
 
         drinkCard.innerHTML = `
             <div class="drink-image">
                 <img src="${imageUrl}" alt="${drinkData.name}" onerror="this.src='/images/placeholder-drink.png'">
             </div>
             <div class="drink-info">
-                <h3 class="drink-name">${drinkData.name}</h3>
+                <div class="drink-header">
+                    <h3 class="drink-name">${drinkData.name}</h3>
+                    <span class="status-badge ${statusClass}">${statusText}</span>
+                </div>
                
                 <div class="drink-details">
-                     <span class="drink-description">${categoryNames || 'No categories'}</p>
-                 ${drinkData.stock ? `<span class="drink-stock">Stock: ${drinkData.stock}</span>` : ''}
-                   
+                    <span class="drink-description">${categoryNames}</span>
+                    ${drinkData.stock ? `<span class="drink-stock">Stock: ${drinkData.stock}</span>` : ''}
                 </div>
                 <div class="drink-footer">
                     <span class="drink-price">₱ ${drinkData.price.toFixed(2)}</span>
@@ -842,38 +932,96 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     async function deleteDrink(card) {
-        const drinkId = card.getAttribute('data-firebase-id'); // Keep the attribute name for now
+        const drinkId = card.getAttribute('data-firebase-id');
         const drink = allDrinks.find(d => d.id === drinkId);
         const drinkName = card.querySelector('.drink-name').textContent;
 
-        if (confirm(`Are you sure you want to delete "${drinkName}"? This action cannot be undone.`)) {
-            try {
-                card.style.opacity = '0.5';
-                card.style.pointerEvents = 'none';
+        // Store current deleting context
+        currentDeletingCard = card;
+        currentDeletingDrink = drink;
 
-                // Delete from database
-                const result = await DrinkAPIService.deleteDrink(drinkId);
+        // Show delete confirmation modal
+        const deleteModal = document.getElementById('deleteConfirmModal');
+        const deleteDrinkNameSpan = document.getElementById('deleteDrinkName');
+        
+        if (!deleteModal || !deleteDrinkNameSpan) {
+            console.error('Delete modal elements not found');
+            // Fallback to confirm dialog if modal not found
+            if (confirm(`Are you sure you want to delete "${drinkName}"? This action cannot be undone.`)) {
+                await performDelete(card, drink, drinkId);
+            }
+            return;
+        }
+        
+        deleteDrinkNameSpan.textContent = drinkName;
+        deleteModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
 
-                if (result.success) {
-                    // Delete image from Firebase Storage
-                    if (drink?.imagePath) {
-                        await FirebaseStorageService.deleteImage(drink.imagePath);
-                    }
+    function closeDeleteModal() {
+        const deleteModal = document.getElementById('deleteConfirmModal');
+        if (deleteModal) {
+            deleteModal.classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+        currentDeletingCard = null;
+        currentDeletingDrink = null;
+    }
 
-                    showToastMessage('Drink deleted successfully!');
-                    await loadDrinksFromAPI(); // Refresh the list
-                } else {
-                    throw new Error(result.error || 'Failed to delete drink');
+    async function performDelete(card, drink, drinkId) {
+        try {
+            card.style.opacity = '0.5';
+            card.style.pointerEvents = 'none';
+
+            const result = await DrinkAPIService.deleteDrink(drinkId);
+
+            if (result.success) {
+                if (drink?.imagePath) {
+                    await FirebaseStorageService.deleteImage(drink.imagePath);
                 }
 
-            } catch (error) {
-                console.error('Error deleting drink:', error);
-                showToastMessage('Error deleting drink: ' + error.message, 'Error');
-                card.style.opacity = '1';
-                card.style.pointerEvents = 'auto';
+                showToastMessage('Drink deleted successfully!');
+                await loadDrinksFromAPI();
+            } else {
+                throw new Error(result.error || 'Failed to delete drink');
+            }
+        } catch (error) {
+            console.error('Error deleting drink:', error);
+            showToastMessage('Error deleting drink: ' + error.message, 'Error');
+            card.style.opacity = '1';
+            card.style.pointerEvents = 'auto';
+        }
+    }
+
+    async function confirmDelete() {
+        if (!currentDeletingCard || !currentDeletingDrink) {
+            closeDeleteModal();
+            return;
+        }
+
+        const card = currentDeletingCard;
+        const drink = currentDeletingDrink;
+        const drinkId = card.getAttribute('data-firebase-id');
+
+        const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+        if (confirmDeleteBtn) {
+            const originalBtnContent = confirmDeleteBtn.innerHTML;
+            confirmDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+            confirmDeleteBtn.disabled = true;
+        }
+
+        try {
+            await performDelete(card, drink, drinkId);
+            closeDeleteModal();
+        } catch (error) {
+            console.error('Error in confirmDelete:', error);
+            if (confirmDeleteBtn) {
+                confirmDeleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+                confirmDeleteBtn.disabled = false;
             }
         }
     }
+
     function addActionButtonListeners(card, drinkData) {
         const editBtn = card.querySelector('.edit-btn');
         const deleteBtn = card.querySelector('.delete-btn');
@@ -889,99 +1037,86 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    function updateDrinksCount(count) {
+        const drinksCountElement = document.querySelector('.drinks-count');
+        if (drinksCountElement) {
+            drinksCountElement.textContent = `${count} ${count === 1 ? 'drink' : 'drinks'} in your menu.`;
+        }
+    }
+
     function handleKeyboardShortcuts(e) {
+        // Escape key closes modals
         if (e.key === 'Escape') {
             if (modal.classList.contains('active')) {
                 closeModalFunc();
-            } else if (filterModal.classList.contains('active')) {
+            }
+            if (filterModal.classList.contains('active')) {
                 closeFilterModal();
+            }
+            const deleteModal = document.getElementById('deleteConfirmModal');
+            if (deleteModal && deleteModal.classList.contains('active')) {
+                closeDeleteModal();
             }
         }
 
+        // Ctrl/Cmd + K to focus search
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+            e.preventDefault();
+            searchInput.focus();
+        }
+
+        // Ctrl/Cmd + N to open add drink modal
         if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
             e.preventDefault();
             openModal();
         }
-
-        if ((e.ctrlKey || e.metaKey) && e.key === 'f') {
-            e.preventDefault();
-            searchInput.focus();
-        }
     }
 
-    function showToastMessage(message, title = 'Cofinoy') {
-        let toastContainer = document.getElementById('toastStackContainer');
+    function showToastMessage(message, title = 'Success') {
+        const toastContainer = document.getElementById('toastContainer');
+        
         if (!toastContainer) {
-            toastContainer = document.createElement('div');
-            toastContainer.id = 'toastStackContainer';
-            toastContainer.className = 'toast-container position-fixed bottom-0 end-0 p-3';
-            toastContainer.style.zIndex = '9999';
-            document.body.appendChild(toastContainer);
+            console.error('Toast container not found');
+            console.log(title + ':', message);
+            return;
         }
 
-        const toastElement = document.createElement('div');
-        toastElement.className = 'toast';
-        toastElement.setAttribute('role', 'alert');
-        toastElement.setAttribute('aria-live', 'assertive');
-        toastElement.setAttribute('aria-atomic', 'true');
-
-        const currentTime = new Date().toLocaleTimeString('en-US', {
-            hour12: true,
-            hour: 'numeric',
-            minute: '2-digit'
-        });
-
-        const isError = title === 'Error' || title.toLowerCase().includes('error');
-        const headerClass = isError ? 'bg-danger text-white' : '';
-
-        toastElement.innerHTML = `
-            <div class="toast-header ${headerClass}">
-                <img src="/images/Cofinoy.png" class="rounded me-2" alt="Logo" width="20" height="20">
-                <strong class="me-auto">${title}</strong>
-                <small>${currentTime}</small>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">
-                ${message}
+        const toastId = 'toast-' + Date.now();
+        const toast = document.createElement('div');
+        toast.id = toastId;
+        toast.className = 'toast';
+        
+        const iconClass = title === 'Error' ? 'fa-exclamation-circle' : 'fa-check-circle';
+        const toastClass = title === 'Error' ? 'toast-error' : 'toast-success';
+        
+        toast.classList.add(toastClass);
+        
+        toast.innerHTML = `
+            <div class="toast-content">
+                <i class="fas ${iconClass} toast-icon"></i>
+                <div class="toast-message">
+                    <strong>${title}</strong>
+                    <p>${message}</p>
+                </div>
+                <button class="toast-close" onclick="this.parentElement.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
         `;
-
-        toastContainer.appendChild(toastElement);
-
-        if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
-            const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement);
-            toastBootstrap.show();
-
-            toastElement.addEventListener('hidden.bs.toast', function () {
-                toastElement.remove();
-            });
-        } else {
-            toastElement.style.display = 'block';
+        
+        toastContainer.appendChild(toast);
+        
+        // Trigger animation
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        
+        // Auto remove after 5 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
             setTimeout(() => {
-                toastElement.style.opacity = '0';
-                setTimeout(() => toastElement.remove(), 300);
-            }, 5000);
-        }
+                toast.remove();
+            }, 300);
+        }, 5000);
     }
-
-    function updateDrinksCount(count) {
-        const countElement = document.querySelector('.drinks-count');
-        if (!countElement) return;
-
-        if (count === 0) {
-            countElement.textContent = 'No drinks yet';
-        } else if (count === 1) {
-            countElement.textContent = `${count} drink in your menu.`;
-        } else {
-            countElement.textContent = `${count} drinks in your menu.`;
-        }
-    }
-
-    window.DrinkManagement = {
-        openModal: openModal,
-        closeModal: closeModalFunc,
-        applyFilters: applyFilters,
-        clearFilters: clearAllFilters,
-        refreshData: loadDrinksFromAPI
-    };
 });
