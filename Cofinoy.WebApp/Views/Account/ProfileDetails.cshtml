@@ -1,4 +1,4 @@
-﻿@model Cofinoy.Data.Models.User
+﻿@model ProfileViewModel
 @{
     ViewData["Title"] = "Profile Details";
 }
@@ -22,30 +22,30 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">First name</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.FirstName) ? Model.FirstName : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.FirstName) ? Model.User.FirstName : "N/A")</div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Last name</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.LastName) ? Model.LastName : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.LastName) ? Model.User.LastName : "N/A")</div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Nickname</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.Nickname) ? Model.Nickname : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.Nickname) ? Model.User.Nickname : "N/A")</div>
                 </div>
 
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Date of birth</small>
                     <div class="fw-semibold">
-                        @(Model.BirthDate != default(DateOnly) ? Model.BirthDate.ToString("MM - dd - yyyy") : "N/A")
+                        @(Model.User.BirthDate != default(DateOnly) ? Model.User.BirthDate.ToString("MM - dd - yyyy") : "N/A")
                     </div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Email address</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.Email) ? Model.Email : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.Email) ? Model.User.Email : "N/A")</div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Phone number</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.PhoneNumber) ? Model.PhoneNumber : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.PhoneNumber) ? Model.User.PhoneNumber : "N/A")</div>
                 </div>
             </div>
         </div>
@@ -68,15 +68,15 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Country</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.Country) ? Model.Country : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.Country) ? Model.User.Country : "N/A")</div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">City</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.City) ? Model.City : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.City) ? Model.User.City : "N/A")</div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Postal code</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.postalCode) ? Model.postalCode : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.postalCode) ? Model.User.postalCode : "N/A")</div>
                 </div>
             </div>
         </div>
@@ -102,27 +102,33 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">First name</label>
-                            <input type="text" name="FirstName" class="form-control" value="@Model.FirstName">
+                            <input type="text" name="FirstName" class="form-control" value="@Model.User.FirstName" placeholder="Enter your first name">
+                            <span asp-validation-for="PersonalInfo.FirstName" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Last name</label>
-                            <input type="text" name="LastName" class="form-control" value="@Model.LastName">
+                            <input type="text" name="LastName" class="form-control" value="@Model.User.LastName" placeholder="Enter your last name">
+                            <span asp-validation-for="PersonalInfo.LastName" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Nickname</label>
-                            <input type="text" name="Nickname" class="form-control" value="@Model.Nickname">
+                            <input type="text" name="Nickname" class="form-control" value="@Model.User.Nickname" placeholder="Enter your nickname">
+                            <span asp-validation-for="PersonalInfo.Nickname" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Birthdate</label>
-                            <input type="date" name="BirthDate" class="form-control" value="@(Model.BirthDate != default(DateOnly) ? Model.BirthDate.ToString("yyyy-MM-dd") : "")">
+                            <input type="date" name="BirthDate" class="form-control" value="@(Model.User.BirthDate != default(DateOnly) ? Model.User.BirthDate.ToString("yyyy-MM-dd") : "")" placeholder="Select your birthdate">
+                            <span asp-validation-for="PersonalInfo.BirthDate" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Email</label>
-                            <input type="email" name="Email" class="form-control" value="@Model.Email">
+                            <input type="email" name="Email" class="form-control" value="@Model.User.Email" placeholder="Enter your email address">
+                            <span asp-validation-for="PersonalInfo.Email" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Phone</label>
-                            <input type="text" name="PhoneNumber" class="form-control" value="@Model.PhoneNumber">
+                            <input type="text" name="PhoneNumber" class="form-control" value="@Model.User.PhoneNumber" placeholder="Enter your phone number">
+                            <span asp-validation-for="PersonalInfo.PhoneNumber" class="text-danger fs-8 mt-1"></span>
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
@@ -130,6 +136,7 @@
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
+
                 <!-- Add change password link below the form -->
                 <div class="mt-3 pt-3 border-top">
                     <button type="button" class="btn btn-link text-decoration-none" style="color: #5a4a3a;" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
@@ -154,15 +161,18 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Country</label>
-                            <input type="text" name="Country" class="form-control" value="@Model.Country">
+                            <input type="text" name="Country" class="form-control" value="@Model.User.Country" placeholder="Enter your country">
+                            <span asp-validation-for="Address.Country" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">City</label>
-                            <input type="text" name="City" class="form-control" value="@Model.City">
+                            <input type="text" name="City" class="form-control" value="@Model.User.City" placeholder="Enter your city">
+                            <span asp-validation-for="Address.City" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Postal Code</label>
-                            <input type="text" name="postalCode" class="form-control" value="@Model.postalCode">
+                            <input type="text" name="postalCode" class="form-control" value="@Model.User.postalCode" placeholder="Enter your postal code">
+                            <span asp-validation-for="Address.PostalCode" class="text-danger fs-8 mt-1"></span>
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
@@ -184,23 +194,21 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="changePasswordForm">
+                <form id="changePasswordForm" novalidate>
                     <div class="mb-3">
                         <label class="form-label">Current Password <span class="text-danger">*</span></label>
-                        <input type="password" id="currentPassword" name="CurrentPassword" class="form-control" required>
-                        <small class="text-danger d-none" id="currentPasswordError">The current password is incorrect.</small>
+                        <input type="password" id="currentPassword" asp-for="ChangePassword.CurrentPassword" class="form-control" required placeholder="Enter current password">
+                        <span asp-validation-for="ChangePassword.CurrentPassword" class="text-danger fs-8 mt-1"></span>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">New Password <span class="text-danger">*</span></label>
-                        <input type="password" id="newPassword" name="NewPassword" class="form-control" required>
-                      
-                        <small class="text-danger d-none" id="passwordLengthError">Password must be at least 6 characters long.</small>
-                        <small class="text-danger d-none" id="newPasswordError">The new password cannot be the same as the current password.</small>
+                        <input type="password" id="newPassword" asp-for="ChangePassword.NewPassword" class="form-control" required minlength="8" placeholder="Enter new password (min 8 characters)">
+                        <span asp-validation-for="ChangePassword.NewPassword" class="text-danger fs-8 mt-1"></span>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                        <input type="password" id="confirmPassword" name="ConfirmPassword" class="form-control" required>
-                        <small class="text-danger d-none" id="confirmPasswordError">New password and confirm password do not match.</small>
+                        <input type="password" id="confirmPassword" asp-for="ChangePassword.ConfirmPassword" class="form-control" required minlength="8" placeholder="Re-enter new password">
+                        <span asp-validation-for="ChangePassword.ConfirmPassword" class="text-danger fs-8 mt-1"></span>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -211,6 +219,7 @@
         </div>
     </div>
 </div>
+
 
 <div id="logoutConfirmModal" class="modal-overlay logout-modal">
     <div class="modal-container logout-modal-container">

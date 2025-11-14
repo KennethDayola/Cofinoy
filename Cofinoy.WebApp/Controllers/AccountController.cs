@@ -308,15 +308,31 @@ namespace Cofinoy.WebApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            return View(user);
+            var profileDetails = new ProfileViewModel
+            {
+                User = user,
+                ChangePassword = new ChangePasswordViewModel()
+            };
+
+
+            return View(profileDetails);
         }
 
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> UpdatePersonalInfo([FromBody] User model)
+        public async Task<IActionResult> UpdatePersonalInfo([FromBody] PersonalInfoViewModel model)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                    return Json(new { success = false, errors });
+                }
+
                 var currentEmail = User.FindFirstValue(ClaimTypes.Email);
                 var user = _userService.GetUserByEmail(currentEmail);
 
@@ -327,31 +343,25 @@ namespace Cofinoy.WebApp.Controllers
                 if (!string.IsNullOrEmpty(model.Email) && model.Email != user.Email)
                 {
                     if (_userService.UserExists(model.Email))
-                        return Json(new { success = false, message = "Email is already in use." });
+                        return Json(new { success = false, errors = new { Email = new[] { "Email is already in use." } } });
 
                     user.Email = model.Email;
                 }
 
                 // Update other personal info
-                if (!string.IsNullOrEmpty(model.FirstName)) user.FirstName = model.FirstName;
-                if (!string.IsNullOrEmpty(model.LastName)) user.LastName = model.LastName;
-                if (!string.IsNullOrEmpty(model.Nickname)) user.Nickname = model.Nickname;
-                if (model.BirthDate != default(DateOnly)) user.BirthDate = model.BirthDate;
-                if (!string.IsNullOrEmpty(model.PhoneNumber)) user.PhoneNumber = model.PhoneNumber;
+                user.FirstName = model.FirstName;
+                user.LastName = model.LastName;
+                user.Nickname = model.Nickname;
+                user.BirthDate = DateOnly.FromDateTime(model.BirthDate);
+                user.PhoneNumber = model.PhoneNumber;
 
-                // Save updates
                 _userService.UpdateUser(user);
 
                 // Refresh session and claims if email changed
                 if (model.Email != currentEmail)
                 {
-                    // Sign out the old claims
                     await _signInManager.SignOutAsync();
-
-                    // Sign in with updated claims
                     await _signInManager.SignInAsync(user);
-
-                    // Update session if you store email there
                     _session.SetString("UserName", user.Nickname);
                 }
 
@@ -359,25 +369,35 @@ namespace Cofinoy.WebApp.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error updating personal info." });
+                _logger.LogError(ex, "Error updating personal info");
+                return Json(new { success = false, errors = new { General = new[] { "An error occurred while updating personal info." } } });
             }
         }
 
         [Authorize]
         [HttpPost]
-        public IActionResult UpdateAddress([FromBody] User model)
+        public IActionResult UpdateAddress([FromBody] AddressViewModel model)
         {
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                    return Json(new { success = false, errors });
+                }
+
                 var currentEmail = User.FindFirstValue(ClaimTypes.Email);
                 var user = _userService.GetUserByEmail(currentEmail);
 
                 if (user == null)
                     return Json(new { success = false, message = "User not found." });
 
-                if (!string.IsNullOrEmpty(model.Country)) user.Country = model.Country;
-                if (!string.IsNullOrEmpty(model.City)) user.City = model.City;
-                if (!string.IsNullOrEmpty(model.postalCode)) user.postalCode = model.postalCode;
+                user.Country = model.Country;
+                user.City = model.City;
+                user.postalCode = model.PostalCode;
 
                 _userService.UpdateUser(user);
 
@@ -385,9 +405,11 @@ namespace Cofinoy.WebApp.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error updating address." });
+                _logger.LogError(ex, "Error updating address");
+                return Json(new { success = false, errors = new { General = new[] { "An error occurred while updating address." } } });
             }
         }
+
 
 
 
@@ -397,39 +419,56 @@ namespace Cofinoy.WebApp.Controllers
         {
             try
             {
-                // Validate ModelState first (checks data annotations)
                 if (!ModelState.IsValid)
                 {
-                    var errors = ModelState.Values
-                        .SelectMany(v => v.Errors)
-                        .Select(e => e.ErrorMessage)
-                        .ToList();
-                    return Json(new { success = false, message = string.Join(" ", errors) });
+                    var errors = ModelState.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    );
+                    return Json(new { success = false, errors });
                 }
 
                 var email = User.FindFirstValue(ClaimTypes.Email);
-                if (string.IsNullOrEmpty(email))
-                    return Json(new { success = false, message = "User not authenticated." });
-
                 var user = _userService.GetUserByEmail(email);
+
                 if (user == null)
-                    return Json(new { success = false, message = "User not found." });
-
-                // Use the PasswordValidationService for comprehensive validation
-                var validationService = new PasswordValidationService();
-                var validationResult = validationService.ValidatePasswordChange(
-                    model.CurrentPassword,
-                    model.NewPassword,
-                    model.ConfirmPassword,
-                    user.Password
-                );
-
-                if (!validationResult.IsValid)
                 {
+                    ModelState.AddModelError(nameof(model.CurrentPassword), "User not found.");
                     return Json(new
                     {
                         success = false,
-                        message = string.Join(" ", validationResult.Errors)
+                        errors = ModelState.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    )
+                    });
+                }
+
+                // Check if current password is correct
+                if (!PasswordManager.VerifyPassword(model.CurrentPassword, user.Password))
+                {
+                    ModelState.AddModelError(nameof(model.CurrentPassword), "Current password is incorrect.");
+                    return Json(new
+                    {
+                        success = false,
+                        errors = ModelState.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    )
+                    });
+                }
+
+                // Check if new password matches current password (extra safety server-side)
+                if (model.CurrentPassword == model.NewPassword)
+                {
+                    ModelState.AddModelError(nameof(model.NewPassword), "New password cannot be the same as the current password.");
+                    return Json(new
+                    {
+                        success = false,
+                        errors = ModelState.ToDictionary(
+                        kvp => kvp.Key,
+                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
+                    )
                     });
                 }
 
@@ -442,9 +481,11 @@ namespace Cofinoy.WebApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error changing password");
-                return Json(new { success = false, message = "An error occurred while changing password." });
+                return Json(new { success = false, errors = new { General = new[] { "An error occurred while changing password." } } });
             }
         }
+
+
 
 
 

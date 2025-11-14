@@ -13,7 +13,8 @@ namespace Cofinoy.WebApp.Models
 
         [Required(ErrorMessage = "This field is required.")]
         [DataType(DataType.Password)]
-        [Compare("Password", ErrorMessage = "Passwords do not match")]
+        [Compare("NewPassword", ErrorMessage = "Passwords do not match")]
         public string ConfirmPassword { get; set; }
     }
 }
+

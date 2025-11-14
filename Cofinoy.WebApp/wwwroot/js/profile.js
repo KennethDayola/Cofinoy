@@ -1,7 +1,10 @@
 ﻿$(document).ready(function () {
-    // --- Personal Info Form ---
+
     $('#personalForm').on('submit', function (e) {
         e.preventDefault();
+
+        $('#personalForm .text-danger').text('');
+
         var model = {
             FirstName: $('#personalForm input[name="FirstName"]').val(),
             LastName: $('#personalForm input[name="LastName"]').val(),
@@ -10,6 +13,7 @@
             PhoneNumber: $('#personalForm input[name="PhoneNumber"]').val(),
             Email: $('#personalForm input[name="Email"]').val()
         };
+
         $.ajax({
             url: '/Account/UpdatePersonalInfo',
             type: 'POST',
@@ -19,8 +23,16 @@
                 if (res.success) {
                     showToast(res.message, 'success');
                     $('#editPersonalModal').modal('hide');
-                    // Optionally reload the page to reflect changes
                     setTimeout(() => location.reload(), 1000);
+                } else if (res.errors) {
+                    for (const key in res.errors) {
+                        const input = $(`#personalForm input[name="${key}"]`);
+                        if (input.length) {
+                            input.next('.text-danger').text(res.errors[key][0]);
+                        } else if (key === "General") {
+                            showToast(res.errors[key][0], 'error');
+                        }
+                    }
                 } else {
                     showToast(res.message, 'error');
                 }
@@ -31,14 +43,17 @@
         });
     });
 
-    // --- Address Form ---
     $('#addressForm').on('submit', function (e) {
         e.preventDefault();
+
+        $('#addressForm .text-danger').text('');
+
         var model = {
             Country: $('#addressForm input[name="Country"]').val(),
             City: $('#addressForm input[name="City"]').val(),
-            postalCode: $('#addressForm input[name="postalCode"]').val()
+            PostalCode: $('#addressForm input[name="postalCode"]').val()
         };
+
         $.ajax({
             url: '/Account/UpdateAddress',
             type: 'POST',
@@ -48,8 +63,16 @@
                 if (res.success) {
                     showToast(res.message, 'success');
                     $('#editAddressModal').modal('hide');
-                    // Optionally reload the page to reflect changes
                     setTimeout(() => location.reload(), 1000);
+                } else if (res.errors) {
+                    for (const key in res.errors) {
+                        const input = $(`#addressForm input[name="${key}"]`);
+                        if (input.length) {
+                            input.next('.text-danger').text(res.errors[key][0]);
+                        } else if (key === "General") {
+                            showToast(res.errors[key][0], 'error');
+                        }
+                    }
                 } else {
                     showToast(res.message, 'error');
                 }
@@ -60,74 +83,49 @@
         });
     });
 
-
     $('#changePasswordForm').on('submit', function (e) {
         e.preventDefault();
 
-        const currentPassword = $('#currentPassword').val();
-        const newPassword = $('#newPassword').val();
-        const confirmPassword = $('#confirmPassword').val();
+        const model = {
+            CurrentPassword: $('#currentPassword').val(),
+            NewPassword: $('#newPassword').val(),
+            ConfirmPassword: $('#confirmPassword').val()
+        };
 
+        $('.text-danger').text('');
 
-        const currentPasswordError = $('#currentPasswordError');
-        const newPasswordError = $('#newPasswordError');
-        const confirmPasswordError = $('#confirmPasswordError');
-        const passwordLengthError = $('#passwordLengthError');
-
-
-        hideError(currentPasswordError);
-        hideError(newPasswordError);
-        hideError(confirmPasswordError);
-        hideError(passwordLengthError);
-
-        let hasError = false;
-
-
-        if (newPassword.length < 6) {
-            showError(passwordLengthError);
-            hasError = true;
-        }
-
-
-        if (newPassword === currentPassword && newPassword.length > 0) {
-            showError(newPasswordError);
-            hasError = true;
-        }
-
-
-        if (newPassword !== confirmPassword) {
-            showError(confirmPasswordError);
-            hasError = true;
-        }
-
-
-        if (!hasError) {
-            $.ajax({
-                url: '/Account/ChangePassword',
-                type: 'POST',
-                contentType: 'application/json',
-                data: JSON.stringify({
-                    CurrentPassword: currentPassword,
-                    NewPassword: newPassword,
-                    ConfirmPassword: confirmPassword
-                }),
-                success: function (data) {
-                    if (data.success) {
-                        showToast(data.message, 'success');
-                        $('#changePasswordForm')[0].reset();
-                        $('#changePasswordModal').modal('hide');
-                    } else {
-
-                        showToast(data.message, 'error');
+        $.ajax({
+            url: '/Account/ChangePassword',
+            type: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify(model),
+            success: function (data) {
+                if (data.success) {
+                    $('#changePasswordForm')[0].reset();
+                    $('#changePasswordModal').modal('hide');
+                    showToast(data.message, 'success');
+                } else {
+                    if (data.errors) {
+                        if (data.errors.CurrentPassword) {
+                            $('#currentPassword').next('.text-danger').text(data.errors.CurrentPassword[0]);
+                        }
+                        if (data.errors.NewPassword) {
+                            $('#newPassword').next('.text-danger').text(data.errors.NewPassword[0]);
+                        }
+                        if (data.errors.ConfirmPassword) {
+                            $('#confirmPassword').next('.text-danger').text(data.errors.ConfirmPassword[0]);
+                        }
+                        if (data.errors.General) {
+                            showToast(data.errors.General[0], 'error');
+                        }
                     }
-                },
-                error: function () {
-                    showToast('Something went wrong while changing password.', 'error');
                 }
-            });
-        }
+            },
+            error: function () {
+                showToast('Something went wrong while changing password.', 'error');
+            }
+        });
     });
-
 
     $('#newPassword').on('input', function () {
         const currentPassword = $('#currentPassword').val();
@@ -135,13 +133,11 @@
         const newPasswordError = $('#newPasswordError');
         const passwordLengthError = $('#passwordLengthError');
 
-
         if (newPassword === currentPassword && currentPassword.length > 0) {
             showError(newPasswordError);
         } else {
             hideError(newPasswordError);
         }
-
 
         if (newPassword.length > 0 && newPassword.length < 6) {
             showError(passwordLengthError);
@@ -149,7 +145,6 @@
             hideError(passwordLengthError);
         }
     });
-
 
     $('#confirmPassword').on('input', function () {
         const newPassword = $('#newPassword').val();
@@ -162,8 +157,14 @@
             hideError(confirmPasswordError);
         }
     });
-});
 
+    $('#editPersonalModal, #editAddressModal, #changePasswordModal').on('hidden.bs.modal', function () {
+        const form = $(this).find('form')[0];
+        if (form) form.reset();
+        $(this).find('.text-danger').text('');
+    });
+
+});
 
 function showError(element) {
     if (element.length) {
@@ -177,25 +178,16 @@ function hideError(element) {
     }
 }
 
-
 function showToast(message, type) {
-
     $('.profile-toast').remove();
-
-
     const icon = type === 'success' ? '✓' : '✕';
-
     const toast = $('<div class="profile-toast"></div>')
         .addClass(type)
         .html(`
             <span class="profile-toast-icon">${icon}</span>
             <span class="profile-toast-message">${message}</span>
         `);
-
-
     $('body').append(toast);
-
-
     setTimeout(function () {
         toast.addClass('slide-out');
         setTimeout(function () {

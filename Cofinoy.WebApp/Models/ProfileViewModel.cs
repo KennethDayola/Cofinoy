@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Cofinoy.Data.Models;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,18 +10,10 @@ namespace Cofinoy.WebApp.Models
 {
     public class ProfileViewModel
     {
-        [Required(ErrorMessage = "This field is required.")]
-        public string Nickname { get; set; }
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public DateOnly BirthDate { get; set; }
-        public string PhoneNumber { get; set; }
+        public User User { get; set; }
+        public ChangePasswordViewModel ChangePassword { get; set; } = new();
 
-        [Required(ErrorMessage = "This field is required.")]
-        [EmailAddress(ErrorMessage = "Invalid email address.")]
-        public string Email { get; set; }
-        public string Country { get; set; }
-        public string City { get; set; }
-        public string postalCode { get; set; }
+        public PersonalInfoViewModel PersonalInfo { get; set; } = new();
+        public AddressViewModel Address { get; set; } = new();
     }
 }
