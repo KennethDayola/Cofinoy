@@ -1,23 +1,30 @@
 ﻿// Dashboard JavaScript
-
 // Update last updated timestamp
 function updateTimestamp() {
+    const lastUpdatedElement = document.getElementById('lastUpdated');
+    if (!lastUpdatedElement) {
+        console.warn('lastUpdated element not found');
+        return;
+    }
+
     const now = new Date();
     const timeString = now.toLocaleTimeString('en-US', {
         hour: 'numeric',
         minute: '2-digit',
         hour12: true
     });
-    document.getElementById('lastUpdated').textContent = timeString;
+    lastUpdatedElement.textContent = timeString;
 }
 
 // Refresh dashboard data
 async function refreshDashboard() {
     const refreshBtn = document.querySelector('.btn-refresh');
+    if (!refreshBtn) return;
+
     const icon = refreshBtn.querySelector('i');
 
     // Add spinning animation
-    icon.classList.add('fa-spin');
+    if (icon) icon.classList.add('fa-spin');
     refreshBtn.disabled = true;
 
     try {
@@ -26,7 +33,7 @@ async function refreshDashboard() {
     } catch (error) {
         console.error('Error refreshing dashboard:', error);
     } finally {
-        icon.classList.remove('fa-spin');
+        if (icon) icon.classList.remove('fa-spin');
         refreshBtn.disabled = false;
     }
 }
@@ -36,15 +43,17 @@ function viewOrder(orderId) {
     window.location.href = `/Order/ViewOrder?orderId=${orderId}`;
 }
 
-// Auto-refresh every 30 seconds
-setInterval(() => {
-    updateTimestamp();
-}, 30000);
+// Auto-refresh every 30 seconds - only if element exists
+let updateInterval;
+if (document.getElementById('lastUpdated')) {
+    updateInterval = setInterval(() => {
+        updateTimestamp();
+    }, 30000);
+}
 
 // Animate stat cards on load
 document.addEventListener('DOMContentLoaded', function () {
     const statCards = document.querySelectorAll('.stat-card');
-
     statCards.forEach((card, index) => {
         setTimeout(() => {
             card.style.opacity = '0';
@@ -60,6 +69,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Animate stat values
     animateStatValues();
+
+    // Initial timestamp update
+    updateTimestamp();
 });
 
 // Animate counting up stat values
@@ -68,7 +80,6 @@ function animateStatValues() {
 
     statValues.forEach(statValue => {
         const text = statValue.textContent.trim();
-
         // Check if it's a number (with or without currency symbol)
         const numberMatch = text.match(/[\d,]+\.?\d*/);
         if (!numberMatch) return;
@@ -86,7 +97,6 @@ function animateStatValues() {
 
         const interval = setInterval(() => {
             current += increment;
-
             if (current >= targetValue) {
                 current = targetValue;
                 clearInterval(interval);

@@ -35,10 +35,10 @@ body {
 
 .main-container {
     display: flex;
-    padding-left: 60px;
-    padding-right: 60px;
+    padding-left: 50px;
+    padding-right: 50px;
     padding-top: 30px;
-    gap: 20px;
+    gap: 25px;
 }
 
 .sidebar {
