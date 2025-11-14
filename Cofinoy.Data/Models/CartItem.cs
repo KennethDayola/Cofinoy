@@ -54,7 +54,6 @@ namespace Cofinoy.Data.Models
         [ForeignKey("ProductId")]
         public virtual Product Product { get; set; }
 
-        // New: Collection of customizations for this cart item
         public virtual ICollection<CartItemCustomization> Customizations { get; set; } = new List<CartItemCustomization>();
     }
 }

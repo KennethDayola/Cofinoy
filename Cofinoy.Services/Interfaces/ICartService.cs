@@ -8,8 +8,8 @@ namespace Cofinoy.Services.Interfaces
     {
         Task<List<CartItemServiceModel>> GetCartItemsAsync(string userId); 
         Task AddToCartAsync(string userId, CartItemServiceModel item);     
-        Task UpdateCartItemQuantityAsync(string userId, string cartItemId, int quantity); // Changed from productId to cartItemId
-        Task RemoveFromCartAsync(string userId, string cartItemId); // Changed from productId to cartItemId
+        Task UpdateCartItemQuantityAsync(string userId, string cartItemId, int quantity);
+        Task RemoveFromCartAsync(string userId, string cartItemId);
         Task ClearCartAsync(string userId);
     }
 }

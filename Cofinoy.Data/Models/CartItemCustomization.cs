@@ -23,12 +23,10 @@ namespace Cofinoy.Data.Models
 
         [Required]
         [MaxLength(50)]
-        public string Type { get; set; } // e.g., "single_select", "multi_select", "quantity"
+        public string Type { get; set; } 
 
-        // DisplayOrder from the Customization model - nullable to handle legacy data
         public int? DisplayOrder { get; set; }
 
-        // Price for this customization (could be PricePerUnit * quantity or PriceModifier)
         [Column(TypeName = "decimal(18,2)")]
         public decimal Price { get; set; } = 0;
 

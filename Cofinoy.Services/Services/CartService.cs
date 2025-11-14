@@ -103,7 +103,6 @@ namespace Cofinoy.Services.Services
                 {
                     _logger.LogInformation("Found existing cart with {Count} items", cart.CartItems?.Count ?? 0);
 
-                    // Check for matching item with same customizations
                     var existingItem = FindMatchingCartItem(cart.CartItems, item);
 
                     if (existingItem != null)

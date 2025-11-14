@@ -27,9 +27,9 @@
 .cart-items-header {
     display: grid;
     grid-template-columns: 80px 2fr 1fr 1fr 1fr 60px;
-    gap: 1rem;
-    padding: 1rem 0;
-    padding-left: 85px;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    padding-left: 10px;
     border-bottom: 1px solid #f0f0f0;
     margin-bottom: 1.5rem;
     font-weight: 600;
@@ -49,6 +49,8 @@
 
 .header-price {
     grid-column: 3;
+    padding-left: 40px;
+    text-align: left;
 }
 
 .header-quantity {
@@ -57,6 +59,7 @@
 
 .header-total {
     grid-column: 5;
+    padding-right: 35px;
 }
 
 .header-actions {
@@ -515,7 +518,6 @@
         flex-direction: column;
         gap: 0.5rem;
     }
-    /* Toast Notification */
     .cart-toast {
         position: fixed;
         top: 20px;
