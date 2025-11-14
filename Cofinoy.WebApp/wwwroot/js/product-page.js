@@ -619,7 +619,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
             if (!window.currentProduct) {
                 console.error('No product selected');
-                showNotification('Please select a product first', 'error');
+                // Show error toast
+                if (typeof showToast === 'function') {
+                    showToast('Please select a product first', 'danger', 'Error');
+                } else {
+                    showNotification('Please select a product first', 'error');
+                }
                 return;
             }
 
@@ -673,17 +678,41 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 if (result.success) {
-                    showNotification('Item added to cart!', 'success');
+                    // Show Bootstrap Toast instead of custom notification
+                    if (typeof showToast === 'function') {
+                        const itemName = window.currentProduct.name;
+                        const qty = customizationData.quantity;
+                        const total = `₱${totalPrice.toFixed(2)}`;
+                        showToast(
+                            `${itemName} added to cart!`,
+                            'success',
+                            'Cart Updated'
+                        );
+                    } else {
+                        showNotification('Item added to cart!', 'success');
+                    }
+
                     closeCustomize();
+
                     if (result.cartCount !== undefined) {
                         updateCartCount(result.cartCount);
                     }
                 } else {
-                    showNotification('Failed to add item to cart: ' + result.error, 'error');
+                    // Show error toast
+                    if (typeof showToast === 'function') {
+                        showToast('Failed to add item to cart: ' + result.error, 'danger', 'Error');
+                    } else {
+                        showNotification('Failed to add item to cart: ' + result.error, 'error');
+                    }
                 }
             } catch (error) {
                 console.error('Error adding to cart:', error);
-                showNotification('Error adding item to cart: ' + error.message, 'error');
+                // Show error toast
+                if (typeof showToast === 'function') {
+                    showToast('Error adding item to cart. Please try again.', 'danger', 'Error');
+                } else {
+                    showNotification('Error adding item to cart: ' + error.message, 'error');
+                }
             }
         });
     }

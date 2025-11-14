@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Claims;
@@ -343,16 +344,23 @@ namespace Cofinoy.WebApp.Controllers
                 if (!string.IsNullOrEmpty(model.Email) && model.Email != user.Email)
                 {
                     if (_userService.UserExists(model.Email))
-                        return Json(new { success = false, errors = new { Email = new[] { "Email is already in use." } } });
+                    {
+                        // ✅ FIXED: Use Dictionary instead of anonymous object
+                        var emailErrors = new Dictionary<string, string[]>
+                {
+                    { "Email", new[] { "This email address is already in use." } }
+                };
+                        return Json(new { success = false, errors = emailErrors });
+                    }
 
                     user.Email = model.Email;
                 }
 
-                // Update other personal info
+                // Update all fields (allow nulls/empty for optional fields)
                 user.FirstName = model.FirstName;
                 user.LastName = model.LastName;
                 user.Nickname = model.Nickname;
-                user.BirthDate = DateOnly.FromDateTime(model.BirthDate);
+                user.BirthDate = model.BirthDate.HasValue ? DateOnly.FromDateTime(model.BirthDate.Value) : default(DateOnly);
                 user.PhoneNumber = model.PhoneNumber;
 
                 _userService.UpdateUser(user);
@@ -370,7 +378,7 @@ namespace Cofinoy.WebApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating personal info");
-                return Json(new { success = false, errors = new { General = new[] { "An error occurred while updating personal info." } } });
+                return Json(new { success = false, errors = new Dictionary<string, string[]> { { "General", new[] { "An error occurred while updating personal info." } } } });
             }
         }
 
@@ -380,21 +388,13 @@ namespace Cofinoy.WebApp.Controllers
         {
             try
             {
-                if (!ModelState.IsValid)
-                {
-                    var errors = ModelState.ToDictionary(
-                        kvp => kvp.Key,
-                        kvp => kvp.Value.Errors.Select(e => e.ErrorMessage).ToArray()
-                    );
-                    return Json(new { success = false, errors });
-                }
-
                 var currentEmail = User.FindFirstValue(ClaimTypes.Email);
                 var user = _userService.GetUserByEmail(currentEmail);
 
                 if (user == null)
                     return Json(new { success = false, message = "User not found." });
 
+                // Update all fields (allow nulls/empty)
                 user.Country = model.Country;
                 user.City = model.City;
                 user.postalCode = model.PostalCode;
@@ -409,9 +409,6 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, errors = new { General = new[] { "An error occurred while updating address." } } });
             }
         }
-
-
-
 
         [Authorize]
         [HttpPost]
