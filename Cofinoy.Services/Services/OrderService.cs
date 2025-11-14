@@ -153,7 +153,7 @@ namespace Cofinoy.Services.Services
                     Temperature = oi.Temperature,
                     ExtraShots = oi.ExtraShots,
                     SweetnessLevel = oi.SweetnessLevel,
-                    // Map customizations
+                    
                     Customizations = oi.Customizations?
                         .OrderBy(c => c.DisplayOrder ?? int.MaxValue)
                         .ThenBy(c => c.Name)

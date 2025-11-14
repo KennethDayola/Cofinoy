@@ -8,5 +8,8 @@ namespace Cofinoy.Data.Interfaces
         List<Order> GetOrderHistoryByUserId(string userId);
         Order GetOrderDetailsById(int orderId);
         List<Order> GetOrderStatusesByUserId(string userId);
+
+        bool CancelOrder(int orderId, string userId); 
+
     }
 }
