@@ -3,9 +3,11 @@
     ViewData["Title"] = "Profile Details";
 }
 
+
 <div class="container py-5">
     <h1 class="mb-4">My Profile</h1>
 
+    <!-- Personal Info -->
     <div class="card mb-4 rounded-3 shadow-sm p-4">
         <div class="card-body">
             <div class="d-flex align-items-center mb-3">
@@ -51,7 +53,7 @@
         </div>
     </div>
 
-    <!-- Address Card -->
+    <!-- Address -->
     <div class="card mb-4 rounded-3 shadow-sm p-4">
         <div class="card-body">
             <div class="d-flex align-items-center mb-3">
@@ -82,7 +84,33 @@
         </div>
     </div>
 
+    <!-- Change Password -->
+    <div class="card mb-4 rounded-3 shadow-sm p-4">
+        <div class="card-body">
+            <div class="d-flex align-items-center mb-3">
+                <h5 class="mb-0">Change Password</h5>
+                <div class="ms-auto">
+                    <button class="btn btn-warning rounded-pill" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
+                        <i class="bi bi-key me-2"></i> Change
+                    </button>
+                </div>
+            </div>
+            <hr />
+            <p class="text-muted mb-0">Update your account password regularly to keep your account secure.</p>
+        </div>
+    </div>
+
+    <!-- Logout -->
     <div class="d-flex justify-content-center mb-5">
+<<<<<<< HEAD
+        <button type="button" class="btn btn-danger rounded-pill px-5" data-bs-toggle="modal" data-bs-target="#logoutConfirmModal">
+            Logout
+        </button>
+    </div>
+</div>
+
+<!-- Edit Personal Modal -->
+=======
             <button type="button" id="openLogoutModalBtn" class="btn btn-danger rounded-pill px-5">
                 Logout
             </button>
@@ -90,8 +118,9 @@
 </div>
 
 <!-- Edit Personal Information Modal -->
+>>>>>>> main
 <div class="modal fade" id="editPersonalModal" tabindex="-1" aria-labelledby="editPersonalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editPersonalLabel">Edit Personal Information</h5>
@@ -102,27 +131,33 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">First name</label>
-                            <input type="text" name="FirstName" class="form-control" value="@Model.User.FirstName">
+                            <input type="text" name="FirstName" class="form-control" value="@Model.User.FirstName" placeholder="Enter your first name">
+                            <span asp-validation-for="PersonalInfo.FirstName" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Last name</label>
-                            <input type="text" name="LastName" class="form-control" value="@Model.User.LastName">
+                            <input type="text" name="LastName" class="form-control" value="@Model.User.LastName" placeholder="Enter your last name">
+                            <span asp-validation-for="PersonalInfo.LastName" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Nickname</label>
-                            <input type="text" name="Nickname" class="form-control" value="@Model.User.Nickname">
+                            <input type="text" name="Nickname" class="form-control" value="@Model.User.Nickname" placeholder="Enter your nickname">
+                            <span asp-validation-for="PersonalInfo.Nickname" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Birthdate</label>
-                            <input type="date" name="BirthDate" class="form-control" value="@(Model.User.BirthDate != default(DateOnly) ? Model.User.BirthDate.ToString("yyyy-MM-dd") : "")">
+                            <input type="date" name="BirthDate" class="form-control" value="@(Model.User.BirthDate != default(DateOnly) ? Model.User.BirthDate.ToString("yyyy-MM-dd") : "")" placeholder="Select your birthdate">
+                            <span asp-validation-for="PersonalInfo.BirthDate" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Email</label>
-                            <input type="email" name="Email" class="form-control" value="@Model.User.Email">
+                            <input type="email" name="Email" class="form-control" value="@Model.User.Email" placeholder="Enter your email address">
+                            <span asp-validation-for="PersonalInfo.Email" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Phone</label>
-                            <input type="text" name="PhoneNumber" class="form-control" value="@Model.User.PhoneNumber">
+                            <input type="text" name="PhoneNumber" class="form-control" value="@Model.User.PhoneNumber" placeholder="Enter your phone number">
+                            <span asp-validation-for="PersonalInfo.PhoneNumber" class="text-danger fs-8 mt-1"></span>
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
@@ -130,6 +165,7 @@
                         <button type="submit" class="btn btn-primary">Save Changes</button>
                     </div>
                 </form>
+
                 <!-- Add change password link below the form -->
                 <div class="mt-3 pt-3 border-top">
                     <button type="button" class="btn btn-link text-decoration-none" style="color: #5a4a3a;" data-bs-dismiss="modal" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
@@ -143,7 +179,7 @@
 
 <!-- Edit Address Modal -->
 <div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editAddressLabel">Edit Address</h5>
@@ -154,15 +190,18 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Country</label>
-                            <input type="text" name="Country" class="form-control" value="@Model.User.Country">
+                            <input type="text" name="Country" class="form-control" value="@Model.User.Country" placeholder="Enter your country">
+                            <span asp-validation-for="Address.Country" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">City</label>
-                            <input type="text" name="City" class="form-control" value="@Model.User.City">
+                            <input type="text" name="City" class="form-control" value="@Model.User.City" placeholder="Enter your city">
+                            <span asp-validation-for="Address.City" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Postal Code</label>
-                            <input type="text" name="postalCode" class="form-control" value="@Model.User.postalCode">
+                            <input type="text" name="postalCode" class="form-control" value="@Model.User.postalCode" placeholder="Enter your postal code">
+                            <span asp-validation-for="Address.PostalCode" class="text-danger fs-8 mt-1"></span>
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
@@ -177,39 +216,79 @@
 
 <!-- Change Password Modal -->
 <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
+<<<<<<< HEAD
+    <div class="modal-dialog modal-md">
+=======
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+>>>>>>> main
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="changePasswordLabel">Change Password</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+<<<<<<< HEAD
+                <form id="changePasswordForm">
+                    <div class="mb-3">
+                        <label class="form-label">Current Password</label>
+                        <input type="password" name="CurrentPassword" class="form-control" placeholder="Enter current password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">New Password</label>
+                        <input type="password" name="NewPassword" class="form-control" placeholder="Enter new password">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Confirm New Password</label>
+                        <input type="password" name="ConfirmPassword" class="form-control" placeholder="Re-enter new password">
+                    </div>
+                    <div class="mt-4 d-flex justify-content-end gap-2">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-warning">Update Password</button>
+=======
                 <form id="changePasswordForm" novalidate>
                     <div class="mb-3">
                         <label class="form-label">Current Password <span class="text-danger">*</span></label>
-                        <input type="password" id="currentPassword" asp-for="ChangePassword.CurrentPassword" class="form-control" required>
+                        <input type="password" id="currentPassword" asp-for="ChangePassword.CurrentPassword" class="form-control" required placeholder="Enter current password">
                         <span asp-validation-for="ChangePassword.CurrentPassword" class="text-danger fs-8 mt-1"></span>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">New Password <span class="text-danger">*</span></label>
-                        <input type="password" id="newPassword" asp-for="ChangePassword.NewPassword" class="form-control" required minlength="8">
+                        <input type="password" id="newPassword" asp-for="ChangePassword.NewPassword" class="form-control" required minlength="8" placeholder="Enter new password (min 8 characters)">
                         <span asp-validation-for="ChangePassword.NewPassword" class="text-danger fs-8 mt-1"></span>
-
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                        <input type="password" id="confirmPassword" asp-for="ChangePassword.ConfirmPassword" class="form-control" required minlength="8">
+                        <input type="password" id="confirmPassword" asp-for="ChangePassword.ConfirmPassword" class="form-control" required minlength="8" placeholder="Re-enter new password">
                         <span asp-validation-for="ChangePassword.ConfirmPassword" class="text-danger fs-8 mt-1"></span>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="submit" class="btn btn-primary">Change Password</button>
+>>>>>>> main
                     </div>
                 </form>
             </div>
         </div>
     </div>
 </div>
+
+<<<<<<< HEAD
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content text-center p-3">
+            <div class="modal-body">
+                <i class="bi bi-box-arrow-right display-4 text-danger mb-3"></i>
+                <h5 class="mb-3">Confirm Logout</h5>
+                <p class="text-muted mb-4">Are you sure you want to log out?</p>
+                <div class="d-flex justify-content-center gap-2">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form asp-controller="Account" asp-action="SignOutUser" method="post">
+                        <button type="submit" class="btn btn-danger px-4">Logout</button>
+                    </form>
+                </div>
+            </div>
+=======
 
 <div id="logoutConfirmModal" class="modal-overlay logout-modal">
     <div class="modal-container logout-modal-container">
@@ -232,10 +311,16 @@
                     Logout
                 </button>
             </form>
+>>>>>>> main
         </div>
     </div>
 </div>
 
 @section Scripts {
+<<<<<<< HEAD
+    <script src="~/js/profile.js"></script>
+}
+=======
     <script src="~/js/profile.js" asp-append-version="true"></script>
 }
+>>>>>>> main

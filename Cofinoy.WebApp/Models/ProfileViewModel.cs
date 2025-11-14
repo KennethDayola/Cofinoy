@@ -13,6 +13,7 @@ namespace Cofinoy.WebApp.Models
         public User User { get; set; }
         public ChangePasswordViewModel ChangePassword { get; set; } = new();
 
-        // E add ari ang ProfileDetailsViewModel para magamit adtos ProfileDetails.cshmtl - Composite model ni sya kay dli pwede daghan model ang tawagon adto sa cshmtl
+        public PersonalInfoViewModel PersonalInfo { get; set; } = new();
+        public AddressViewModel Address { get; set; } = new();
     }
 }
