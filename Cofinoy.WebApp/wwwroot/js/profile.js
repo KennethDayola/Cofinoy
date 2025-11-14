@@ -16,11 +16,17 @@
             contentType: 'application/json',
             data: JSON.stringify(model),
             success: function (res) {
-                if (res.success) location.reload();
-                else alert(res.message);
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    $('#editPersonalModal').modal('hide');
+                    // Optionally reload the page to reflect changes
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(res.message, 'error');
+                }
             },
             error: function () {
-                alert('Error updating personal info.');
+                showToast('Error updating personal info.', 'error');
             }
         });
     });
@@ -39,16 +45,22 @@
             contentType: 'application/json',
             data: JSON.stringify(model),
             success: function (res) {
-                if (res.success) location.reload();
-                else alert(res.message);
+                if (res.success) {
+                    showToast(res.message, 'success');
+                    $('#editAddressModal').modal('hide');
+                    // Optionally reload the page to reflect changes
+                    setTimeout(() => location.reload(), 1000);
+                } else {
+                    showToast(res.message, 'error');
+                }
             },
             error: function () {
-                alert('Error updating address.');
+                showToast('Error updating address.', 'error');
             }
         });
     });
 
-   
+
     $('#changePasswordForm').on('submit', function (e) {
         e.preventDefault();
 
@@ -56,13 +68,13 @@
         const newPassword = $('#newPassword').val();
         const confirmPassword = $('#confirmPassword').val();
 
-    
+
         const currentPasswordError = $('#currentPasswordError');
         const newPasswordError = $('#newPasswordError');
         const confirmPasswordError = $('#confirmPasswordError');
         const passwordLengthError = $('#passwordLengthError');
 
-       
+
         hideError(currentPasswordError);
         hideError(newPasswordError);
         hideError(confirmPasswordError);
@@ -70,25 +82,25 @@
 
         let hasError = false;
 
-       
+
         if (newPassword.length < 6) {
             showError(passwordLengthError);
             hasError = true;
         }
 
-       
+
         if (newPassword === currentPassword && newPassword.length > 0) {
             showError(newPasswordError);
             hasError = true;
         }
 
-       
+
         if (newPassword !== confirmPassword) {
             showError(confirmPasswordError);
             hasError = true;
         }
 
-        
+
         if (!hasError) {
             $.ajax({
                 url: '/Account/ChangePassword',
@@ -105,7 +117,7 @@
                         $('#changePasswordForm')[0].reset();
                         $('#changePasswordModal').modal('hide');
                     } else {
-                        
+
                         showToast(data.message, 'error');
                     }
                 },
@@ -116,21 +128,21 @@
         }
     });
 
-  
+
     $('#newPassword').on('input', function () {
         const currentPassword = $('#currentPassword').val();
         const newPassword = $(this).val();
         const newPasswordError = $('#newPasswordError');
         const passwordLengthError = $('#passwordLengthError');
 
-        
+
         if (newPassword === currentPassword && currentPassword.length > 0) {
             showError(newPasswordError);
         } else {
             hideError(newPasswordError);
         }
 
-       
+
         if (newPassword.length > 0 && newPassword.length < 6) {
             showError(passwordLengthError);
         } else {
@@ -138,7 +150,7 @@
         }
     });
 
-    
+
     $('#confirmPassword').on('input', function () {
         const newPassword = $('#newPassword').val();
         const confirmPassword = $(this).val();
@@ -167,10 +179,10 @@ function hideError(element) {
 
 
 function showToast(message, type) {
-   
+
     $('.profile-toast').remove();
 
-   
+
     const icon = type === 'success' ? '✓' : '✕';
 
     const toast = $('<div class="profile-toast"></div>')
@@ -180,10 +192,10 @@ function showToast(message, type) {
             <span class="profile-toast-message">${message}</span>
         `);
 
-   
+
     $('body').append(toast);
 
-    
+
     setTimeout(function () {
         toast.addClass('slide-out');
         setTimeout(function () {
@@ -191,30 +203,3 @@ function showToast(message, type) {
         }, 300);
     }, 3000);
 }
-
-document.addEventListener("DOMContentLoaded", () => {
-    const logoutModal = document.getElementById("logoutConfirmModal");
-    const cancelBtn = document.getElementById("cancelLogoutBtn");
-    const confirmBtn = document.getElementById("confirmLogoutBtn");
-    const closeBtn = document.getElementById("closeLogoutModal");
-
-    const logoutForm = document.getElementById("logoutForm");
-    const openLogoutBtn = document.getElementById("openLogoutModalBtn");
-
-    openLogoutBtn.addEventListener("click", () => {
-        logoutModal.classList.add("active");
-        document.body.style.overflow = "hidden";
-    });
-
-    const closeModal = () => {
-        logoutModal.classList.remove("active");
-        document.body.style.overflow = "auto";
-    };
-
-    cancelBtn.addEventListener("click", closeModal);
-    closeBtn.addEventListener("click", closeModal);
-
-    confirmBtn.addEventListener("click", () => {
-        logoutForm.submit();
-    });
-});

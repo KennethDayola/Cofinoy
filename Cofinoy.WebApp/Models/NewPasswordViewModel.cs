@@ -17,12 +17,3 @@ namespace Cofinoy.WebApp.Models
         public string ConfirmPassword { get; set; }
     }
 }
-
-
-    public class ChangePasswordViewModel  //profile nga part ni
-    {
-        public string CurrentPassword { get; set; }
-        public string NewPassword { get; set; }
-        public string ConfirmPassword { get; set; }
-    }
-
