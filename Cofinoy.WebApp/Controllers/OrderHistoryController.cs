@@ -90,7 +90,7 @@ namespace Cofinoy.WebApp.Controllers
                             sweetnessLevel = oi.SweetnessLevel,
                             productImageUrl = oi.ImageUrl,
                             imageUrl = oi.ImageUrl,
-                            // Include customizations
+                        
                             customizations = oi.Customizations.Select(c => new
                             {
                                 name = c.Name,
@@ -163,6 +163,53 @@ namespace Cofinoy.WebApp.Controllers
                     success = false,
                     message = ex.Message
                 });
+            }
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> CancelOrder(int id)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, message = "User not authenticated" });
+                }
+
+                var order = await _orderHistoryService.GetOrderDetailsByIdAsync(id);
+
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Order not found" });
+                }
+
+                if (order.UserId != userId)
+                {
+                    return Json(new { success = false, message = "Access denied" });
+                }
+
+                if (order.Status != "Placed" && order.Status != "Pending")
+                {
+                    return Json(new { success = false, message = "Order can no longer be cancelled" });
+                }
+
+                var cancellationResult = await _orderHistoryService.CancelOrderAsync(id, userId);
+
+                if (cancellationResult)
+                {
+                    return Json(new { success = true, message = "Order cancelled successfully" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Failed to cancel order" });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cancelling order: {OrderId}", id);
+                return Json(new { success = false, message = "Error cancelling order" });
             }
         }
     }

@@ -131,7 +131,6 @@ namespace Cofinoy.Services.Services
                             ExtraShots = oi.ExtraShots,
                             SweetnessLevel = oi.SweetnessLevel,
                             ImageUrl = imageUrl,
-                            // Map customizations
                             Customizations = oi.Customizations?
                                 .OrderBy(c => c.DisplayOrder ?? int.MaxValue)
                                 .ThenBy(c => c.Name)
@@ -176,5 +175,32 @@ namespace Cofinoy.Services.Services
                 throw;
             }
         }
+
+
+        public async Task<bool> CancelOrderAsync(int orderId, string userId)
+        {
+            try
+            {
+                // Call repository to cancel the order
+                var result = _orderHistoryRepository.CancelOrder(orderId, userId);
+
+                if (result)
+                {
+                    _logger.LogInformation("Order {OrderId} cancelled successfully by user {UserId}", orderId, userId);
+                }
+                else
+                {
+                    _logger.LogWarning("Failed to cancel order {OrderId} for user {UserId}", orderId, userId);
+                }
+
+                return await Task.FromResult(result);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cancelling order {OrderId} for user {UserId}", orderId, userId);
+                return false;
+            }
+        }
     }
 }
+

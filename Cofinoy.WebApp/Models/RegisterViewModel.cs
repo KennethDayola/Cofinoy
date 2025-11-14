@@ -5,13 +5,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Cofinoy.Services.ServiceModels
+namespace Cofinoy.WebApp.Models
 {
-    public class UserViewModel
+    public class RegisterViewModel
     {
         [Required(ErrorMessage = "This field is required.")]
 
         public string Role { get; set; } = "User";
+        [Required(ErrorMessage = "This field is required.")]
         public string Nickname { get; set; }
 
         [Required(ErrorMessage = "This field is required.")]
@@ -28,6 +29,6 @@ namespace Cofinoy.Services.ServiceModels
         [Required(ErrorMessage = "This field is required.")]
         [DataType(DataType.Password)]
         [Compare("Password", ErrorMessage = "Passwords do not match")]
-        public string ConfirmPassword { get; set;}
+        public string ConfirmPassword { get; set; }
     }
 }

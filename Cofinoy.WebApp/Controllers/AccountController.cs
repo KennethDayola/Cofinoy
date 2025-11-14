@@ -3,6 +3,7 @@ using Cofinoy.Data.Models;
 using Cofinoy.Services.Interfaces;
 using Cofinoy.Services.Manager;
 using Cofinoy.Services.ServiceModels;
+using Cofinoy.Services.Services;
 using Cofinoy.WebApp.Authentication;
 using Cofinoy.WebApp.Models;
 using Cofinoy.WebApp.Mvc;
@@ -127,7 +128,7 @@ namespace Cofinoy.WebApp.Controllers
 
         [HttpPost]
         [AllowAnonymous]
-        public IActionResult Register(UserViewModel model)
+        public IActionResult Register(UserServiceModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -307,7 +308,14 @@ namespace Cofinoy.WebApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            return View(user);
+            var profileDetails = new ProfileViewModel
+            {
+                User = user,
+                ChangePassword = new ChangePasswordViewModel()
+            };
+
+
+            return View(profileDetails);
         }
 
         [Authorize]
@@ -396,6 +404,16 @@ namespace Cofinoy.WebApp.Controllers
         {
             try
             {
+                // Validate ModelState first (checks data annotations)
+                if (!ModelState.IsValid)
+                {
+                    var errors = ModelState.Values
+                        .SelectMany(v => v.Errors)
+                        .Select(e => e.ErrorMessage)
+                        .ToList();
+                    return Json(new { success = false, message = string.Join(" ", errors) });
+                }
+
                 var email = User.FindFirstValue(ClaimTypes.Email);
                 if (string.IsNullOrEmpty(email))
                     return Json(new { success = false, message = "User not authenticated." });
@@ -404,31 +422,25 @@ namespace Cofinoy.WebApp.Controllers
                 if (user == null)
                     return Json(new { success = false, message = "User not found." });
 
-               
-                if (!PasswordManager.VerifyPassword(model.CurrentPassword, user.Password))
+                // Use the PasswordValidationService for comprehensive validation
+                var validationService = new PasswordValidationService();
+                var validationResult = validationService.ValidatePasswordChange(
+                    model.CurrentPassword,
+                    model.NewPassword,
+                    model.ConfirmPassword,
+                    user.Password
+                );
+
+                if (!validationResult.IsValid)
                 {
-                    return Json(new { success = false, message = "The current password is incorrect." });
+                    return Json(new
+                    {
+                        success = false,
+                        message = string.Join(" ", validationResult.Errors)
+                    });
                 }
 
-               
-                if (model.NewPassword.Length < 6)
-                {
-                    return Json(new { success = false, message = "Password must have at least 6 characters" });
-                }
-
-             
-                if (PasswordManager.VerifyPassword(model.NewPassword, user.Password))
-                {
-                    return Json(new { success = false, message = "The new password cannot be the same as the old password." });
-                }
-
-               
-                if (model.NewPassword != model.ConfirmPassword)
-                {
-                    return Json(new { success = false, message = "New password and confirm password do not match." });
-                }
-
-               
+                // Update password
                 user.Password = PasswordManager.EncryptPassword(model.NewPassword);
                 _userService.UpdateUser(user);
 
@@ -436,6 +448,7 @@ namespace Cofinoy.WebApp.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error changing password");
                 return Json(new { success = false, message = "An error occurred while changing password." });
             }
         }
@@ -456,5 +469,14 @@ namespace Cofinoy.WebApp.Controllers
 
             return Json(result);
         }
+
+
+
+
+
+
+
+
+
     }
 }

@@ -163,5 +163,33 @@ namespace Cofinoy.Data.Repositories
                 .Select(pc => pc.CustomizationId)
                 .ToList();
         }
+
+        // Stock management
+        public void ReduceStock(string productId, int quantity)
+        {
+            var product = GetProductById(productId);
+            if (product != null)
+            {
+                product.Stock -= quantity;
+                
+                // Update status to "Out of Stock" if stock reaches 0
+                if (product.Stock <= 0)
+                {
+                    product.Stock = 0;
+                    product.Status = "Unavailable";
+                    product.IsAvailable = false;
+                }
+                
+                product.UpdatedAt = DateTime.UtcNow;
+                this.GetDbSet<Product>().Update(product);
+                UnitOfWork.SaveChanges();
+            }
+        }
+
+        public bool HasSufficientStock(string productId, int quantity)
+        {
+            var product = GetProductById(productId);
+            return product != null && product.Stock >= quantity;
+        }
     }
 }

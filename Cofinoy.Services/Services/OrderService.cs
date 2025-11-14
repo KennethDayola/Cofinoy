@@ -16,17 +16,20 @@ namespace Cofinoy.Services.Services
         private readonly IOrderRepository _orderRepository;
         private readonly IUserRepository _userRepository;
         private readonly ICartRepository _cartRepository;
+        private readonly IProductService _productService;
         private readonly ILogger<OrderService> _logger;
 
         public OrderService(
             IOrderRepository orderRepository,
             IUserRepository userRepository,
             ICartRepository cartRepository,
+            IProductService productService,
             ILogger<OrderService> logger)
         {
             _orderRepository = orderRepository;
             _userRepository = userRepository;
             _cartRepository = cartRepository;
+            _productService = productService;
             _logger = logger;
         }
 
@@ -153,7 +156,7 @@ namespace Cofinoy.Services.Services
                     Temperature = oi.Temperature,
                     ExtraShots = oi.ExtraShots,
                     SweetnessLevel = oi.SweetnessLevel,
-                    // Map customizations
+                    
                     Customizations = oi.Customizations?
                         .OrderBy(c => c.DisplayOrder ?? int.MaxValue)
                         .ThenBy(c => c.Name)
@@ -257,6 +260,25 @@ namespace Cofinoy.Services.Services
 
                 _logger.LogInformation("Creating order for user {UserId}", userId);
 
+                // Step 1: Validate stock availability for all items
+                var insufficientStockItems = new List<string>();
+                foreach (var item in cartItems)
+                {
+                    if (!_productService.HasSufficientStock(item.ProductId, item.Quantity))
+                    {
+                        var product = _productService.GetProductById(item.ProductId);
+                        var availableStock = product != null && int.TryParse(product.Stock, out int stock) ? stock : 0;
+                        insufficientStockItems.Add($"{item.Name} (Available: {availableStock}, Requested: {item.Quantity})");
+                    }
+                }
+
+                if (insufficientStockItems.Any())
+                {
+                    var errorMessage = "Insufficient stock for the following items: " + string.Join(", ", insufficientStockItems);
+                    _logger.LogWarning("Order creation failed: {ErrorMessage}", errorMessage);
+                    throw new InvalidOperationException(errorMessage);
+                }
+
                 // Create order entity
                 var order = new Order
                 {
@@ -318,6 +340,17 @@ namespace Cofinoy.Services.Services
                 _orderRepository.AddOrder(order);
 
                 _logger.LogInformation("Order saved to database with ID: {OrderId}", order.Id);
+
+                // Step 2: Reduce stock for each ordered item
+                foreach (var item in cartItems)
+                {
+                    _logger.LogInformation("Reducing stock for product {ProductId}: {ProductName} by {Quantity}", 
+                        item.ProductId, item.Name, item.Quantity);
+                    
+                    _productService.ReduceStock(item.ProductId, item.Quantity);
+                }
+
+                _logger.LogInformation("Stock reduced successfully for all items");
 
                 // Clear cart
                 await _cartRepository.ClearCartAsync(userId);

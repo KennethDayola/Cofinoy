@@ -189,6 +189,16 @@ body {
         color: #9b8658;
     }
 
+.btn.btn-secondary.filter-btn:hover {
+    background-color: white !important;
+    color: #c38244 !important;
+    border-color: #c38244 !important;
+}
+
+.btn.btn-secondary.filter-btn:hover svg path {
+    fill: #c38244 !important;
+}
+
 .filter-btn {
     background: white;
     color: #322708;
@@ -206,13 +216,13 @@ body {
 }
 
     .filter-btn:hover {
-        background-color: #ffffff;
-        border-color: #9b8658;
-        color: #9b8658;
+        background-color: white;
+        color: #6C4E31;
+        border-color: #6C4E31;
     }
 
     .filter-btn:hover svg path {
-        fill: #9b8658;
+        fill: #6C4E31;
     }
 
     .filter-btn img {

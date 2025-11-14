@@ -109,16 +109,20 @@
     </div>
 
     <!-- ORDER ACTION BUTTONS -->
+    <!-- ORDER ACTION BUTTONS -->
     <div class="order-footer">
         @{
             var status = Model.Status?.Trim() ?? "Pending";
         }
 
-        @**@
         @if (status == "Pending")
         {
             <button class="btn-brewing" onclick="validatePending(@Model.Id)">
                 <i class="fas fa-fire"></i> Start Brewing
+            </button>
+
+            <button class="btn-cancel-outline" onclick="cancelOrder(@Model.Id)">
+                <i class="fas fa-times"></i> Cancel Order
             </button>
         }
         else if (status == "Brewing")
@@ -145,16 +149,7 @@
                 <i class="fas fa-check-circle"></i> Order Completed Successfully
             </div>
         }
-
-        @**@
-        @if (status != "Cancelled" && status != "Served")
-        {
-            <button class="btn-cancel-outline" onclick="cancelOrder(@Model.Id)">
-                <i class="fas fa-times"></i> Cancel Order
-            </button>
-        }
-
-        @if (status == "Cancelled")
+        else if (status == "Cancelled")
         {
             <div class="order-completed-message cancelled">
                 <i class="fas fa-times-circle"></i> Order Cancelled
@@ -162,6 +157,9 @@
         }
     </div>
 </div>
+
+<!-- ✅ Include Bootstrap Toast Partial -->
+<partial name="_Toast" />
 
 <script src="~/js/orderDetails.js" asp-append-version="true"></script>
 
@@ -185,10 +183,10 @@
 
     @foreach (var item in Model.OrderItems)
     {
-            if (item.Customizations != null && item.Customizations.Any())
-            {
-                    @:console.log('Item: @item.ProductName - Customizations:', @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.Customizations)));
-            }
+                if (item.Customizations != null && item.Customizations.Any())
+                {
+                            @:console.log('Item: @item.ProductName - Customizations:', @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.Customizations)));
+                }
     }
     console.log('====================');
 </script>

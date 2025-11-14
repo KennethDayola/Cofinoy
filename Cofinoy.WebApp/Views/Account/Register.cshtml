@@ -1,5 +1,4 @@
-﻿@using Cofinoy.Services.ServiceModels
-@model UserViewModel
+﻿@model RegisterViewModel
 @{
     ViewBag.LoginView = true;
     ViewData["Title"] = "Register Page";
@@ -43,7 +42,7 @@
                                 <span asp-validation-for="ConfirmPassword" class="text-danger fs-8 mt-1"></span>
                             </div>
                             <div class="col-12">
-                                <button type="submit" class="btn btn-primary w-100 rounded-pill ">Register</button>
+                                <button type="submit" class="btn btn-primary w-100 rounded-pill">Register</button>
                             </div>
                         </form>
                         <div class="d-flex mt-2 justify-content-center flex-wrap">

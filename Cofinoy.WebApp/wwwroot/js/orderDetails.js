@@ -1,15 +1,18 @@
-﻿// ✅ Toast Popup Helper
-function showToast(message, type = 'success') {
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    toast.textContent = message;
-    document.body.appendChild(toast);
+﻿function displayToast(message, type = 'success') {
+    const typeMap = {
+        'success': 'success',
+        'error': 'danger',
+        'warning': 'warning'
+    };
 
-    setTimeout(() => toast.classList.add('show'), 100);
-    setTimeout(() => {
-        toast.classList.remove('show');
-        setTimeout(() => toast.remove(), 300);
-    }, 2000);
+    const bootstrapType = typeMap[type] || 'info';
+
+    if (typeof showToast === 'function') {
+        showToast(message, bootstrapType, 'Cofinoy');
+    } else {
+        console.error('Bootstrap toast function not available');
+        alert(message); 
+    }
 }
 
 // ✅ Validate Pending → Brewing
@@ -22,15 +25,15 @@ function validatePending(orderId) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showToast('✅ Order validated and now Brewing', 'success');
+                displayToast(' Order validated and now Brewing', 'success');
                 setTimeout(() => window.location.reload(), 1000);
             } else {
-                showToast('⚠️ ' + data.error, 'error');
+                displayToast('⚠️ ' + data.error, 'error');
             }
         })
         .catch(err => {
             console.error('Error:', err);
-            showToast('An unexpected error occurred', 'error');
+            displayToast('An unexpected error occurred', 'error');
         });
 }
 
@@ -44,15 +47,15 @@ function markAsReady(orderId) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showToast('✅ Order marked as Ready', 'success');
+                displayToast(' Order marked as Ready', 'success');
                 setTimeout(() => window.location.reload(), 1000);
             } else {
-                showToast('⚠️ ' + data.error, 'error');
+                displayToast('⚠️ ' + data.error, 'error');
             }
         })
         .catch(err => {
             console.error('Error:', err);
-            showToast('An unexpected error occurred', 'error');
+            displayToast('An unexpected error occurred', 'error');
         });
 }
 
@@ -66,15 +69,15 @@ function markAsServing(orderId) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showToast('✅ Order marked as Serving', 'success');
+                displayToast(' Order marked as Serving', 'success');
                 setTimeout(() => window.location.reload(), 1000);
             } else {
-                showToast('⚠️ ' + data.error, 'error');
+                displayToast('⚠️ ' + data.error, 'error');
             }
         })
         .catch(err => {
             console.error('Error:', err);
-            showToast('An unexpected error occurred', 'error');
+            displayToast('An unexpected error occurred', 'error');
         });
 }
 
@@ -88,15 +91,15 @@ function markAsServed(orderId) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showToast('✅ Order marked as Served', 'success');
+                displayToast(' Order marked as Served', 'success');
                 setTimeout(() => window.location.reload(), 1000);
             } else {
-                showToast('⚠️ ' + data.error, 'error');
+                displayToast('⚠️ ' + data.error, 'error');
             }
         })
         .catch(err => {
             console.error('Error:', err);
-            showToast('An unexpected error occurred', 'error');
+            displayToast('An unexpected error occurred', 'error');
         });
 }
 
@@ -112,14 +115,14 @@ function cancelOrder(orderId) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                showToast('❌ Order cancelled successfully', 'warning');
+                displayToast('❌ Order cancelled successfully', 'warning');
                 setTimeout(() => window.location.reload(), 1000);
             } else {
-                showToast('⚠️ ' + data.error, 'error');
+                displayToast('⚠️ ' + data.error, 'error');
             }
         })
         .catch(err => {
             console.error('Error:', err);
-            showToast('An unexpected error occurred', 'error');
+            displayToast('An unexpected error occurred', 'error');
         });
 }

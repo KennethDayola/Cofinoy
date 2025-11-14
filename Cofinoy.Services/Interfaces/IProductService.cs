@@ -12,5 +12,9 @@ namespace Cofinoy.Services.Interfaces
         void UpdateProduct(string id, ProductServiceModel model);
         void DeleteProduct(string id);
         bool ProductExists(string id);
+        
+        // Stock management
+        void ReduceStock(string productId, int quantity);
+        bool HasSufficientStock(string productId, int quantity);
     }
 }

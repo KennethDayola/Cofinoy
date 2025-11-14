@@ -24,5 +24,9 @@ namespace Cofinoy.Data.Interfaces
         void AddProductCustomizations(string productId, List<string> customizationIds);
         void RemoveProductCustomizations(string productId);
         List<string> GetProductCustomizationIds(string productId);
+
+        // Stock management
+        void ReduceStock(string productId, int quantity);
+        bool HasSufficientStock(string productId, int quantity);
     }
 }

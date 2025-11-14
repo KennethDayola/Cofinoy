@@ -10,6 +10,11 @@
 <link rel="stylesheet" href="~/css/cart.css" />
 
 <div class="cart-container">
+    
+    <div id="cartToast" class="cart-toast">
+     
+    
+    </div>
     <div class="cart-header">
         <h1 class="cart-title">Shopping Bag</h1>
         <div class="cart-summary">
@@ -38,11 +43,13 @@
             }
             else
             {
+                <!-- FIXED: Header with proper grid structure -->
                 <div class="cart-items-header">
+                    <div class="header-image"></div> <!-- Added this empty div for image column -->
                     <div class="header-product">Product</div>
                     <div class="header-price">Price</div>
                     <div class="header-quantity">Quantity</div>
-                    <div class="header-total">Total</div>
+                    <div class="header-total" style="margin-left: 25px;">Total</div>
                     <div class="header-actions"></div>
                 </div>
 
@@ -50,74 +57,23 @@
                     @foreach (var item in Model)
                     {
                         <div class="cart-item" id="cartItem-@item.CartItemId" data-cart-item-id="@item.CartItemId">
-                            <div class="item-details">
+                            <!-- Column 1: Image -->
+                            <div class="item-image-container">
                                 <img src="@item.ImageUrl" alt="@item.Name" class="item-image" />
+                            </div>
+
+                            <!-- Column 2: Product Details -->
+                            <div class="item-details">
                                 <div class="item-info">
                                     <h3 class="item-name">@item.Name</h3>
                                     <div class="item-description">@item.Description</div>
-                                    @* Display customizations from the Customizations collection, ordered by DisplayOrder *@
-                                    @if (item.Customizations != null && item.Customizations.Any())
-                                    {
-                                        <div class="item-customizations">
-                                            @foreach (var customization in item.Customizations.OrderBy(c => c.DisplayOrder ?? int.MaxValue).ThenBy(c => c.Name))
-                                            {
-                                                <div class="customization-row">
-                                                    <span class="customization-label">@customization.Name:</span>
-                                                    <span class="customization-value">@customization.Value</span>
-                                                    @* Show price for all customization types where price > 0 *@
-                                                    @if (customization.Price > 0)
-                                                    {
-                                                        <span class="customization-price">(+₱@customization.Price.ToString("N2"))</span>
-                                                    }
-                                                </div>
-                                            }
-                                        </div>
-                                    }
-                                    else if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.MilkType) || !string.IsNullOrEmpty(item.Temperature) || item.ExtraShots > 0)
-                                    {
-                                        @* Fallback to legacy fields if customizations collection is empty *@
-                                        <div class="item-customizations">
-                                            @if (!string.IsNullOrEmpty(item.Size))
-                                            {
-                                                <div class="customization-row">
-                                                    <span class="customization-label">Size:</span>
-                                                    <span class="customization-value">@item.Size</span>
-                                                </div>
-                                            }
-                                            @if (!string.IsNullOrEmpty(item.MilkType))
-                                            {
-                                                <div class="customization-row">
-                                                    <span class="customization-label">Milk:</span>
-                                                    <span class="customization-value">@item.MilkType</span>
-                                                </div>
-                                            }
-                                            @if (!string.IsNullOrEmpty(item.Temperature))
-                                            {
-                                                <div class="customization-row">
-                                                    <span class="customization-label">Temperature:</span>
-                                                    <span class="customization-value">@item.Temperature</span>
-                                                </div>
-                                            }
-                                            @if (item.ExtraShots > 0)
-                                            {
-                                                <div class="customization-row">
-                                                    <span class="customization-label">Extra Shots:</span>
-                                                    <span class="customization-value">@item.ExtraShots</span>
-                                                </div>
-                                            }
-                                            @if (!string.IsNullOrEmpty(item.SweetnessLevel))
-                                            {
-                                                <div class="customization-row">
-                                                    <span class="customization-label">Sweetness:</span>
-                                                    <span class="customization-value">@item.SweetnessLevel</span>
-                                                </div>
-                                            }
-                                        </div>
-                                    }
                                 </div>
                             </div>
 
+                            <!-- Column 3: Price -->
                             <div class="item-price">₱@item.UnitPrice.ToString("N2")</div>
+
+                            <!-- Column 4: Quantity -->
                             <div class="item-quantity">
                                 <div class="quantity-controls">
                                     <button type="button" class="quantity-btn" onclick="updateQuantity('@item.CartItemId', 'decrease')">
@@ -130,12 +86,77 @@
                                 </div>
                             </div>
 
+                            <!-- Column 5: Total -->
                             <div class="item-total" id="total-@item.CartItemId">₱@((item.UnitPrice * item.Quantity).ToString("N2"))</div>
+
+                            <!-- Column 6: Actions -->
                             <div class="item-actions">
                                 <button type="button" class="remove-btn" onclick="removeFromCart('@item.CartItemId')" title="Remove item">
                                     <span class="material-symbols-rounded">delete</span>
                                 </button>
                             </div>
+                            
+                            <!-- Customizations (spans full width) -->
+                            @if (item.Customizations != null && item.Customizations.Any())
+                            {
+                                <div class="customizations-section">
+                                    <div class="customizations-list">
+                                        @foreach (var customization in item.Customizations.OrderBy(c => c.DisplayOrder ?? int.MaxValue).ThenBy(c => c.Name))
+                                        {
+                                            <div class="customization-item">
+                                                <span class="customization-label">@customization.Name:</span>
+                                                <span class="customization-value">@customization.Value</span>
+                                                @if (customization.Price > 0)
+                                                {
+                                                    <span class="customization-price">(+₱@customization.Price.ToString("N2"))</span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            else if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.MilkType) || !string.IsNullOrEmpty(item.Temperature) || item.ExtraShots > 0)
+                            {
+                                <div class="customizations-section">
+                                    <div class="customizations-list">
+                                        @if (!string.IsNullOrEmpty(item.Size))
+                                        {
+                                            <div class="customization-item">
+                                                <span class="customization-label">Size:</span>
+                                                <span class="customization-value">@item.Size</span>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(item.MilkType))
+                                        {
+                                            <div class="customization-item">
+                                                <span class="customization-label">Milk:</span>
+                                                <span class="customization-value">@item.MilkType</span>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(item.Temperature))
+                                        {
+                                            <div class="customization-item">
+                                                <span class="customization-label">Temperature:</span>
+                                                <span class="customization-value">@item.Temperature</span>
+                                            </div>
+                                        }
+                                        @if (item.ExtraShots > 0)
+                                        {
+                                            <div class="customization-item">
+                                                <span class="customization-label">Extra Shots:</span>
+                                                <span class="customization-value">@item.ExtraShots</span>
+                                            </div>
+                                        }
+                                        @if (!string.IsNullOrEmpty(item.SweetnessLevel))
+                                        {
+                                            <div class="customization-item">
+                                                <span class="customization-label">Sweetness:</span>
+                                                <span class="customization-value">@item.SweetnessLevel</span>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
                         </div>
                     }
                 </div>
@@ -154,10 +175,14 @@
                             <label for="nickname">Nickname</label>
                             <div class="input-wrapper">
                                 <span class="material-symbols-rounded">person</span>
-                                <input type="text" id="nickname" name="Nickname" placeholder="What should we call you?" required />
+                                <input type="text"
+                                       id="nickname"
+                                       name="Nickname"
+                                       value="@ViewBag.UserNickname"
+                                       placeholder="What should we call you?"
+                                       required />
                             </div>
                         </div>
-
                         <div class="form-group">
                             <label for="additional-request">Additional Request</label>
                             <div class="input-wrapper">
@@ -171,7 +196,6 @@
                         <div class="form-group">
                             <label class="form-label">Order Type</label>
                             <div class="radio-group">
-                                @* Controller doesn't use this, but model expects a decimal; use numeric values to prevent binding errors *@
                                 <label class="radio-option">
                                     <input type="radio" name="OrderType" value="0" checked />
                                     <span class="radio-checkmark"></span>
@@ -185,19 +209,7 @@
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="coupon-code">Coupon Discount</label>
-                            <div class="input-wrapper">
-                                <span class="material-symbols-rounded">local_offer</span>
-                                @* Model expects decimal; use number input to bind cleanly *@
-                                <input type="number" step="0.01" min="0" id="coupon-code" name="CouponCode" placeholder="0.00" />
-                            </div>
-                        </div>
-
-                        @* Hidden field for default payment method *@
-                        <input type="hidden" name="PaymentMethod" value="Cash" />
-                    </div>
-
+                   
                     <div class="order-summary-section">
                         <h2 class="summary-title">Order Summary</h2>
 
@@ -210,7 +222,7 @@
                         else
                         {
                             var subtotal = Model.Sum(i => i.UnitPrice * i.Quantity);
-                            var total = subtotal; // initial display; JS updates from API responses
+                            var total = subtotal; 
 
                             <div class="summary-details">
                                 <div class="summary-line">
@@ -245,4 +257,4 @@
 
 @section Scripts {
     <script src="~/js/cart.js" asp-append-version="true"></script>
-}}}
+}

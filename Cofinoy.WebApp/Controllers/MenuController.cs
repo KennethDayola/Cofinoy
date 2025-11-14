@@ -59,6 +59,8 @@ namespace Cofinoy.WebApp.Controllers
 
 
 
+        #region Category Methods
+
         [HttpGet]
         [HttpPost]
         public JsonResult GetAllCategories()
@@ -163,13 +165,40 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+        #endregion
+
+        #region Customization Methods
+
         [HttpGet]
         public JsonResult GetAllCustomizations()
         {
             try
             {
                 var customizations = _customizationService.GetAllCustomizations();
-                return Json(new { success = true, data = customizations });
+                
+                // Map ServiceModel to ViewModel
+                var viewModels = customizations.Select(c => new CustomizationViewModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                    Type = c.Type,
+                    Required = c.Required,
+                    DisplayOrder = c.DisplayOrder,
+                    Description = c.Description,
+                    MaxQuantity = c.MaxQuantity,
+                    PricePerUnit = c.PricePerUnit,
+                    Options = c.Options?.Select(o => new CustomizationOptionViewModel
+                    {
+                        Id = o.Id,
+                        Name = o.Name,
+                        PriceModifier = o.PriceModifier,
+                        Description = o.Description,
+                        Default = o.Default,
+                        DisplayOrder = o.DisplayOrder
+                    }).ToList() ?? new List<CustomizationOptionViewModel>()
+                }).ToList();
+
+                return Json(new { success = true, data = viewModels });
             }
             catch (Exception ex)
             {
@@ -188,7 +217,30 @@ namespace Cofinoy.WebApp.Controllers
                 {
                     return Json(new { success = false, error = "Customization not found" });
                 }
-                return Json(new { success = true, data = customization });
+
+                // Map ServiceModel to ViewModel
+                var viewModel = new CustomizationViewModel
+                {
+                    Id = customization.Id,
+                    Name = customization.Name,
+                    Type = customization.Type,
+                    Required = customization.Required,
+                    DisplayOrder = customization.DisplayOrder,
+                    Description = customization.Description,
+                    MaxQuantity = customization.MaxQuantity,
+                    PricePerUnit = customization.PricePerUnit,
+                    Options = customization.Options?.Select(o => new CustomizationOptionViewModel
+                    {
+                        Id = o.Id,
+                        Name = o.Name,
+                        PriceModifier = o.PriceModifier,
+                        Description = o.Description,
+                        Default = o.Default,
+                        DisplayOrder = o.DisplayOrder
+                    }).ToList() ?? new List<CustomizationOptionViewModel>()
+                };
+
+                return Json(new { success = true, data = viewModel });
             }
             catch (Exception ex)
             {
@@ -199,7 +251,7 @@ namespace Cofinoy.WebApp.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public JsonResult AddCustomization([FromBody] CustomizationServiceModel model)
+        public JsonResult AddCustomization([FromBody] CustomizationViewModel model)
         {
             try
             {
@@ -208,7 +260,27 @@ namespace Cofinoy.WebApp.Controllers
                     return Json(new { success = false, error = "Invalid data" });
                 }
 
-                _customizationService.AddCustomization(model);
+                // Map ViewModel to ServiceModel
+                var serviceModel = new CustomizationServiceModel
+                {
+                    Name = model.Name,
+                    Type = model.Type,
+                    Required = model.Required,
+                    DisplayOrder = model.DisplayOrder,
+                    Description = model.Description,
+                    MaxQuantity = model.MaxQuantity,
+                    PricePerUnit = model.PricePerUnit,
+                    Options = model.Options?.Select(o => new CustomizationOptionServiceModel
+                    {
+                        Name = o.Name,
+                        PriceModifier = o.PriceModifier,
+                        Description = o.Description,
+                        Default = o.Default,
+                        DisplayOrder = o.DisplayOrder
+                    }).ToList() ?? new List<CustomizationOptionServiceModel>()
+                };
+
+                _customizationService.AddCustomization(serviceModel);
                 return Json(new { success = true, message = "Customization added successfully" });
             }
             catch (Exception ex)
@@ -220,7 +292,7 @@ namespace Cofinoy.WebApp.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public JsonResult UpdateCustomization(string id, [FromBody] CustomizationServiceModel model)
+        public JsonResult UpdateCustomization(string id, [FromBody] CustomizationViewModel model)
         {
             try
             {
@@ -229,7 +301,28 @@ namespace Cofinoy.WebApp.Controllers
                     return Json(new { success = false, error = "Invalid data" });
                 }
 
-                _customizationService.UpdateCustomization(id, model);
+                // Map ViewModel to ServiceModel
+                var serviceModel = new CustomizationServiceModel
+                {
+                    Name = model.Name,
+                    Type = model.Type,
+                    Required = model.Required,
+                    DisplayOrder = model.DisplayOrder,
+                    Description = model.Description,
+                    MaxQuantity = model.MaxQuantity,
+                    PricePerUnit = model.PricePerUnit,
+                    Options = model.Options?.Select(o => new CustomizationOptionServiceModel
+                    {
+                        Id = o.Id,
+                        Name = o.Name,
+                        PriceModifier = o.PriceModifier,
+                        Description = o.Description,
+                        Default = o.Default,
+                        DisplayOrder = o.DisplayOrder
+                    }).ToList() ?? new List<CustomizationOptionServiceModel>()
+                };
+
+                _customizationService.UpdateCustomization(id, serviceModel);
                 return Json(new { success = true, message = "Customization updated successfully" });
             }
             catch (InvalidDataException ex)
@@ -263,6 +356,9 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+        #endregion
+
+        #region Product Methods
 
         [HttpGet]
         public JsonResult GetProductsByCategory(string categoryName)
@@ -272,7 +368,27 @@ namespace Cofinoy.WebApp.Controllers
                 _logger.LogInformation("Fetching products for category: {CategoryName}", categoryName);
                 var products = _productService.GetProductsByCategory(categoryName);
                 _logger.LogInformation("Found {Count} products for category: {CategoryName}", products.Count, categoryName);
-                return Json(new { success = true, data = products });
+                
+                // Map ServiceModel to ViewModel
+                var viewModels = products.Select(p => new ProductViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Status = p.Status,
+                    Stock = p.Stock,
+                    ImageUrl = p.ImageUrl,
+                    ImagePath = p.ImagePath,
+                    Categories = p.Categories,
+                    Customizations = p.Customizations,
+                    DisplayOrder = p.DisplayOrder,
+                    IsActive = p.IsActive,
+                    CreatedAt = p.CreatedAt,
+                    UpdatedAt = p.UpdatedAt
+                }).ToList();
+
+                return Json(new { success = true, data = viewModels });
             }
             catch (Exception ex)
             {
@@ -287,7 +403,27 @@ namespace Cofinoy.WebApp.Controllers
             try
             {
                 var products = _productService.GetAllProducts();
-                return Json(new { success = true, data = products });
+                
+                // Map ServiceModel to ViewModel
+                var viewModels = products.Select(p => new ProductViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name,
+                    Description = p.Description,
+                    Price = p.Price,
+                    Status = p.Status,
+                    Stock = p.Stock,
+                    ImageUrl = p.ImageUrl,
+                    ImagePath = p.ImagePath,
+                    Categories = p.Categories,
+                    Customizations = p.Customizations,
+                    DisplayOrder = p.DisplayOrder,
+                    IsActive = p.IsActive,
+                    CreatedAt = p.CreatedAt,
+                    UpdatedAt = p.UpdatedAt
+                }).ToList();
+
+                return Json(new { success = true, data = viewModels });
             }
             catch (Exception ex)
             {
@@ -306,7 +442,27 @@ namespace Cofinoy.WebApp.Controllers
                 {
                     return Json(new { success = false, error = "Product not found" });
                 }
-                return Json(new { success = true, data = product });
+
+                // Map ServiceModel to ViewModel
+                var viewModel = new ProductViewModel
+                {
+                    Id = product.Id,
+                    Name = product.Name,
+                    Description = product.Description,
+                    Price = product.Price,
+                    Status = product.Status,
+                    Stock = product.Stock,
+                    ImageUrl = product.ImageUrl,
+                    ImagePath = product.ImagePath,
+                    Categories = product.Categories,
+                    Customizations = product.Customizations,
+                    DisplayOrder = product.DisplayOrder,
+                    IsActive = product.IsActive,
+                    CreatedAt = product.CreatedAt,
+                    UpdatedAt = product.UpdatedAt
+                };
+
+                return Json(new { success = true, data = viewModel });
             }
             catch (Exception ex)
             {
@@ -317,7 +473,7 @@ namespace Cofinoy.WebApp.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public JsonResult AddProduct([FromBody] ProductServiceModel model)
+        public JsonResult AddProduct([FromBody] ProductViewModel model)
         {
             try
             {
@@ -326,7 +482,23 @@ namespace Cofinoy.WebApp.Controllers
                     return Json(new { success = false, error = "Invalid data" });
                 }
 
-                _productService.AddProduct(model);
+                // Map ViewModel to ServiceModel
+                var serviceModel = new ProductServiceModel
+                {
+                    Name = model.Name,
+                    Description = model.Description,
+                    Price = model.Price,
+                    Status = model.Status,
+                    Stock = model.Stock,
+                    ImageUrl = model.ImageUrl,
+                    ImagePath = model.ImagePath,
+                    Categories = model.Categories ?? new List<string>(),
+                    Customizations = model.Customizations ?? new List<string>(),
+                    DisplayOrder = model.DisplayOrder,
+                    IsActive = model.IsActive
+                };
+
+                _productService.AddProduct(serviceModel);
                 return Json(new { success = true, message = "Product added successfully" });
             }
             catch (Exception ex)
@@ -338,7 +510,7 @@ namespace Cofinoy.WebApp.Controllers
 
         [HttpPost]
         [Authorize(Roles = "Admin")]
-        public JsonResult UpdateProduct(string id, [FromBody] ProductServiceModel model)
+        public JsonResult UpdateProduct(string id, [FromBody] ProductViewModel model)
         {
             try
             {
@@ -347,7 +519,23 @@ namespace Cofinoy.WebApp.Controllers
                     return Json(new { success = false, error = "Invalid data" });
                 }
 
-                _productService.UpdateProduct(id, model);
+                // Map ViewModel to ServiceModel
+                var serviceModel = new ProductServiceModel
+                {
+                    Name = model.Name,
+                    Description = model.Description,
+                    Price = model.Price,
+                    Status = model.Status,
+                    Stock = model.Stock,
+                    ImageUrl = model.ImageUrl,
+                    ImagePath = model.ImagePath,
+                    Categories = model.Categories ?? new List<string>(),
+                    Customizations = model.Customizations ?? new List<string>(),
+                    DisplayOrder = model.DisplayOrder,
+                    IsActive = model.IsActive
+                };
+
+                _productService.UpdateProduct(id, serviceModel);
                 return Json(new { success = true, message = "Product updated successfully" });
             }
             catch (InvalidDataException ex)
@@ -380,5 +568,7 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
+
+        #endregion
     }
 }

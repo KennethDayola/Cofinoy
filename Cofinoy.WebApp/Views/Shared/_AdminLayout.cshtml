@@ -5,10 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Cofinoy</title>
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
 
     <link rel="stylesheet" href="~/css/adminLayout.css" asp-append-version="true" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!--ICONS-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.13.1/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" />
 </head>
 <body>
     <div class="sidebar">
@@ -73,7 +76,7 @@
         </div>
 
         <div class="nav-section mt-auto">
-            <a class="nav-item logout" asp-area="" asp-controller="Account" asp-action="SignOutUser" role="button">
+            <a class="nav-item logout" id="openLogoutModalBtn" role="button">
                 <span class="nav-icon">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M5 21C4.45 21 3.97917 20.8042 3.5875 20.4125C3.19583 20.0208 3 19.55 3 19V5C3 4.45 3.19583 3.97917 3.5875 3.5875C3.97917 3.19583 4.45 3 5 3H11C11.2833 3 11.5208 3.09583 11.7125 3.2875C11.9042 3.47917 12 3.71667 12 4C12 4.28333 11.9042 4.52083 11.7125 4.7125C11.5208 4.90417 11.2833 5 11 5H5V19H11C11.2833 19 11.5208 19.0958 11.7125 19.2875C11.9042 19.4792 12 19.7167 12 20C12 20.2833 11.9042 20.5208 11.7125 20.7125C11.5208 20.9042 11.2833 21 11 21H5ZM17.175 13H10C9.71667 13 9.47917 12.9042 9.2875 12.7125C9.09583 12.5208 9 12.2833 9 12C9 11.7167 9.09583 11.4792 9.2875 11.2875C9.47917 11.0958 9.71667 11 10 11H17.175L15.3 9.125C15.1167 8.94167 15.025 8.71667 15.025 8.45C15.025 8.18333 15.1167 7.95 15.3 7.75C15.4833 7.55 15.7167 7.44583 16 7.4375C16.2833 7.42917 16.525 7.525 16.725 7.725L20.3 11.3C20.5 11.5 20.6 11.7333 20.6 12C20.6 12.2667 20.5 12.5 20.3 12.7L16.725 16.275C16.525 16.475 16.2875 16.5708 16.0125 16.5625C15.7375 16.5542 15.5 16.45 15.3 16.25C15.1167 16.05 15.0292 15.8125 15.0375 15.5375C15.0458 15.2625 15.1417 15.0333 15.325 14.85L17.175 13Z" fill="#ED0000" />
@@ -81,6 +84,31 @@
                 </span>
                 Logout
             </a>
+        </div>
+
+        <div id="logoutConfirmModal" class="modal-overlay logout-modal">
+            <div class="modal-container logout-modal-container">
+                <div class="modal-header d-flex flex-column align-items-center">
+                    <div class="logout-icon-wrapper mb-2 text-center">
+                        <span class="material-symbols-rounded fs-1">
+                            logout
+                        </span>
+                    </div>
+
+                </div>
+                <div class="modal-body justify-content-center align-items-center">
+                    <h4 class="text-center mb-3">Log out?</h4>
+                    <p class="text-secondary text-center m-0">Are you sure you want to log out your account?</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                    <button class="btn btn-outline-secondary rounded-pill" id="cancelLogoutBtn">Cancel</button>
+                    <form id="logoutForm" asp-controller="Account" asp-action="SignOutUser" method="post">
+                        <button type="submit" class="btn btn-danger rounded-pill" id="confirmLogoutBtn">
+                            Logout
+                        </button>
+                    </form>
+                </div>
+            </div>
         </div>
     </div>
     <div class="main-content">
@@ -90,6 +118,7 @@
     </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/js/adminLayout.js" asp-append-version="true"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script type="module">
         import { storage, ref, uploadBytes, getDownloadURL, deleteObject } from "/js/firebase-init.js";

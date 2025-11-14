@@ -260,6 +260,17 @@ namespace Cofinoy.Services.Services
             return _productRepository.ProductExists(id);
         }
 
+        // Stock management
+        public void ReduceStock(string productId, int quantity)
+        {
+            _productRepository.ReduceStock(productId, quantity);
+        }
+
+        public bool HasSufficientStock(string productId, int quantity)
+        {
+            return _productRepository.HasSufficientStock(productId, quantity);
+        }
+
         private void UpdateCategoryItemCount(string categoryId, bool increment)
         {
             var category = _categoryRepository.GetCategoryById(categoryId);
