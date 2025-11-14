@@ -3,7 +3,6 @@
     calculateCartTotals();
 });
 
-// Debounce timer for quantity updates
 let quantityUpdateTimers = {};
 let pendingUpdates = new Set();
 
@@ -62,7 +61,6 @@ async function updateQuantity(cartItemId, action) {
         return;
     }
 
-    // Prevent multiple rapid clicks
     if (pendingUpdates.has(cartItemId)) {
         console.log('Update already pending for:', cartItemId);
         return;
@@ -78,23 +76,18 @@ async function updateQuantity(cartItemId, action) {
         return;
     }
 
-    // Update UI immediately for better responsiveness
     quantityElement.textContent = quantity;
     
-    // Disable buttons to prevent rapid clicking
     const cartItem = document.getElementById(`cartItem-${cartItemId}`);
     const buttons = cartItem.querySelectorAll('.quantity-btn');
     buttons.forEach(btn => btn.disabled = true);
     
-    // Add pending state
     pendingUpdates.add(cartItemId);
 
-    // Clear existing timer for this item
     if (quantityUpdateTimers[cartItemId]) {
         clearTimeout(quantityUpdateTimers[cartItemId]);
     }
 
-    // Debounce the API call - wait 300ms after last click
     quantityUpdateTimers[cartItemId] = setTimeout(async () => {
         try {
             const response = await fetch('/Cart/UpdateQuantity', {
@@ -109,7 +102,6 @@ async function updateQuantity(cartItemId, action) {
             const result = await response.json();
 
             if (result.success) {
-                // Update from server response to ensure accuracy
                 quantityElement.textContent = quantity;
 
                 const itemTotalElement = document.getElementById(`total-${cartItemId}`);
@@ -129,24 +121,21 @@ async function updateQuantity(cartItemId, action) {
 
                 updateCartSummary(result.cartCount);
             } else {
-                // Revert on error
                 const previousQuantity = action === 'increase' ? quantity - 1 : quantity + 1;
                 quantityElement.textContent = previousQuantity;
                 alert('Error updating quantity: ' + result.error);
             }
         } catch (error) {
             console.error('Error updating quantity:', error);
-            // Revert on error
             const previousQuantity = action === 'increase' ? quantity - 1 : quantity + 1;
             quantityElement.textContent = previousQuantity;
             alert('Error updating quantity');
         } finally {
-            // Re-enable buttons
             buttons.forEach(btn => btn.disabled = false);
             pendingUpdates.delete(cartItemId);
             delete quantityUpdateTimers[cartItemId];
         }
-    }, 300); // 300ms debounce delay
+    }, 300); 
 }
 
 async function removeFromCart(cartItemId) {
@@ -163,7 +152,6 @@ async function removeFromCart(cartItemId) {
         const data = await response.json();
 
         if (data.success) {
-            // Remove item from DOM
             const itemElement = document.getElementById(`cartItem-${cartItemId}`);
             if (itemElement) {
                 itemElement.style.transition = 'opacity 0.3s ease';
@@ -171,7 +159,6 @@ async function removeFromCart(cartItemId) {
                 setTimeout(() => {
                     itemElement.remove();
 
-                    // Check if cart is empty
                     const cartItemsList = document.querySelector('.cart-items-list');
                     if (cartItemsList && cartItemsList.children.length === 0) {
                         location.reload();
@@ -179,20 +166,18 @@ async function removeFromCart(cartItemId) {
                 }, 300);
             }
 
-            // Update totals
             document.getElementById('subtotalAmount').textContent = `₱${data.subtotal.toFixed(2)}`;
             document.getElementById('totalAmount').textContent = `₱${data.total.toFixed(2)}`;
 
-            // Update cart count in header if you have one
             const cartCountElement = document.getElementById('cartCount');
             if (cartCountElement) {
                 cartCountElement.textContent = data.cartCount;
             }
 
-            // Update cart summary
+      
             document.getElementById('cartSummary').textContent = `${data.cartCount} item(s) in your cart`;
 
-            // Show success toast
+    
             showToast('Item removed from cart', 'success');
         } else {
             showToast('Failed to remove item', 'error');
@@ -219,10 +204,9 @@ function showToast(message, type = 'success') {
     const toastMessage = toast.querySelector('.toast-message');
     const toastIcon = toast.querySelector('.toast-icon');
 
-    // Set message
+   
     toastMessage.textContent = message;
 
-    // Set icon based on type
     if (type === 'success') {
         toastIcon.textContent = 'check_circle';
         toast.classList.remove('error');
@@ -233,10 +217,8 @@ function showToast(message, type = 'success') {
         toast.classList.add('error');
     }
 
-    // Show toast
     toast.classList.add('show');
 
-    // Hide after 3 seconds
     setTimeout(() => {
         toast.classList.remove('show');
     }, 3000);

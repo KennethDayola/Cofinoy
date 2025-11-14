@@ -47,7 +47,7 @@ namespace Cofinoy.WebApp.Controllers
                 var userId = GetCurrentUserId();
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
 
-                // Get user's nickname if authenticated
+                
                 string nickname = null;
                 if (User?.Identity?.IsAuthenticated == true)
                 {
@@ -176,7 +176,6 @@ namespace Cofinoy.WebApp.Controllers
                 _logger.LogInformation("=== CHECKOUT START ===");
                 _logger.LogInformation("User ID: {UserId}", userId);
 
-                // Get cart items
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
                 if (cartItems == null || !cartItems.Any())
                 {
@@ -186,7 +185,6 @@ namespace Cofinoy.WebApp.Controllers
 
                 _logger.LogInformation("Cart items count: {Count}", cartItems.Count);
 
-                // Create order through OrderService
                 var orderDetails = await _orderService.CreateOrderAsync(
                     userId,
                     model.Nickname,
@@ -197,7 +195,6 @@ namespace Cofinoy.WebApp.Controllers
 
                 _logger.LogInformation("Order created successfully with ID: {OrderId}", orderDetails.Id);
 
-                // Prepare invoice model for view
                 var invoiceModel = new CheckoutViewModel
                 {
                     InvoiceNumber = orderDetails.InvoiceNumber,
@@ -212,7 +209,6 @@ namespace Cofinoy.WebApp.Controllers
                         Description = oi.Description,
                         Quantity = oi.Quantity,
                         UnitPrice = oi.UnitPrice,
-                        // Map customizations
                         Customizations = oi.Customizations ?? new List<CustomizationData>()
                     }).ToList()
                 };
@@ -246,12 +242,12 @@ namespace Cofinoy.WebApp.Controllers
 
     public class UpdateQuantityModel
     {
-        public string CartItemId { get; set; } // Changed from ProductId
+        public string CartItemId { get; set; }
         public int Quantity { get; set; }
     }
 
     public class RemoveFromCartModel
     {
-        public string CartItemId { get; set; } // Changed from ProductId
+        public string CartItemId { get; set; } 
     }
 }
