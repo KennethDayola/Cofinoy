@@ -304,10 +304,13 @@
     text-transform: capitalize;
 }
 
-    .status.brewing,
-    .status.pending {
+    .status.brewing {
         background-color: #fff3cd;
         color: #856404;
+    }
+    .status.pending {
+        background-color: #dbeafe; 
+        color: #1e40af; 
     }
 
     .status.preparing {
@@ -374,12 +377,12 @@
     border-radius: 12px;
     padding: 20px;
     text-align: center;
-    text-decoration: none;
-    color: #333;
+    text-decoration: none !important;
+    color: #333 !important;
     transition: all 0.2s ease;
     border: 2px solid transparent;
+    display: block;
 }
-
     .action-card:hover {
         transform: translateY(-2px);
         box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
@@ -400,7 +403,14 @@
     transition: all 0.2s ease;
 }
 
-.action-card:hover .action-icon {
+action-card:hover,
+.action-card:focus,
+.action-card:active,
+.action-card:visited {
+    text-decoration: none !important;
+    color: #333 !important;
+}
+.action-icon {
     transform: scale(1.05);
 }
 
