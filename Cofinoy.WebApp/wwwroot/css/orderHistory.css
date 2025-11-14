@@ -690,26 +690,38 @@
     font-weight: 500;
 }
 
+
+
+
+
 .sort-button {
-    background-color: #fff;
+    background: #4b3d1f;
+    color: white; /* important for currentColor */
     border: none;
-    border-radius: 8px;
-    padding: 12px 20px;
+    border-radius: 20px;
+    padding: 10px 20px;
+    font-size: 1rem;
+    font-weight: 600;
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    font-size: 16px;
-    color: #322708;
+    transition: background-color 0.2s ease;
     height: fit-content;
-    font-weight: 500;
 }
 
-.sort-icon {
-    width: 20px;
-    height: 20px;
-}
+    .sort-button:hover {
+        background-color: #6b4e2a;
+    }
+    .sort-button .sort-icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .sort-button svg path {
+        stroke: white !important;
+        fill: none !important; 
+    }
 
 .no-orders, .no-order-selected {
     text-align: center;
@@ -834,3 +846,17 @@
         padding: 3px 8px;
     }
 }
+.btn-cancel {
+    background-color: #ff4d4f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+    .btn-cancel:hover {
+        background-color: #ff7875;
+    }
