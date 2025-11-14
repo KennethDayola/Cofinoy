@@ -89,21 +89,21 @@
     function displayOrderDetails(order) {
         const header = orderDetailSection.querySelector('.order-detail-header');
         header.innerHTML = `
-            <div class="order-header-info">
-                <p class="order-invoice">Order #${order.invoiceNumber}</p> 
-            </div>
-            <p class="order-date-time">${order.orderDate}</p>
-        `;
+        <div class="order-header-info">
+            <p class="order-invoice">Order #${order.invoiceNumber}</p> 
+        </div>
+        <p class="order-date-time">${order.orderDate}</p>
+    `;
 
-        // Show/hide cancel button for pending orders
+        // Show/hide cancel button based on order status
         if (cancelOrderContainer && cancelOrderButton) {
-            if (order.status === 'Placed') {
+            if (order.status === 'Placed' || order.status === 'Pending') {
                 cancelOrderContainer.style.display = 'flex';
-                orderDetailSection.insertBefore(cancelOrderContainer, orderItemsContainer);
             } else {
                 cancelOrderContainer.style.display = 'none';
             }
         }
+
 
         let itemsHTML = '';
         if (order.items && order.items.length > 0) {
@@ -345,3 +345,4 @@
 
     if (trackOrderText) trackOrderText.style.transition = 'all 0.3s ease';
 });
+
