@@ -1,10 +1,10 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Cofinoy.Data.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cofinoy.Data
 {
-
     /// <summary>
     /// Unit of Work Implementation
     /// </summary>
@@ -30,6 +30,14 @@ namespace Cofinoy.Data
         public void SaveChanges()
         {
             Database.SaveChanges();
+        }
+
+        /// <summary>
+        /// Saves the changes to database asynchronously
+        /// </summary>
+        public async Task SaveChangesAsync()
+        {
+            await Database.SaveChangesAsync();
         }
 
         /// <summary>

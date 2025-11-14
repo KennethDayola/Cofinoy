@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Cofinoy.Data.Migrations
 {
     [DbContext(typeof(CofinoyDbContext))]
-    [Migration("20251017182557_CheckoutMigration")]
-    partial class CheckoutMigration
+    [Migration("20251020175852_SyncModelChanges")]
+    partial class SyncModelChanges
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -242,9 +242,6 @@ namespace Cofinoy.Data.Migrations
                     b.Property<string>("AdditionalRequest")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Dummy")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("InvoiceNumber")
                         .HasColumnType("nvarchar(max)");
 
@@ -281,9 +278,6 @@ namespace Cofinoy.Data.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Dummy")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("ExtraShots")

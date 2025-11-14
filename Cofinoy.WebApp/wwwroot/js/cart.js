@@ -1,8 +1,11 @@
 ﻿document.addEventListener('DOMContentLoaded', function () {
     console.log('Cart page initialized');
-
     calculateCartTotals();
 });
+
+// Debounce timer for quantity updates
+let quantityUpdateTimers = {};
+let pendingUpdates = new Set();
 
 function calculateCartTotals() {
     let subtotal = 0;
@@ -24,13 +27,19 @@ function calculateCartTotals() {
 
     cartItems.forEach(item => {
         const quantity = parseInt(item.querySelector('.quantity-value').textContent);
-        const unitPrice = parseFloat(item.querySelector('.item-price').textContent.replace('₱', ''));
+        const unitPrice = parseFloat(item.querySelector('.item-price').textContent.replace('₱', '').replace(',', ''));
         const itemTotal = quantity * unitPrice;
+
+        const itemTotalElement = item.querySelector('.item-total');
+        if (itemTotalElement) {
+            itemTotalElement.textContent = '₱' + itemTotal.toFixed(2);
+        }
 
         subtotal += itemTotal;
     });
 
-    const total = subtotal - 60;
+    
+    const total = subtotal; 
 
     const subtotalElement = document.getElementById('subtotalAmount');
     const totalElement = document.getElementById('totalAmount');
@@ -43,8 +52,22 @@ function calculateCartTotals() {
     }
 }
 
-async function updateQuantity(productId, action) {
-    const quantityElement = document.getElementById(`quantity-${productId}`);
+
+async function updateQuantity(cartItemId, action) {
+    console.log('updateQuantity called with cartItemId:', cartItemId, 'action:', action);
+    
+    const quantityElement = document.getElementById(`quantity-${cartItemId}`);
+    if (!quantityElement) {
+        console.error('Quantity element not found for cartItemId:', cartItemId);
+        return;
+    }
+
+    // Prevent multiple rapid clicks
+    if (pendingUpdates.has(cartItemId)) {
+        console.log('Update already pending for:', cartItemId);
+        return;
+    }
+    
     let quantity = parseInt(quantityElement.textContent);
 
     if (action === 'increase') {
@@ -55,90 +78,130 @@ async function updateQuantity(productId, action) {
         return;
     }
 
-    try {
-        const response = await fetch('/Cart/UpdateQuantity', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'RequestVerificationToken': getAntiForgeryToken()
-            },
-            body: JSON.stringify({ productId: productId, quantity: quantity })
-        });
+    // Update UI immediately for better responsiveness
+    quantityElement.textContent = quantity;
+    
+    // Disable buttons to prevent rapid clicking
+    const cartItem = document.getElementById(`cartItem-${cartItemId}`);
+    const buttons = cartItem.querySelectorAll('.quantity-btn');
+    buttons.forEach(btn => btn.disabled = true);
+    
+    // Add pending state
+    pendingUpdates.add(cartItemId);
 
-        const result = await response.json();
-
-        if (result.success) {
-            quantityElement.textContent = quantity;
-
-            const itemTotalElement = document.getElementById(`total-${productId}`);
-            const subtotalElement = document.getElementById('subtotalAmount');
-            const totalElement = document.getElementById('totalAmount');
-
-            if (itemTotalElement) {
-                itemTotalElement.textContent = `₱ ${result.itemTotal.toFixed(2)}`;
-            }
-            if (subtotalElement) {
-                subtotalElement.textContent = `₱ ${result.subtotal.toFixed(2)}`;
-            }
-            if (totalElement) {
-                totalElement.textContent = `₱ ${result.total.toFixed(2)}`;
-            }
-
-            updateCartSummary(result.cartCount);
-        } else {
-            alert('Error updating quantity: ' + result.error);
-        }
-    } catch (error) {
-        console.error('Error updating quantity:', error);
-        alert('Error updating quantity');
+    // Clear existing timer for this item
+    if (quantityUpdateTimers[cartItemId]) {
+        clearTimeout(quantityUpdateTimers[cartItemId]);
     }
+
+    // Debounce the API call - wait 300ms after last click
+    quantityUpdateTimers[cartItemId] = setTimeout(async () => {
+        try {
+            const response = await fetch('/Cart/UpdateQuantity', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'RequestVerificationToken': getAntiForgeryToken()
+                },
+                body: JSON.stringify({ cartItemId: cartItemId, quantity: quantity })
+            });
+
+            const result = await response.json();
+
+            if (result.success) {
+                // Update from server response to ensure accuracy
+                quantityElement.textContent = quantity;
+
+                const itemTotalElement = document.getElementById(`total-${cartItemId}`);
+                if (itemTotalElement) {
+                    itemTotalElement.textContent = `₱${result.itemTotal.toFixed(2)}`;
+                }
+
+                const subtotalElement = document.getElementById('subtotalAmount');
+                const totalElement = document.getElementById('totalAmount');
+
+                if (subtotalElement) {
+                    subtotalElement.textContent = `₱${result.subtotal.toFixed(2)}`;
+                }
+                if (totalElement) {
+                    totalElement.textContent = `₱${result.total.toFixed(2)}`;
+                }
+
+                updateCartSummary(result.cartCount);
+            } else {
+                // Revert on error
+                const previousQuantity = action === 'increase' ? quantity - 1 : quantity + 1;
+                quantityElement.textContent = previousQuantity;
+                alert('Error updating quantity: ' + result.error);
+            }
+        } catch (error) {
+            console.error('Error updating quantity:', error);
+            // Revert on error
+            const previousQuantity = action === 'increase' ? quantity - 1 : quantity + 1;
+            quantityElement.textContent = previousQuantity;
+            alert('Error updating quantity');
+        } finally {
+            // Re-enable buttons
+            buttons.forEach(btn => btn.disabled = false);
+            pendingUpdates.delete(cartItemId);
+            delete quantityUpdateTimers[cartItemId];
+        }
+    }, 300); // 300ms debounce delay
 }
 
-async function removeFromCart(productId) {
-    if (!confirm('Are you sure you want to remove this item from your cart?')) {
-        return;
-    }
-
+async function removeFromCart(cartItemId) {
     try {
         const response = await fetch('/Cart/RemoveFromCart', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'RequestVerificationToken': getAntiForgeryToken()
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
             },
-            body: JSON.stringify({ productId: productId })
+            body: JSON.stringify({ cartItemId: cartItemId })
         });
 
-        const result = await response.json();
+        const data = await response.json();
 
-        if (result.success) {
-            document.getElementById(`cartItem-${productId}`).remove();
+        if (data.success) {
+            // Remove item from DOM
+            const itemElement = document.getElementById(`cartItem-${cartItemId}`);
+            if (itemElement) {
+                itemElement.style.transition = 'opacity 0.3s ease';
+                itemElement.style.opacity = '0';
+                setTimeout(() => {
+                    itemElement.remove();
 
-            // Safely update elements only if they exist
-            const subtotalElement = document.getElementById('subtotalAmount');
-            const totalElement = document.getElementById('totalAmount');
-
-            if (subtotalElement) {
-                subtotalElement.textContent = `₱ ${result.subtotal.toFixed(2)}`;
+                    // Check if cart is empty
+                    const cartItemsList = document.querySelector('.cart-items-list');
+                    if (cartItemsList && cartItemsList.children.length === 0) {
+                        location.reload();
+                    }
+                }, 300);
             }
-            if (totalElement) {
-                totalElement.textContent = `₱ ${result.total.toFixed(2)}`;
+
+            // Update totals
+            document.getElementById('subtotalAmount').textContent = `₱${data.subtotal.toFixed(2)}`;
+            document.getElementById('totalAmount').textContent = `₱${data.total.toFixed(2)}`;
+
+            // Update cart count in header if you have one
+            const cartCountElement = document.getElementById('cartCount');
+            if (cartCountElement) {
+                cartCountElement.textContent = data.cartCount;
             }
 
-            updateCartSummary(result.cartCount);
+            // Update cart summary
+            document.getElementById('cartSummary').textContent = `${data.cartCount} item(s) in your cart`;
 
-            if (result.cartCount === 0) {
-                location.reload();
-            }
+            // Show success toast
+            showToast('Item removed from cart', 'success');
         } else {
-            alert('Error removing item: ' + result.error);
+            showToast('Failed to remove item', 'error');
         }
     } catch (error) {
         console.error('Error removing item:', error);
-        alert('Error removing item');
+        showToast('An error occurred', 'error');
     }
 }
-
 function getAntiForgeryToken() {
     const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
     return tokenElement ? tokenElement.value : '';
@@ -147,6 +210,34 @@ function getAntiForgeryToken() {
 function updateCartSummary(count) {
     const cartSummary = document.getElementById('cartSummary');
     if (cartSummary) {
-        cartSummary.textContent = `${count} item(s) in your cart.`;
+        cartSummary.textContent = `${count} item(s) in your cart`;
     }
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('cartToast');
+    const toastMessage = toast.querySelector('.toast-message');
+    const toastIcon = toast.querySelector('.toast-icon');
+
+    // Set message
+    toastMessage.textContent = message;
+
+    // Set icon based on type
+    if (type === 'success') {
+        toastIcon.textContent = 'check_circle';
+        toast.classList.remove('error');
+        toast.classList.add('success');
+    } else if (type === 'error') {
+        toastIcon.textContent = 'error';
+        toast.classList.remove('success');
+        toast.classList.add('error');
+    }
+
+    // Show toast
+    toast.classList.add('show');
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
 }

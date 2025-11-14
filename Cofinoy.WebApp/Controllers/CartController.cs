@@ -2,6 +2,7 @@
 using Cofinoy.Data.Models;
 using Cofinoy.Services.Interfaces;
 using Cofinoy.Services.ServiceModels;
+using Cofinoy.Services.Services;
 using Cofinoy.WebApp.Models;
 using Cofinoy.WebApp.Mvc;
 using Microsoft.AspNetCore.Authorization;
@@ -12,16 +13,17 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
-using Cofinoy.Data;
 
 namespace Cofinoy.WebApp.Controllers
 {
     public class CartController : ControllerBase<CartController>
     {
         private readonly ICartService _cartService;
+        private readonly IOrderService _orderService;
         private readonly IMapper _mapper;
-        private readonly CofinoyDbContext _context;
+        private readonly IUserService _userService;
 
         public CartController(
             IHttpContextAccessor httpContextAccessor,
@@ -29,11 +31,13 @@ namespace Cofinoy.WebApp.Controllers
             IConfiguration configuration,
             IMapper mapper,
             ICartService cartService,
-            CofinoyDbContext context) : base(httpContextAccessor, loggerFactory, configuration, mapper)
+            IOrderService orderService,
+             IUserService userService) : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
             _cartService = cartService;
+            _orderService = orderService;
+            _userService = userService;
             _mapper = mapper;
-            _context = context;
         }
 
         public async Task<IActionResult> Index()
@@ -43,43 +47,65 @@ namespace Cofinoy.WebApp.Controllers
                 var userId = GetCurrentUserId();
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
 
+                // Get user's nickname if authenticated
+                string nickname = null;
+                if (User?.Identity?.IsAuthenticated == true)
+                {
+                    var email = User.FindFirstValue(System.Security.Claims.ClaimTypes.Email);
+                    if (!string.IsNullOrEmpty(email))
+                    {
+                        var user = _userService.GetUserByEmail(email);
+                        nickname = user?.Nickname;
+                    }
+                }
+
+                ViewBag.UserNickname = nickname;
+
                 return View(cartItems);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading cart page");
+                ViewBag.UserNickname = null;
                 return View(new List<CartItemServiceModel>());
             }
         }
 
-        [HttpPost]
+            [HttpPost]
         public async Task<JsonResult> AddToCart([FromBody] CartItemServiceModel item)
         {
             try
             {
-                Console.WriteLine("=== CART CONTROLLER ADD TO CART START ===");
-                Console.WriteLine($"Received item: {item.Name}, Price: {item.UnitPrice}, Quantity: {item.Quantity}");
+                _logger.LogInformation("=== CART CONTROLLER ADD TO CART DEBUG ===");
+                _logger.LogInformation("Product: {ProductName}", item.Name);
+                _logger.LogInformation("UnitPrice received: {UnitPrice}", item.UnitPrice);
+                _logger.LogInformation("Quantity: {Quantity}", item.Quantity);
+                _logger.LogInformation("Expected Total: {Total}", item.UnitPrice * item.Quantity);
+
+                if (item.Customizations != null && item.Customizations.Any())
+                {
+                    _logger.LogInformation("Customizations count: {Count}", item.Customizations.Count);
+                    foreach (var custom in item.Customizations)
+                    {
+                        _logger.LogInformation("  - {Name}: {Value} ({Type})", custom.Name, custom.Value, custom.Type);
+                    }
+                }
+                else
+                {
+                    _logger.LogInformation("No customizations in request!");
+                }
 
                 var userId = GetCurrentUserId();
-                Console.WriteLine($"User ID: {userId}");
-
                 await _cartService.AddToCartAsync(userId, item);
 
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
                 var cartCount = cartItems.Sum(i => i.Quantity);
 
-                Console.WriteLine($"Success! Cart count: {cartCount}, Total items: {cartItems.Count}");
-                Console.WriteLine("=== CART CONTROLLER ADD TO CART COMPLETED ===");
-
                 return Json(new { success = true, cartCount = cartCount });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"=== CART CONTROLLER ADD TO CART FAILED ===");
-                Console.WriteLine($"Error: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
-
-                _logger.LogError(ex, "Error adding item to cart");
+                _logger.LogError(ex, "Error adding to cart");
                 return Json(new { success = false, error = ex.Message });
             }
         }
@@ -90,10 +116,10 @@ namespace Cofinoy.WebApp.Controllers
             try
             {
                 var userId = GetCurrentUserId();
-                await _cartService.UpdateCartItemQuantityAsync(userId, model.ProductId, model.Quantity);
+                await _cartService.UpdateCartItemQuantityAsync(userId, model.CartItemId, model.Quantity);
 
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
-                var updatedItem = cartItems.FirstOrDefault(i => i.ProductId == model.ProductId);
+                var updatedItem = cartItems.FirstOrDefault(i => i.CartItemId == model.CartItemId);
                 var subtotal = cartItems.Sum(i => i.TotalPrice);
                 var cartCount = cartItems.Sum(i => i.Quantity);
 
@@ -102,7 +128,7 @@ namespace Cofinoy.WebApp.Controllers
                     success = true,
                     itemTotal = updatedItem?.TotalPrice ?? 0,
                     subtotal = subtotal,
-                    total = subtotal - 60,
+                    total = subtotal,
                     cartCount = cartCount
                 });
             }
@@ -119,7 +145,7 @@ namespace Cofinoy.WebApp.Controllers
             try
             {
                 var userId = GetCurrentUserId();
-                await _cartService.RemoveFromCartAsync(userId, model.ProductId);
+                await _cartService.RemoveFromCartAsync(userId, model.CartItemId);
 
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
                 var subtotal = cartItems.Sum(i => i.TotalPrice);
@@ -129,7 +155,7 @@ namespace Cofinoy.WebApp.Controllers
                 {
                     success = true,
                     subtotal = subtotal,
-                    total = subtotal - 60,
+                    total = subtotal,
                     cartCount = cartCount
                 });
             }
@@ -147,104 +173,63 @@ namespace Cofinoy.WebApp.Controllers
             {
                 var userId = GetCurrentUserId();
 
-                Console.WriteLine("=== CHECKOUT START ===");
-                Console.WriteLine($"User ID: {userId}");
+                _logger.LogInformation("=== CHECKOUT START ===");
+                _logger.LogInformation("User ID: {UserId}", userId);
 
-                //Cart Items 
+                // Get cart items
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
                 if (cartItems == null || !cartItems.Any())
                 {
-                    Console.WriteLine("Cart is empty, redirecting...");
+                    _logger.LogWarning("Cart is empty for user {UserId}, redirecting...", userId);
                     return RedirectToAction("Index", "Cart");
                 }
 
-                Console.WriteLine($"Cart items count: {cartItems.Count}");
+                _logger.LogInformation("Cart items count: {Count}", cartItems.Count);
 
-               
-                var order = new Cofinoy.Data.Models.Order
-                {
-                    UserId = userId,
-                    InvoiceNumber = Guid.NewGuid().ToString().Substring(0, 8).ToUpper(),
-                    OrderDate = DateTime.UtcNow,
-                    Nickname = model.Nickname,
-                    AdditionalRequest = model.AdditionalRequest ?? "",
-                    PaymentMethod = model.PaymentMethod,
-                    TotalPrice = cartItems.Sum(i => i.TotalPrice),
-                    Status = "Pending"
-                };
+                // Create order through OrderService
+                var orderDetails = await _orderService.CreateOrderAsync(
+                    userId,
+                    model.Nickname,
+                    model.AdditionalRequest,
+                    model.PaymentMethod,
+                    cartItems
+                );
 
-                Console.WriteLine($"Order created with invoice: {order.InvoiceNumber}");
+                _logger.LogInformation("Order created successfully with ID: {OrderId}", orderDetails.Id);
 
-               
-                order.OrderItems = cartItems.Select(item => new Cofinoy.Data.Models.OrderItem
-                {
-                    ProductId = item.ProductId,              
-                    ProductName = item.Name,                 
-                    Description = item.Description ?? "",
-                    UnitPrice = item.UnitPrice,
-                    Quantity = item.Quantity,
-                    TotalPrice = item.TotalPrice,
-                    Size = item.Size ?? "",
-                    MilkType = item.MilkType ?? "",
-                    Temperature = item.Temperature ?? "",
-                    ExtraShots = item.ExtraShots,
-                    SweetnessLevel = item.SweetnessLevel ?? ""
-                }).ToList();
-
-                Console.WriteLine($"Order items created: {order.OrderItems.Count}");
-
-                
-                _context.Orders.Add(order);
-                await _context.SaveChangesAsync();
-
-                Console.WriteLine("Order saved to database");
-
-                
-                await _cartService.ClearCartAsync(userId);
-
-                Console.WriteLine("Cart cleared");
-
-               
+                // Prepare invoice model for view
                 var invoiceModel = new CheckoutViewModel
                 {
-                    InvoiceNumber = order.InvoiceNumber,
-                    OrderDate = order.OrderDate,
-                    Nickname = order.Nickname,
-                    AdditionalRequest = order.AdditionalRequest,
-                    PaymentMethod = order.PaymentMethod,
-                    TotalPrice = order.TotalPrice,
-                    CartItems = order.OrderItems.Select(oi => new InvoiceItem
+                    InvoiceNumber = orderDetails.InvoiceNumber,
+                    OrderDate = orderDetails.OrderDate,
+                    Nickname = orderDetails.Nickname,
+                    AdditionalRequest = orderDetails.AdditionalRequest,
+                    PaymentMethod = orderDetails.PaymentMethod,
+                    TotalPrice = orderDetails.TotalPrice,
+                    CartItems = orderDetails.OrderItems.Select(oi => new InvoiceItem
                     {
                         Name = oi.ProductName,
                         Description = oi.Description,
                         Quantity = oi.Quantity,
-                        UnitPrice = oi.UnitPrice
+                        UnitPrice = oi.UnitPrice,
+                        // Map customizations
+                        Customizations = oi.Customizations ?? new List<CustomizationData>()
                     }).ToList()
                 };
 
-                Console.WriteLine("=== CHECKOUT COMPLETE ===");
+                _logger.LogInformation("=== CHECKOUT COMPLETE ===");
 
-               
-                return View("~/Views/Checkout/Checkout.cshtml", invoiceModel);
+                return View("~/Views/Cart/Checkout.cshtml", invoiceModel);
             }
             catch (Exception ex)
             {
-                Console.WriteLine("=== CHECKOUT ERROR ===");
-                Console.WriteLine($"Error: {ex.Message}");
-
-                var innerMessage = ex.InnerException?.Message ?? "No inner exception";
-                var innerTrace = ex.InnerException?.StackTrace ?? "";
-
-                Console.WriteLine($"Inner Exception: {innerMessage}");
-                Console.WriteLine($"Inner Stack Trace: {innerTrace}");
-
-                _logger.LogError(ex, "Error during checkout. Inner: {Inner}", innerMessage);
+                _logger.LogError(ex, "Error during checkout");
 
                 return Json(new
                 {
                     success = false,
                     error = ex.Message,
-                    innerError = innerMessage
+                    innerError = ex.InnerException?.Message ?? "No inner exception"
                 });
             }
         }
@@ -255,19 +240,18 @@ namespace Cofinoy.WebApp.Controllers
                    User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value :
                    HttpContext.Session.Id;
 
-            Console.WriteLine($"GetCurrentUserId returned: {userId}");
             return userId;
         }
     }
 
     public class UpdateQuantityModel
     {
-        public string ProductId { get; set; }
+        public string CartItemId { get; set; } // Changed from ProductId
         public int Quantity { get; set; }
     }
 
     public class RemoveFromCartModel
     {
-        public string ProductId { get; set; }
+        public string CartItemId { get; set; } // Changed from ProductId
     }
 }

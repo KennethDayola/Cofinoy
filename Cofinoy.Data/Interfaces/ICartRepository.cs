@@ -1,5 +1,4 @@
 ﻿using Cofinoy.Data.Models;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Cofinoy.Data.Interfaces
@@ -7,7 +6,8 @@ namespace Cofinoy.Data.Interfaces
     public interface ICartRepository
     {
         Task<Cart> GetCartByUserIdAsync(string userId);
-        Task AddOrUpdateCartAsync(Cart cart);
+        void AddCart(Cart cart);
+        void UpdateCart(Cart cart);
         Task ClearCartAsync(string userId);
     }
 }

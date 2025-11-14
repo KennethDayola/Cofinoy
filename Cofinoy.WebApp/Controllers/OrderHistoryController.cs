@@ -1,54 +1,66 @@
-﻿using Cofinoy.Data;
-using Cofinoy.Data.Models;
+﻿using AutoMapper;
+using Cofinoy.Services.Interfaces;
+using Cofinoy.WebApp.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace Cofinoy.Controllers
+namespace Cofinoy.WebApp.Controllers
 {
-    public class OrderHistoryController : Controller
+    [Authorize]
+    public class OrderHistoryController : ControllerBase<OrderHistoryController>
     {
-        private readonly CofinoyDbContext _context;
+        private readonly IOrderHistoryService _orderHistoryService;
+        private readonly IMapper _mapper;
 
-        public OrderHistoryController(CofinoyDbContext context)
+        public OrderHistoryController(
+            IHttpContextAccessor httpContextAccessor,
+            ILoggerFactory loggerFactory,
+            IConfiguration configuration,
+            IMapper mapper,
+            IOrderHistoryService orderHistoryService)
+            : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
-            _context = context;
+            _orderHistoryService = orderHistoryService;
+            _mapper = mapper;
         }
 
-        public async Task<IActionResult> OrderHistory()
-        {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrEmpty(userId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var orders = await _context.Orders
-    .Where(o => o.UserId == userId)
-    .Include(o => o.OrderItems)
-        .ThenInclude(oi => oi.Product)
-    .OrderByDescending(o => o.OrderDate)
-    .ToListAsync();
-
-
-            return View("~/Views/Order/OrderHistory.cshtml", orders);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetOrderDetails(int id)
+        public async Task<IActionResult> Index()
         {
             try
             {
-                var order = await _context.Orders
-                    .Include(o => o.OrderItems)
-                        .ThenInclude(oi => oi.Product)
-                    .FirstOrDefaultAsync(o => o.Id == id);
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
 
-                if (order == null)
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return RedirectToAction("Login", "Account");
+                }
+
+                var orders = await _orderHistoryService.GetOrderHistoryByUserIdAsync(userId);
+
+                return View(orders);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error loading order history");
+                return View(new System.Collections.Generic.List<Services.ServiceModels.OrderServiceModel>());
+            }
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetOrderDetails(int id)
+        {
+            try
+            {
+                var orderDetails = await _orderHistoryService.GetOrderDetailsByIdAsync(id);
+
+                if (orderDetails == null)
                 {
                     return Json(new { success = false, message = "Order not found" });
                 }
@@ -58,14 +70,14 @@ namespace Cofinoy.Controllers
                     success = true,
                     order = new
                     {
-                        invoiceNumber = order.InvoiceNumber,
-                        nickname = order.Nickname,
-                        orderDate = order.OrderDate.ToString("MMMM d, yyyy - h:mm tt"),
-                        additionalRequest = order.AdditionalRequest,
-                        totalPrice = order.TotalPrice,
-                        paymentMethod = order.PaymentMethod,
-                        status = order.Status,
-                        items = order.OrderItems.Select(oi => new
+                        invoiceNumber = orderDetails.InvoiceNumber,
+                        nickname = orderDetails.Nickname,
+                        orderDate = orderDetails.OrderDate.ToString("MMMM d, yyyy - h:mm tt"),
+                        additionalRequest = orderDetails.AdditionalRequest,
+                        totalPrice = orderDetails.TotalPrice,
+                        paymentMethod = orderDetails.PaymentMethod,
+                        status = orderDetails.Status,
+                        items = orderDetails.OrderItems.Select(oi => new
                         {
                             productName = oi.ProductName,
                             unitPrice = oi.UnitPrice,
@@ -76,8 +88,17 @@ namespace Cofinoy.Controllers
                             milkType = oi.MilkType,
                             extraShots = oi.ExtraShots,
                             sweetnessLevel = oi.SweetnessLevel,
-                            productImageUrl = oi.Product?.ImageUrl,
-                            imageUrl = oi.Product?.ImageUrl 
+                            productImageUrl = oi.ImageUrl,
+                            imageUrl = oi.ImageUrl,
+                        
+                            customizations = oi.Customizations.Select(c => new
+                            {
+                                name = c.Name,
+                                value = c.Value,
+                                type = c.Type,
+                                displayOrder = c.DisplayOrder,
+                                price = c.Price
+                            }).ToList()
                         }).ToList()
                     }
                 };
@@ -86,7 +107,109 @@ namespace Cofinoy.Controllers
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, "Error getting order details for order: {OrderId}", id);
                 return Json(new { success = false, message = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetOrderStatuses()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, error = "User not authenticated" });
+                }
+
+                var orderStatuses = await _orderHistoryService.GetOrderStatusesByUserIdAsync(userId);
+
+                return Json(new { success = true, data = orderStatuses });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting order statuses");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public async Task<JsonResult> GetAllOrderStatuses()
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, error = "User not authenticated" });
+                }
+
+                var orderStatuses = await _orderHistoryService.GetOrderStatusesByUserIdAsync(userId);
+
+                return Json(new
+                {
+                    success = true,
+                    orders = orderStatuses
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all order statuses");
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                });
+            }
+        }
+
+        [HttpPost]
+        public async Task<JsonResult> CancelOrder(int id)
+        {
+            try
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+                if (string.IsNullOrEmpty(userId))
+                {
+                    return Json(new { success = false, message = "User not authenticated" });
+                }
+
+                var order = await _orderHistoryService.GetOrderDetailsByIdAsync(id);
+
+                if (order == null)
+                {
+                    return Json(new { success = false, message = "Order not found" });
+                }
+
+                if (order.UserId != userId)
+                {
+                    return Json(new { success = false, message = "Access denied" });
+                }
+
+                if (order.Status != "Placed" && order.Status != "Pending")
+                {
+                    return Json(new { success = false, message = "Order can no longer be cancelled" });
+                }
+
+                var cancellationResult = await _orderHistoryService.CancelOrderAsync(id, userId);
+
+                if (cancellationResult)
+                {
+                    return Json(new { success = true, message = "Order cancelled successfully" });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Failed to cancel order" });
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error cancelling order: {OrderId}", id);
+                return Json(new { success = false, message = "Error cancelling order" });
             }
         }
     }

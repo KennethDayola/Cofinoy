@@ -25,7 +25,7 @@ namespace Cofinoy.WebApp
         {
             public AutoMapperProfileConfiguration()
             {
-                CreateMap<UserViewModel, User>();
+                CreateMap<UserServiceModel, User>();
             }
         }
     }

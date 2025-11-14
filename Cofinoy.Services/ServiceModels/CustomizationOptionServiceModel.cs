@@ -10,5 +10,6 @@ namespace Cofinoy.Services.ServiceModels
         public decimal PriceModifier { get; set; }
         public string Description { get; set; }
         public bool Default { get; set; }
+        public int DisplayOrder { get; set; }
     }
 }

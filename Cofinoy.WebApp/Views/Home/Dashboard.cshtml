@@ -1,0 +1,166 @@
+﻿@model Cofinoy.WebApp.Models.DashboardViewModel
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Dashboard";
+}
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+
+<div class="main-content">
+    <div class="dashboard-header">
+        <div class="welcome-section">
+            <h1 class="dashboard-title">Dashboard</h1>
+            <p class="welcome-text">
+                <strong>Welcome Back!</strong> Here's what's happening at your coffee shop today.
+            </p>
+        </div>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card revenue-card">
+            <div class="stat-icon">
+                <i class="fas fa-peso-sign"></i>
+            </div>
+            <div class="stat-content">
+                <h3 class="stat-label">Revenue Today</h3>
+                <p class="stat-value">₱ @Model.RevenueToday.ToString("N2")</p>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>@Model.RevenueTodayChange%</span> from yesterday
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card total-revenue-card">
+            <div class="stat-icon">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="stat-content">
+                <h3 class="stat-label">Total Revenue</h3>
+                <p class="stat-value">₱ @Model.TotalRevenue.ToString("N2")</p>
+                <div class="stat-info">
+                    <i class="fas fa-calendar"></i>
+                    <span>All time earnings</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card orders-today-card">
+            <div class="stat-icon">
+                <i class="fas fa-shopping-bag"></i>
+            </div>
+            <div class="stat-content">
+                <h3 class="stat-label">Total Orders Today</h3>
+                <p class="stat-value">@Model.TotalOrdersToday</p>
+                <div class="stat-change positive">
+                    <i class="fas fa-arrow-up"></i>
+                    <span>@Model.OrdersTodayChange%</span> from yesterday
+                </div>
+            </div>
+        </div>
+
+        <div class="stat-card active-orders-card">
+            <div class="stat-icon">
+                <i class="fas fa-fire"></i>
+            </div>
+            <div class="stat-content">
+                <h3 class="stat-label">Active Orders</h3>
+                <p class="stat-value">@Model.ActiveOrders</p>
+                <div class="stat-info">
+                    <i class="fas fa-clock"></i>
+                    <span>Orders in progress</span>
+                </div>
+            </div>
+        </div>
+    </div> 
+    <div class="recent-orders-section">
+        <div class="section-header">
+            <h2 class="section-title">
+                <i class="fas fa-receipt"></i> Recent Orders
+            </h2>
+            <a href="@Url.Action("OrderManagement", "Order")" class="btn-view-all">
+                View All <i class="fas fa-arrow-right"></i>
+            </a>
+        </div>
+
+        <div class="orders-table-container">
+            <table class="orders-table">
+                <thead>
+                    <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Time</th>
+                        <th>Items</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var order in Model.RecentOrders)
+                    {
+                        <tr>
+                            <td><strong>@order.InvoiceNumber</strong></td>
+                            <td>@order.CustomerName</td>
+                            <td>@order.OrderTime</td>
+                            <td>@order.ItemCount</td>
+                            <td>₱ @order.TotalPrice.ToString("N2")</td>
+                            <td>
+                                <span class="status @order.Status.ToLower().Replace(" ", "-")">
+                                    @order.Status
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn-view-order" onclick="viewOrder(@order.Id)">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="quick-actions-section">
+        <h2 class="section-title">
+            <i class="fas fa-bolt"></i> Quick Actions
+        </h2>
+        <div class="quick-actions-grid">
+            <a href="@Url.Action("DrinkManagement", "Menu")" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-coffee"></i>
+                </div>
+                <h3>Manage Products</h3>
+                <p>Add, edit, or remove drinks</p>
+            </a>
+
+            <a href="@Url.Action("CategoriesManagement", "Menu")" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-list"></i>
+                </div>
+                <h3>Manage Categories</h3>
+                <p>Organize your menu items</p>
+            </a>
+
+            <a href="@Url.Action("CustomizationManagement", "Menu")" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-sliders-h"></i>
+                </div>
+                <h3>Manage Customizations</h3>
+                <p>Customize product options</p>
+            </a>
+
+            <a href="@Url.Action("OrderManagement", "Order")" class="action-card">
+                <div class="action-icon">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <h3>View All Orders</h3>
+                <p>Manage customer orders</p>
+            </a>
+        </div>
+    </div>
+</div>
+
+<script src="~/js/dashboard.js" asp-append-version="true"></script>

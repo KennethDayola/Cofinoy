@@ -1,4 +1,4 @@
-﻿const CustomizationAPI = {
+const CustomizationAPI = {
     async getAllCustomizations() {
         const response = await fetch('/Menu/GetAllCustomizations');
         return await response.json();
@@ -57,25 +57,51 @@ document.addEventListener('DOMContentLoaded', function () {
     const clearFiltersBtn = document.querySelector('.clear-filters-btn');
     const applyFiltersBtn = document.querySelector('.apply-filters-btn');
 
+    const deleteConfirmModal = document.getElementById('deleteConfirmModal');
+    const closeDeleteModalBtn = deleteConfirmModal.querySelector('.modal-close');
+    const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+    const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+    const deleteAddonName = document.getElementById('deleteAddonName');
+
     const modalTitle = document.getElementById('modalTitle');
     const saveAddonBtn = document.getElementById('saveAddonBtn');
+
+    const loadingProgress = document.getElementById('loadingProgress');
 
     let currentEditingId = null;
     let optionCounter = 0;
     let isSubmitting = false;
     let allAddons = [];
+    let pendingDeleteId = null;
+    let pendingDeleteCard = null;
 
     initializeApp();
 
     async function initializeApp() {
         try {
+            showLoadingProgress();
             await loadCustomizations();
             setupEventListeners();
         } catch (error) {
             console.error('Error initializing app:', error);
             showToastMessage('Error initializing application: ' + error.message, 'Error');
+        } finally {
+            hideLoadingProgress();
         }
     }
+
+    function showLoadingProgress() {
+        if (loadingProgress) {
+            loadingProgress.style.display = 'flex';
+        }
+    }
+
+    function hideLoadingProgress() {
+        if (loadingProgress) {
+            loadingProgress.style.display = 'none';
+        }
+    }
+
     function setupEventListeners() {
         addAddonBtn.addEventListener('click', openModal);
         closeModalBtn.addEventListener('click', closeModalFunc);
@@ -88,6 +114,17 @@ document.addEventListener('DOMContentLoaded', function () {
         closeFilterModalBtn.addEventListener('click', closeFilterModal);
         filterModal.addEventListener('click', function (e) {
             if (e.target === filterModal) closeFilterModal();
+        });
+
+        if (closeDeleteModalBtn) {
+            closeDeleteModalBtn.addEventListener('click', closeDeleteModal);
+        }
+        
+        cancelDeleteBtn.addEventListener('click', closeDeleteModal);
+        confirmDeleteBtn.addEventListener('click', confirmDelete);
+
+        deleteConfirmModal.addEventListener('click', function (e) {
+            if (e.target === deleteConfirmModal) closeDeleteModal();
         });
 
         customizationTypeSelect.addEventListener('change', handleTypeChange);
@@ -126,6 +163,53 @@ document.addEventListener('DOMContentLoaded', function () {
     function closeFilterModal() {
         filterModal.classList.remove('active');
         document.body.style.overflow = 'auto';
+    }
+
+    function openDeleteModal(addonName, addonId, card) {
+        deleteAddonName.textContent = addonName;
+        pendingDeleteId = addonId;
+        pendingDeleteCard = card;
+        deleteConfirmModal.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeDeleteModal() {
+        deleteConfirmModal.classList.remove('active');
+        document.body.style.overflow = 'auto';
+        pendingDeleteId = null;
+        pendingDeleteCard = null;
+    }
+
+    async function confirmDelete() {
+        if (!pendingDeleteId || !pendingDeleteCard) return;
+
+        try {
+            confirmDeleteBtn.disabled = true;
+            confirmDeleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Deleting...';
+
+            pendingDeleteCard.style.opacity = '0.5';
+            pendingDeleteCard.style.pointerEvents = 'none';
+
+            const result = await CustomizationAPI.deleteCustomization(pendingDeleteId);
+
+            if (result.success) {
+                closeDeleteModal();
+                showToastMessage('Customization deleted successfully!');
+                await loadCustomizations();
+            } else {
+                throw new Error(result.error || 'Failed to delete customization');
+            }
+
+        } catch (error) {
+            console.error('Error deleting customization:', error);
+            showToastMessage('Error deleting customization: ' + error.message, 'Error');
+
+            pendingDeleteCard.style.opacity = '1';
+            pendingDeleteCard.style.pointerEvents = 'auto';
+        } finally {
+            confirmDeleteBtn.disabled = false;
+            confirmDeleteBtn.innerHTML = '<i class="fas fa-trash"></i> Delete';
+        }
     }
 
     function resetForm() {
@@ -219,7 +303,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         updateAddonsCount(visibleCount);
 
-        // Update no addons message based on filter results
         if (visibleCount === 0) {
             updateNoAddonsMessage();
         } else {
@@ -229,11 +312,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
+    
     function addOptionField(existingOption = null) {
         optionCounter++;
         const optionItem = document.createElement('div');
         optionItem.className = 'option-item';
         optionItem.setAttribute('data-option-id', optionCounter);
+
+        const currentOptionsCount = document.querySelectorAll('.option-item').length;
+        const displayOrder = existingOption?.displayOrder || (currentOptionsCount + 1);
 
         optionItem.innerHTML = `
         <div class="option-header">
@@ -243,6 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
             </button>
         </div>
         <div class="option-fields">
+            <input type="hidden" name="option_displayorder_${optionCounter}" value="${displayOrder}">
             <div class="option-field">
                 <label>Option Name *</label>
                 <input type="text" name="option_name_${optionCounter}" 
@@ -251,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function () {
                        value="${existingOption ? existingOption.name : ''}">
             </div>
             <div class="option-field">
-                <label>Price Modifier (₱)</label>
+                <label>Price Modifier (?)</label>
                 <input type="number" name="option_price_${optionCounter}" 
                        placeholder="0.00" step="0.01" min="0"
                        value="${existingOption ? existingOption.priceModifier : ''}">
@@ -300,14 +388,20 @@ document.addEventListener('DOMContentLoaded', function () {
             optionItem.remove();
             clearValidationErrors();
 
-            if (isDefault) {
-                const remainingOptions = document.querySelectorAll('.option-item');
-                if (remainingOptions.length > 0) {
-                    const firstOption = remainingOptions[0];
-                    const firstRadio = firstOption.querySelector('input[type="radio"]');
-                    if (firstRadio) {
-                        firstRadio.checked = true;
-                    }
+            const remainingOptions = document.querySelectorAll('.option-item');
+            remainingOptions.forEach((item, index) => {
+                const optionIdAttr = item.getAttribute('data-option-id');
+                const displayOrderInput = item.querySelector(`[name="option_displayorder_${optionIdAttr}"]`);
+                if (displayOrderInput) {
+                    displayOrderInput.value = index + 1;
+                }
+            });
+
+            if (isDefault && remainingOptions.length > 0) {
+                const firstOption = remainingOptions[0];
+                const firstRadio = firstOption.querySelector('input[type="radio"]');
+                if (firstRadio) {
+                    firstRadio.checked = true;
                 }
             }
         }
@@ -391,7 +485,7 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isSubmitting) return;
 
         if (!validateForm()) {
-            showToastMessage('Please fix the validation errors before submitting.', 'Validation Error');
+            // Don't show toast for validation errors, just show the inline error messages
             return;
         }
 
@@ -427,13 +521,15 @@ document.addEventListener('DOMContentLoaded', function () {
                     if (optionName) {
                         const optionPrice = parseFloat(item.querySelector(`[name="option_price_${optionId}"]`).value) || 0;
                         const optionDescription = item.querySelector(`[name="option_description_${optionId}"]`).value.trim();
+                        const optionDisplayOrder = parseInt(item.querySelector(`[name="option_displayorder_${optionId}"]`).value) || 0;
                         const isDefault = optionId === selectedDefaultId;
 
                         formData.options.push({
                             name: optionName,
                             priceModifier: optionPrice,
                             description: optionDescription,
-                            default: isDefault
+                            default: isDefault,
+                            displayOrder: optionDisplayOrder
                         });
                     }
                 });
@@ -513,7 +609,10 @@ document.addEventListener('DOMContentLoaded', function () {
         addonCard.className = 'addon-card';
         addonCard.setAttribute('data-id', addonData.id);
 
-        const optionsCount = addonData.options ? addonData.options.length : 0;
+        const sortedOptions = addonData.options ? 
+            [...addonData.options].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)) : 
+            [];
+        const optionsCount = sortedOptions.length;
 
         addonCard.innerHTML = `
             <div class="addon-header">
@@ -549,7 +648,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="addon-options">
                     <div class="options-title">Options Preview</div>
                     <div class="options-preview">
-                        ${addonData.options.slice(0, 4).map(option =>
+                        ${sortedOptions.slice(0, 4).map(option =>
                     `<span class="option-tag">${option.name}</span>`
                 ).join('')}
                         ${optionsCount > 4 ? `<span class="option-tag">+${optionsCount - 4} more</span>` : ''}
@@ -559,7 +658,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="addon-footer">
                     <span class="addon-stats">
                         ${addonData.type === 'quantity' ?
-                `Max: ${addonData.maxQuantity || 100} | ₱${addonData.pricePerUnit || 0}/unit` :
+                `Max: ${addonData.maxQuantity || 100} | ?${addonData.pricePerUnit || 0}/unit` :
                 `${optionsCount} options available`}
                     </span>
                     <div class="addon-actions">
@@ -602,7 +701,11 @@ document.addEventListener('DOMContentLoaded', function () {
             document.getElementById('pricePerUnit').required = false;
 
             if (addonData.options && addonData.options.length > 0) {
-                addonData.options.forEach(option => {
+                const sortedOptions = [...addonData.options].sort((a, b) => 
+                    (a.displayOrder || 0) - (b.displayOrder || 0)
+                );
+                
+                sortedOptions.forEach(option => {
                     addOptionField(option);
                 });
 
@@ -624,32 +727,10 @@ document.addEventListener('DOMContentLoaded', function () {
         openModal();
     }
 
-    async function deleteAddon(card) {
+    function deleteAddon(card) {
         const id = card.getAttribute('data-id');
         const addonName = card.querySelector('.addon-name').textContent;
-
-        if (confirm(`Are you sure you want to delete the "${addonName}" customization? This action cannot be undone.`)) {
-            try {
-                card.style.opacity = '0.5';
-                card.style.pointerEvents = 'none';
-
-                const result = await CustomizationAPI.deleteCustomization(id);
-
-                if (result.success) {
-                    showToastMessage('Customization deleted successfully!');
-                    await loadCustomizations();
-                } else {
-                    throw new Error(result.error || 'Failed to delete customization');
-                }
-
-            } catch (error) {
-                console.error('Error deleting customization:', error);
-                showToastMessage('Error deleting customization: ' + error.message, 'Error');
-
-                card.style.opacity = '1';
-                card.style.pointerEvents = 'auto';
-            }
-        }
+        openDeleteModal(addonName, id, card);
     }
 
     function addActionButtonListeners(card, addonData) {
@@ -671,6 +752,8 @@ document.addEventListener('DOMContentLoaded', function () {
                 closeModalFunc();
             } else if (filterModal.classList.contains('active')) {
                 closeFilterModal();
+            } else if (deleteConfirmModal.classList.contains('active')) {
+                closeDeleteModal();
             }
         }
 

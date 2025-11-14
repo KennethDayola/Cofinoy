@@ -1,4 +1,4 @@
-@model Cofinoy.WebApp.Models.CheckoutViewModel
+﻿@model Cofinoy.WebApp.Models.CheckoutViewModel
 
 @{
     ViewData["Title"] = "Checkout";
@@ -36,7 +36,6 @@
                 </div>
             </div>
 
-           
             <div class="invoice-details">
                 <div class="detail-section">
                     <h3>INVOICE TO:</h3>
@@ -49,7 +48,6 @@
                 </div>
             </div>
 
-           
             <table class="items-table">
                 <thead>
                     <tr>
@@ -69,38 +67,32 @@
                                 {
                                     <p class="item-description">@item.Description</p>
                                 }
-                                <div class="item-customizations">
-                                    @if (!string.IsNullOrEmpty(item.Size))
-                                    {
-                                        <p><strong>Size:</strong> @item.Size</p>
-                                    }
-                                    @if (!string.IsNullOrEmpty(item.MilkType))
-                                    {
-                                        <p><strong>Milk Type:</strong> @item.MilkType</p>
-                                    }
-                                    @if (!string.IsNullOrEmpty(item.Temperature))
-                                    {
-                                        <p><strong>Temperature:</strong> @item.Temperature</p>
-                                    }
-                                    @if (item.ExtraShots > 0)
-                                    {
-                                        <p><strong>Extra Shots:</strong> @item.ExtraShots</p>
-                                    }
-                                    @if (!string.IsNullOrEmpty(item.SweetnessLevel))
-                                    {
-                                        <p><strong>Sweetness:</strong> @item.SweetnessLevel</p>
-                                    }
-                                </div>
+                                @* Display customizations if available *@
+                                @if (item.Customizations != null && item.Customizations.Any())
+                                {
+                                    <div class="item-customizations" style="margin-top: 8px; font-size: 0.85em; color: #666;">
+                                        @foreach (var customization in item.Customizations.OrderBy(c => c.DisplayOrder ?? int.MaxValue).ThenBy(c => c.Name))
+                                        {
+                                            <div style="margin-bottom: 4px;">
+                                                <span style="font-weight: 500;">@customization.Name:</span>
+                                                <span>@customization.Value</span>
+                                                @if (customization.Price > 0)
+                                                {
+                                                    <span style="color: #4caf50;">(+P@(customization.Price.ToString("N2")))</span>
+                                                }
+                                            </div>
+                                        }
+                                    </div>
+                                }
                             </td>
                             <td style="text-align: center;" class="item-quantity">@item.Quantity</td>
-                            <td style="text-align: right;" class="item-price">₱@item.UnitPrice.ToString("N2")</td>
-                            <td style="text-align: right;" class="item-total">₱@item.TotalPrice.ToString("N2")</td>
+                            <td style="text-align: right;" class="item-price">P@(item.UnitPrice.ToString("N2"))</td>
+                            <td style="text-align: right;" class="item-total">P@((item.UnitPrice * item.Quantity).ToString("N2"))</td>
                         </tr>
                     }
                 </tbody>
             </table>
 
-            
             @if (!string.IsNullOrEmpty(Model.AdditionalRequest))
             {
                 <div class="additional-request">
@@ -109,36 +101,13 @@
                 </div>
             }
 
-           
             <div class="totals-section">
-                <div class="totals-box">
-                    <div class="total-row">
-                        <span class="total-label">Order Type:</span>
-                        <span class="total-value">@Model.OrderType</span>
+               
+            
+                        <span class="grand-total-label">TOTAL: </span>
+                        <span class="grand-total-value">P@(Model.TotalPrice.ToString("N2"))</span>
                     </div>
-                    <div class="total-row">
-                        <span class="total-label">Coupon Discount:</span>
-                        <span class="discount-value">-₱@Model.CouponCode.ToString("N2")</span>
-                    </div>
-                    <div class="total-row grand-total">
-                        <span class="grand-total-label">TOTAL:</span>
-                        <span class="grand-total-value">₱@Model.TotalPrice.ToString("N2")</span>
-                    </div>
-                </div>
-            </div>
-
-          
-            <div class="payment-info">
-                <div>
-                    <p class="payment-method-label">Payment Method:</p>
-                    <p class="payment-method-value">@Model.PaymentMethod</p>
-                </div>
-                <div class="text-right">
-                    <p class="status-label">
-                        Status:
-                        <span class="status-badge">Paid</span>
-                    </p>
-                </div>
+               
             </div>
 
             <div class="invoice-footer">
