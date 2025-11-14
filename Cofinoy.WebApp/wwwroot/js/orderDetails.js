@@ -11,7 +11,7 @@
         showToast(message, bootstrapType, 'Cofinoy');
     } else {
         console.error('Bootstrap toast function not available');
-        alert(message); 
+        alert(message);
     }
 }
 
@@ -25,7 +25,7 @@ function validatePending(orderId) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                displayToast(' Order validated and now Brewing', 'success');
+                displayToast('Order validated and now Brewing', 'success');
                 setTimeout(() => window.location.reload(), 1000);
             } else {
                 displayToast('⚠️ ' + data.error, 'error');
@@ -47,7 +47,7 @@ function markAsReady(orderId) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                displayToast(' Order marked as Ready', 'success');
+                displayToast('Order marked as Ready', 'success');
                 setTimeout(() => window.location.reload(), 1000);
             } else {
                 displayToast('⚠️ ' + data.error, 'error');
@@ -69,7 +69,7 @@ function markAsServing(orderId) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                displayToast(' Order marked as Serving', 'success');
+                displayToast('Order marked as Serving', 'success');
                 setTimeout(() => window.location.reload(), 1000);
             } else {
                 displayToast('⚠️ ' + data.error, 'error');
@@ -91,7 +91,7 @@ function markAsServed(orderId) {
         .then(res => res.json())
         .then(data => {
             if (data.success) {
-                displayToast(' Order marked as Served', 'success');
+                displayToast('Order marked as Served', 'success');
                 setTimeout(() => window.location.reload(), 1000);
             } else {
                 displayToast('⚠️ ' + data.error, 'error');
@@ -103,26 +103,47 @@ function markAsServed(orderId) {
         });
 }
 
-// ✅ Cancel Order
+// ✅ Cancel Order - Using Modal Confirmation
 function cancelOrder(orderId) {
-    if (!confirm('Are you sure you want to cancel this order?')) return;
+    const confirmModal = document.getElementById('cancelConfirmModal');
+    const confirmBtn = document.getElementById('confirmCancelBtn');
+    const cancelBtn = document.getElementById('cancelCancelBtn');
 
-    fetch(`${window.location.origin}/Order/CancelOrder`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId: orderId })
-    })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                displayToast('❌ Order cancelled successfully', 'warning');
-                setTimeout(() => window.location.reload(), 1000);
-            } else {
-                displayToast('⚠️ ' + data.error, 'error');
-            }
+    confirmModal.classList.add('show');
+
+    // Handle confirm
+    confirmBtn.onclick = () => {
+        confirmModal.classList.remove('show');
+
+        fetch(`${window.location.origin}/Order/CancelOrder`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ orderId: orderId })
         })
-        .catch(err => {
-            console.error('Error:', err);
-            displayToast('An unexpected error occurred', 'error');
-        });
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    displayToast('Order cancelled successfully', 'warning');
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    displayToast('⚠️ ' + data.error, 'error');
+                }
+            })
+            .catch(err => {
+                console.error('Error:', err);
+                displayToast('An unexpected error occurred', 'error');
+            });
+    };
+
+    // Handle cancel
+    cancelBtn.onclick = () => {
+        confirmModal.classList.remove('show');
+    };
+
+    // Close on outside click
+    confirmModal.onclick = (e) => {
+        if (e.target === confirmModal) {
+            confirmModal.classList.remove('show');
+        }
+    };
 }

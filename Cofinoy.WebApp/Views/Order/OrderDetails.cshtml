@@ -5,6 +5,7 @@
 }
 
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <link rel="stylesheet" href="~/css/orderDetails.css" asp-append-version="true" />
 
 <div class="order-details-container">
@@ -108,8 +109,6 @@
         </div>
     </div>
 
-    <!-- ORDER ACTION BUTTONS -->
-    <!-- ORDER ACTION BUTTONS -->
     <div class="order-footer">
         @{
             var status = Model.Status?.Trim() ?? "Pending";
@@ -158,7 +157,29 @@
     </div>
 </div>
 
-<!-- ✅ Include Bootstrap Toast Partial -->
+<!-- Notification Modal -->
+<div id="notificationModal" class="modal-overlay">
+    <div class="modal-content">
+        <span id="notificationIcon" class="material-icons modal-icon">check_circle</span>
+        <h3 id="notificationTitle">Success</h3>
+        <p id="notificationMessage">Operation completed successfully</p>
+        <button id="notificationOkBtn" class="modal-btn">OK</button>
+    </div>
+</div>
+
+<!-- Cancel Confirmation Modal -->
+<div id="cancelConfirmModal" class="modal-overlay">
+    <div class="modal-content">
+        <span class="material-icons modal-icon" style="color: #ffc107;">warning</span>
+        <h3>Confirm Cancellation</h3>
+        <p>Are you sure you want to cancel this order? This action cannot be undone.</p>
+        <div class="modal-buttons">
+            <button id="confirmCancelBtn" class="modal-btn modal-btn-danger">Yes, Cancel Order</button>
+            <button id="cancelCancelBtn" class="modal-btn modal-btn-secondary">No, Keep Order</button>
+        </div>
+    </div>
+</div>
+
 <partial name="_Toast" />
 
 <script src="~/js/orderDetails.js" asp-append-version="true"></script>
@@ -183,10 +204,10 @@
 
     @foreach (var item in Model.OrderItems)
     {
-                if (item.Customizations != null && item.Customizations.Any())
-                {
-                            @:console.log('Item: @item.ProductName - Customizations:', @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.Customizations)));
-                }
+            if (item.Customizations != null && item.Customizations.Any())
+            {
+                    @:console.log('Item: @item.ProductName - Customizations:', @Html.Raw(System.Text.Json.JsonSerializer.Serialize(item.Customizations)));
+            }
     }
     console.log('====================');
 </script>
