@@ -11,7 +11,6 @@ namespace Cofinoy.Services.ServiceModels
         public decimal Discount { get; set; }
         public decimal Total => Subtotal - Discount;
 
-        // Checkout information
         public string Nickname { get; set; }
         public string AdditionalRequest { get; set; }
         public string OrderType { get; set; }
