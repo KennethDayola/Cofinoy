@@ -410,9 +410,6 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
-
-
-
         [Authorize]
         [HttpPost]
         public IActionResult ChangePassword([FromBody] ChangePasswordViewModel model)
@@ -485,10 +482,6 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
-
-
-
-
         [HttpGet]
         public JsonResult IsAuthenticated()
         {
@@ -503,59 +496,5 @@ namespace Cofinoy.WebApp.Controllers
 
             return Json(result);
         }
-
-<<<<<<< HEAD
-        [Authorize]
-        [HttpPost]
-        public IActionResult ChangePassword([FromBody] ChangePasswordViewModel model)
-        {
-            try
-            {
-                var currentEmail = User.FindFirstValue(ClaimTypes.Email);
-                var user = _userService.GetUserByEmail(currentEmail);
-
-                if (user == null)
-                    return Json(new { success = false, message = "User not found." });
-
-                // Verify current password
-                var encryptedCurrentPassword = PasswordManager.EncryptPassword(model.CurrentPassword);
-                if (user.Password != encryptedCurrentPassword)
-                {
-                    return Json(new { success = false, message = "Current password is incorrect." });
-                }
-
-                // Validate new password
-                if (string.IsNullOrEmpty(model.NewPassword) || model.NewPassword.Length < 6)
-                {
-                    return Json(new { success = false, message = "New password must be at least 6 characters long." });
-                }
-
-                if (model.NewPassword != model.ConfirmPassword)
-                {
-                    return Json(new { success = false, message = "New passwords do not match." });
-                }
-
-                // Update password
-                user.Password = PasswordManager.EncryptPassword(model.NewPassword);
-                _userService.UpdateUser(user);
-
-                return Json(new { success = true, message = "Password changed successfully." });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error changing password");
-                return Json(new { success = false, message = "Error changing password. Please try again." });
-            }
-        }
-=======
-
-
-
-
-
-
-
-
->>>>>>> main
     }
 }
