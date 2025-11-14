@@ -111,7 +111,7 @@
                             <span asp-validation-for="PersonalInfo.LastName" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Nickname</label>
+                            <label class="form-label">Nickname <span class="text-danger">*</span></label>
                             <input type="text" name="Nickname" class="form-control" value="@Model.User.Nickname" placeholder="Enter your nickname">
                             <span asp-validation-for="PersonalInfo.Nickname" class="text-danger fs-8 mt-1"></span>
                         </div>
@@ -121,7 +121,7 @@
                             <span asp-validation-for="PersonalInfo.BirthDate" class="text-danger fs-8 mt-1"></span>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Email</label>
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
                             <input type="email" name="Email" class="form-control" value="@Model.User.Email" placeholder="Enter your email address">
                             <span asp-validation-for="PersonalInfo.Email" class="text-danger fs-8 mt-1"></span>
                         </div>
