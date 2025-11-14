@@ -261,7 +261,7 @@ namespace Cofinoy.WebApp.Controllers
             var user = _userService.GetUserByEmail(email);
             if (user == null)
             {
-                Console.WriteLine("User not found"); 
+                Console.WriteLine("User not found");
                 TempData["ToastMessage"] = "User not found.";
                 TempData["ToastType"] = "danger";
                 return RedirectToAction("RequestReset");
@@ -285,7 +285,7 @@ namespace Cofinoy.WebApp.Controllers
         public async Task<IActionResult> SignOutUser()
         {
             await this._signInManager.SignOutAsync();
-            _sessionManager.Clear();    
+            _sessionManager.Clear();
             return RedirectToAction("Login", "Account");
         }
 
@@ -410,6 +410,9 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+
+
+
         [Authorize]
         [HttpPost]
         public IActionResult ChangePassword([FromBody] ChangePasswordViewModel model)
@@ -482,6 +485,10 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+
+
+
+
         [HttpGet]
         public JsonResult IsAuthenticated()
         {
@@ -496,5 +503,14 @@ namespace Cofinoy.WebApp.Controllers
 
             return Json(result);
         }
+
+
+
+
+
+
+
+
+
     }
 }
