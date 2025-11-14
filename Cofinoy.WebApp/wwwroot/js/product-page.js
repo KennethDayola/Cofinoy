@@ -172,27 +172,62 @@ document.addEventListener("DOMContentLoaded", async () => {
             return;
         }
 
-        products.forEach(product => {
-            const card = document.createElement("div");
-            card.className = "product-card";
-            card.innerHTML = `
-                <img src="${product.imageUrl}" alt="${product.name}" />
-                <div class="product-info">
-                    <h3>${product.name}</h3>
-                    <p>${product.description}</p>
-                    <div class="price-row">
-                        <span class="price">₱${product.price.toFixed(2)}</span>
-                        <button class="add-btn">+</button>
-                    </div>
-                </div>
-            `;
-            productsContainer.appendChild(card);
+        // Separate available and unavailable products
+        const availableProducts = products.filter(p => {
+            const status = (p.status || '').toLowerCase();
+            const stock = parseInt(p.stock) || 0;
+            return status === 'available' && stock > 0;
+        });
 
-            // open customize modal
+        const unavailableProducts = products.filter(p => {
+            const status = (p.status || '').toLowerCase();
+            const stock = parseInt(p.stock) || 0;
+            return status !== 'available' || stock <= 0;
+        });
+
+        // Render available products first
+        availableProducts.forEach(product => renderProductCard(product, false));
+
+        // Render unavailable products last
+        unavailableProducts.forEach(product => renderProductCard(product, true));
+    }
+
+    function renderProductCard(product, isUnavailable) {
+        const card = document.createElement("div");
+        card.className = `product-card${isUnavailable ? ' product-unavailable' : ''}`;
+        
+        const stock = parseInt(product.stock) || 0;
+        const unavailableOverlay = isUnavailable ? `
+            <div class="unavailable-overlay">
+                <div class="unavailable-badge">
+                    <span class="material-symbols-rounded">block</span>
+                    <span>Unavailable</span>
+                </div>
+            </div>
+        ` : '';
+
+        card.innerHTML = `
+            <div class="product-image-wrapper">
+                <img src="${product.imageUrl}" alt="${product.name}" />
+                ${unavailableOverlay}
+            </div>
+            <div class="product-info">
+                <h3>${product.name}</h3>
+                <p>${product.description}</p>
+                <div class="price-row">
+                    <span class="price">₱${product.price.toFixed(2)}</span>
+                    <button class="add-btn" ${isUnavailable ? 'disabled' : ''}>+</button>
+                </div>
+            </div>
+        `;
+        productsContainer.appendChild(card);
+
+        // Only add click handler if product is available
+        if (!isUnavailable) {
             card.querySelector(".add-btn").addEventListener("click", async () => {
                 await openCustomize(product);
             });
-        });
+        }
     }
 
     async function loadProductsByCategory(categoryName) {
@@ -438,11 +473,13 @@ document.addEventListener("DOMContentLoaded", async () => {
             const qtyStepper = body?.querySelector('.stepper[data-type="addon-qty"]');
             if (qtyStepper) {
                 const units = parseInt(qtyStepper.querySelector('.stepper-value')?.textContent || '0');
+                const pricePerUnit = Number(qtyStepper.getAttribute('data-price-per-unit') || '0');
                 if (units > 0) {
                     customizations.push({
                         name: customizationName,
                         value: `${units}`,
-                        type: 'quantity'
+                        type: 'quantity',
+                        price: pricePerUnit * units
                     });
                 }
             }
@@ -451,32 +488,47 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (checkedRadio) {
                 const label = body.querySelector(`label[for="${checkedRadio.id}"]`)?.textContent ||
                     body.querySelector(`.temp-btn.active span`)?.textContent || 'Selected';
+                const price = Number(checkedRadio.getAttribute('data-price') || '0');
                 customizations.push({
                     name: customizationName,
                     value: label.trim(),
-                    type: 'single_select'
+                    type: 'single_select',
+                    price: price
                 });
             }
 
             const checkedBoxes = body?.querySelectorAll('input[type="checkbox"]:checked');
             if (checkedBoxes && checkedBoxes.length > 0) {
-                const values = Array.from(checkedBoxes).map(cb => {
+                const values = [];
+                let totalPrice = 0;
+                
+                checkedBoxes.forEach(cb => {
                     const label = body.querySelector(`label[for="${cb.id}"]`);
-                    return label?.querySelector('.option-name')?.textContent || label?.textContent || 'Selected';
+                    const optionName = label?.querySelector('.option-name')?.textContent || label?.textContent || 'Selected';
+                    values.push(optionName);
+                    totalPrice += Number(cb.getAttribute('data-price') || '0');
                 });
+                
                 customizations.push({
                     name: customizationName,
                     value: values.join(', '),
-                    type: 'multi_select'
+                    type: 'multi_select',
+                    price: totalPrice
                 });
             }
 
             const select = body?.querySelector('select.addon-select');
             if (select && select.selectedOptions && select.selectedOptions[0]) {
+                const price = Number(select.selectedOptions[0].getAttribute('data-price') || '0');
+                const optionText = select.selectedOptions[0].textContent.trim();
+                // Remove price from the option text if it exists (e.g., "Oat Milk (₱30.00)" -> "Oat Milk")
+                const cleanValue = optionText.replace(/\s*\(₱[\d,]+\.?\d*\)\s*$/g, '').trim();
+                
                 customizations.push({
                     name: customizationName,
-                    value: select.selectedOptions[0].textContent.trim(),
-                    type: 'single_select'
+                    value: cleanValue,
+                    type: 'single_select',
+                    price: price
                 });
             }
         });

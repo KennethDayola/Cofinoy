@@ -24,6 +24,8 @@
                 category: p.category || "Uncategorized",
                 customizations: p.customizations || p.Customizations || [],
                 isActive: typeof p.isActive === "boolean" ? p.isActive : true,
+                status: p.status || "Available",
+                stock: p.stock || "0",
                 createdAt: p.createdAt
             }));
 
@@ -85,6 +87,8 @@
                 category: p.category || "Uncategorized",
                 customizations: p.customizations || p.Customizations || [],
                 isActive: typeof p.isActive === "boolean" ? p.isActive : true,
+                status: p.status || "Available",
+                stock: p.stock || "0",
                 createdAt: p.createdAt
             }));
 

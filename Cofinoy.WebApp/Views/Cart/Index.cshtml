@@ -64,6 +64,7 @@
                                                 <div class="customization-row">
                                                     <span class="customization-label">@customization.Name:</span>
                                                     <span class="customization-value">@customization.Value</span>
+                                                    @* Show price for all customization types where price > 0 *@
                                                     @if (customization.Price > 0)
                                                     {
                                                         <span class="customization-price">(+₱@customization.Price.ToString("N2"))</span>
@@ -244,4 +245,4 @@
 
 @section Scripts {
     <script src="~/js/cart.js" asp-append-version="true"></script>
-}
+}}}
