@@ -44,29 +44,6 @@ namespace Cofinoy.Data.Repositories
                 .ToList();
         }
 
-        public bool CancelOrder(int orderId, string userId)
-        {
-            try
-            {
-                var order = this.GetDbSet<Order>()
-                    .FirstOrDefault(o => o.Id == orderId && o.UserId == userId);
-
-                if (order == null)
-                    return false;
-
-                if (order.Status != "Placed" && order.Status != "Pending")
-                    return false;
-
-                order.Status = "Cancelled";
-
-                UnitOfWork.SaveChanges();
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
+        
     }
 }

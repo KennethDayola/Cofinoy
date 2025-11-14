@@ -9,7 +9,7 @@ namespace Cofinoy.Data.Interfaces
         Order GetOrderDetailsById(int orderId);
         List<Order> GetOrderStatusesByUserId(string userId);
 
-        bool CancelOrder(int orderId, string userId); 
+  
 
     }
 }

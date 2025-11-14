@@ -9,14 +9,11 @@
     const mobileToggleList = document.getElementById('mobileToggleList');
     const orderListContainer = document.querySelector('.order-list-container');
 
-    const cancelOrderContainer = document.querySelector('.cancel-order-container');
-    const cancelOrderButton = document.getElementById('cancelOrderButton');
-
     let isNewestFirst = true;
     let isMobileListOpen = false;
     let autoRefreshInterval;
     let currentActiveOrderId = null;
-    let previousStatuses = new Map(); // Track previous statuses for animation
+    let previousStatuses = new Map();
 
     if (orderCards.length > 0) {
         const firstOrderCard = document.querySelector('.order-card.active');
@@ -31,7 +28,6 @@
 
     startAutoRefresh();
 
-    // Mobile toggle
     if (mobileToggleList) {
         mobileToggleList.addEventListener('click', function () {
             isMobileListOpen = !isMobileListOpen;
@@ -94,15 +90,6 @@
         </div>
         <p class="order-date-time">${order.orderDate}</p>
     `;
-
-        // Show/hide cancel button based on order status
-        if (cancelOrderContainer && cancelOrderButton) {
-            if (order.status === 'Placed' || order.status === 'Pending') {
-                cancelOrderContainer.style.display = 'flex';
-            } else {
-                cancelOrderContainer.style.display = 'none';
-            }
-        }
 
 
         let itemsHTML = '';
@@ -167,29 +154,6 @@
         if (trackOrderText) trackOrderText.textContent = `"Your order is ${order.status.toLowerCase()}"`;
     }
 
-    if (cancelOrderButton) {
-        cancelOrderButton.addEventListener('click', async function () {
-            if (!currentActiveOrderId) return;
-            const confirmCancel = confirm('Are you sure you want to cancel this order?');
-            if (!confirmCancel) return;
-            try {
-                const response = await fetch(`/OrderHistory/CancelOrder?id=${currentActiveOrderId}`, { method: 'POST' });
-                if (!response.ok) throw new Error('Failed to cancel order');
-                const result = await response.json();
-                if (result.success) {
-                    alert('Order cancelled successfully!');
-                    updateOrderCardStatus(currentActiveOrderId, 'Cancelled');
-                    updateTrackOrderProgress('Cancelled', true);
-                    cancelOrderContainer.style.display = 'none';
-                } else {
-                    alert('Failed to cancel order: ' + result.message);
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Error cancelling order. Please try again.');
-            }
-        });
-    }
 
     function updateProgressBar(orderId) {
         const activeCard = document.querySelector('.order-card.active');
@@ -345,4 +309,3 @@
 
     if (trackOrderText) trackOrderText.style.transition = 'all 0.3s ease';
 });
-

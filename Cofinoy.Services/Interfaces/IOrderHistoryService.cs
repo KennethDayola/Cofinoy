@@ -10,7 +10,7 @@ namespace Cofinoy.Services.Interfaces
         Task<OrderDetailsServiceModel> GetOrderDetailsByIdAsync(int orderId);
         Task<List<OrderStatusServiceModel>> GetOrderStatusesByUserIdAsync(string userId);
 
-        Task<bool> CancelOrderAsync(int orderId, string userId); 
+       
 
     }
 }
