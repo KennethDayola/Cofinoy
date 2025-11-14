@@ -22,6 +22,9 @@ namespace Cofinoy.Services.ServiceModels
         public List<CustomizationData> Customizations { get; set; } = new List<CustomizationData>();
 
         public decimal TotalPrice => UnitPrice * Quantity;
+
+      
+
     }
     public class CustomizationData
     {

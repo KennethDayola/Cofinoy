@@ -150,54 +150,58 @@ async function updateQuantity(cartItemId, action) {
 }
 
 async function removeFromCart(cartItemId) {
-    console.log('removeFromCart called with cartItemId:', cartItemId);
-    
-    if (!confirm('Are you sure you want to remove this item from your cart?')) {
-        return;
-    }
-
     try {
         const response = await fetch('/Cart/RemoveFromCart', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'RequestVerificationToken': getAntiForgeryToken()
+                'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
             },
             body: JSON.stringify({ cartItemId: cartItemId })
         });
 
-        const result = await response.json();
+        const data = await response.json();
 
-        if (result.success) {
-            const cartItemElement = document.getElementById(`cartItem-${cartItemId}`);
-            if (cartItemElement) {
-                cartItemElement.remove();
+        if (data.success) {
+            // Remove item from DOM
+            const itemElement = document.getElementById(`cartItem-${cartItemId}`);
+            if (itemElement) {
+                itemElement.style.transition = 'opacity 0.3s ease';
+                itemElement.style.opacity = '0';
+                setTimeout(() => {
+                    itemElement.remove();
+
+                    // Check if cart is empty
+                    const cartItemsList = document.querySelector('.cart-items-list');
+                    if (cartItemsList && cartItemsList.children.length === 0) {
+                        location.reload();
+                    }
+                }, 300);
             }
 
-            const subtotalElement = document.getElementById('subtotalAmount');
-            const totalElement = document.getElementById('totalAmount');
+            // Update totals
+            document.getElementById('subtotalAmount').textContent = `₱${data.subtotal.toFixed(2)}`;
+            document.getElementById('totalAmount').textContent = `₱${data.total.toFixed(2)}`;
 
-            if (subtotalElement) {
-                subtotalElement.textContent = `₱${result.subtotal.toFixed(2)}`;
-            }
-            if (totalElement) {
-                totalElement.textContent = `₱${result.total.toFixed(2)}`;
+            // Update cart count in header if you have one
+            const cartCountElement = document.getElementById('cartCount');
+            if (cartCountElement) {
+                cartCountElement.textContent = data.cartCount;
             }
 
-            updateCartSummary(result.cartCount);
+            // Update cart summary
+            document.getElementById('cartSummary').textContent = `${data.cartCount} item(s) in your cart`;
 
-            if (result.cartCount === 0) {
-                location.reload();
-            }
+            // Show success toast
+            showToast('Item removed from cart', 'success');
         } else {
-            alert('Error removing item: ' + result.error);
+            showToast('Failed to remove item', 'error');
         }
     } catch (error) {
         console.error('Error removing item:', error);
-        alert('Error removing item');
+        showToast('An error occurred', 'error');
     }
 }
-
 function getAntiForgeryToken() {
     const tokenElement = document.querySelector('input[name="__RequestVerificationToken"]');
     return tokenElement ? tokenElement.value : '';
@@ -208,4 +212,32 @@ function updateCartSummary(count) {
     if (cartSummary) {
         cartSummary.textContent = `${count} item(s) in your cart`;
     }
+}
+
+function showToast(message, type = 'success') {
+    const toast = document.getElementById('cartToast');
+    const toastMessage = toast.querySelector('.toast-message');
+    const toastIcon = toast.querySelector('.toast-icon');
+
+    // Set message
+    toastMessage.textContent = message;
+
+    // Set icon based on type
+    if (type === 'success') {
+        toastIcon.textContent = 'check_circle';
+        toast.classList.remove('error');
+        toast.classList.add('success');
+    } else if (type === 'error') {
+        toastIcon.textContent = 'error';
+        toast.classList.remove('success');
+        toast.classList.add('error');
+    }
+
+    // Show toast
+    toast.classList.add('show');
+
+    // Hide after 3 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
 }

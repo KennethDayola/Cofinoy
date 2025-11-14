@@ -141,7 +141,7 @@
     </div>
 </div>
 
-<
+<!-- Edit Address Modal -->
 <div class="modal fade" id="editAddressModal" tabindex="-1" aria-labelledby="editAddressLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -175,7 +175,7 @@
     </div>
 </div>
 
-
+<!-- Change Password Modal -->
 <div class="modal fade" id="changePasswordModal" tabindex="-1" aria-labelledby="changePasswordLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -186,20 +186,21 @@
             <div class="modal-body">
                 <form id="changePasswordForm">
                     <div class="mb-3">
-                        <label class="form-label">Current Password</label>
+                        <label class="form-label">Current Password <span class="text-danger">*</span></label>
                         <input type="password" id="currentPassword" name="CurrentPassword" class="form-control" required>
-                        <small class="text-danger d-none" id="currentPasswordError">The current password is incorrect, try again.</small>
+                        <small class="text-danger d-none" id="currentPasswordError">The current password is incorrect.</small>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Enter New Password</label>
+                        <label class="form-label">New Password <span class="text-danger">*</span></label>
                         <input type="password" id="newPassword" name="NewPassword" class="form-control" required>
-                        <small class="text-muted">Password requirements: At least 6 characters.</small>
-                        <small class="text-danger d-none" id="newPasswordError">The new password should not be the same as the current one.</small>
+                      
+                        <small class="text-danger d-none" id="passwordLengthError">Password must be at least 6 characters long.</small>
+                        <small class="text-danger d-none" id="newPasswordError">The new password cannot be the same as the current password.</small>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Confirm Password</label>
+                        <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
                         <input type="password" id="confirmPassword" name="ConfirmPassword" class="form-control" required>
-                        <small class="text-danger d-none" id="confirmPasswordError">Passwords do not match.</small>
+                        <small class="text-danger d-none" id="confirmPasswordError">New password and confirm password do not match.</small>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -211,75 +212,6 @@
     </div>
 </div>
 
-<script>
-    document.getElementById('changePasswordForm').addEventListener('submit', function(e) {
-        e.preventDefault();
-
-        const currentPassword = document.getElementById('currentPassword').value;
-        const newPassword = document.getElementById('newPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-
-        const currentPasswordError = document.getElementById('currentPasswordError');
-        const newPasswordError = document.getElementById('newPasswordError');
-        const confirmPasswordError = document.getElementById('confirmPasswordError');
-
-        // Reset error messages
-        currentPasswordError.classList.add('d-none');
-        newPasswordError.classList.add('d-none');
-        confirmPasswordError.classList.add('d-none');
-
-        let hasError = false;
-
-        // Validate if new password is different from current password
-        if (newPassword === currentPassword) {
-            newPasswordError.classList.remove('d-none');
-            hasError = true;
-        }
-
-        // Validate if passwords match
-        if (newPassword !== confirmPassword) {
-            confirmPasswordError.classList.remove('d-none');
-            hasError = true;
-        }
-
-        if (!hasError) {
-               fetch('/Account/ChangePassword', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-        },
-        body: JSON.stringify({
-            CurrentPassword: currentPassword,
-            NewPassword: newPassword,
-            ConfirmPassword: confirmPassword
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.success) {
-            alert(data.message);
-            document.getElementById('changePasswordForm').reset();
-            const modal = bootstrap.Modal.getInstance(document.getElementById('changePasswordModal'));
-            modal.hide();
-        } else {
-            alert(data.message);
-        }
-    })
-    .catch(err => alert("Something went wrong while changing password."));
-
-        }
-    });
-
-    // Validation for current password would happen on backend
-    document.getElementById('changePasswordForm').addEventListener('change', function(e) {
-        if (e.target.id === 'newPassword' && e.target.value) {
-            const currentPassword = document.getElementById('currentPassword').value;
-            if (e.target.value === currentPassword) {
-                document.getElementById('newPasswordError').classList.remove('d-none');
-            } else {
-                document.getElementById('newPasswordError').classList.add('d-none');
-            }
-        }
-    });
-</script>
+@section Scripts {
+    <script src="~/js/profile.js" asp-append-version="true"></script>
+}

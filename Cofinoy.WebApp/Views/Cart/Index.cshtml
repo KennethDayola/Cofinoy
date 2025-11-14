@@ -10,6 +10,11 @@
 <link rel="stylesheet" href="~/css/cart.css" />
 
 <div class="cart-container">
+    
+    <div id="cartToast" class="cart-toast">
+     
+    
+    </div>
     <div class="cart-header">
         <h1 class="cart-title">Shopping Bag</h1>
         <div class="cart-summary">
@@ -44,7 +49,7 @@
                     <div class="header-product">Product</div>
                     <div class="header-price">Price</div>
                     <div class="header-quantity">Quantity</div>
-                    <div class="header-total">Total</div>
+                    <div class="header-total" style="margin-left: 25px;">Total</div>
                     <div class="header-actions"></div>
                 </div>
 
@@ -170,10 +175,14 @@
                             <label for="nickname">Nickname</label>
                             <div class="input-wrapper">
                                 <span class="material-symbols-rounded">person</span>
-                                <input type="text" id="nickname" name="Nickname" placeholder="What should we call you?" required />
+                                <input type="text"
+                                       id="nickname"
+                                       name="Nickname"
+                                       value="@ViewBag.UserNickname"
+                                       placeholder="What should we call you?"
+                                       required />
                             </div>
                         </div>
-
                         <div class="form-group">
                             <label for="additional-request">Additional Request</label>
                             <div class="input-wrapper">
@@ -200,15 +209,7 @@
                             </div>
                         </div>
 
-                        <div class="form-group">
-                            <label for="coupon-code">Coupon Discount</label>
-                            <div class="input-wrapper">
-                                <span class="material-symbols-rounded">local_offer</span>
-                                <input type="number" step="0.01" min="0" id="coupon-code" name="CouponCode" placeholder="0.00" />
-                            </div>
-                        </div>
-                    </div>
-                 
+                   
                     <div class="order-summary-section">
                         <h2 class="summary-title">Order Summary</h2>
 
