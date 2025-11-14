@@ -308,7 +308,14 @@ namespace Cofinoy.WebApp.Controllers
                 return RedirectToAction("Login", "Account");
             }
 
-            return View(user);
+            var profileDetails = new ProfileViewModel
+            {
+                User = user,
+                ChangePassword = new ChangePasswordViewModel()
+            };
+
+
+            return View(profileDetails);
         }
 
         [Authorize]

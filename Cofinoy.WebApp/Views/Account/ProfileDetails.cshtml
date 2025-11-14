@@ -1,4 +1,4 @@
-﻿@model Cofinoy.Data.Models.User
+﻿@model ProfileViewModel
 @{
     ViewData["Title"] = "Profile Details";
 }
@@ -22,30 +22,30 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">First name</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.FirstName) ? Model.FirstName : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.FirstName) ? Model.User.FirstName : "N/A")</div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Last name</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.LastName) ? Model.LastName : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.LastName) ? Model.User.LastName : "N/A")</div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Nickname</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.Nickname) ? Model.Nickname : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.Nickname) ? Model.User.Nickname : "N/A")</div>
                 </div>
 
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Date of birth</small>
                     <div class="fw-semibold">
-                        @(Model.BirthDate != default(DateOnly) ? Model.BirthDate.ToString("MM - dd - yyyy") : "N/A")
+                        @(Model.User.BirthDate != default(DateOnly) ? Model.User.BirthDate.ToString("MM - dd - yyyy") : "N/A")
                     </div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Email address</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.Email) ? Model.Email : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.Email) ? Model.User.Email : "N/A")</div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Phone number</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.PhoneNumber) ? Model.PhoneNumber : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.PhoneNumber) ? Model.User.PhoneNumber : "N/A")</div>
                 </div>
             </div>
         </div>
@@ -68,15 +68,15 @@
             <div class="row">
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Country</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.Country) ? Model.Country : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.Country) ? Model.User.Country : "N/A")</div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">City</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.City) ? Model.City : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.City) ? Model.User.City : "N/A")</div>
                 </div>
                 <div class="col-md-4 mb-3">
                     <small class="text-muted d-block">Postal code</small>
-                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.postalCode) ? Model.postalCode : "N/A")</div>
+                    <div class="fw-semibold">@(!string.IsNullOrEmpty(Model.User.postalCode) ? Model.User.postalCode : "N/A")</div>
                 </div>
             </div>
         </div>
@@ -102,27 +102,27 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">First name</label>
-                            <input type="text" name="FirstName" class="form-control" value="@Model.FirstName">
+                            <input type="text" name="FirstName" class="form-control" value="@Model.User.FirstName">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Last name</label>
-                            <input type="text" name="LastName" class="form-control" value="@Model.LastName">
+                            <input type="text" name="LastName" class="form-control" value="@Model.User.LastName">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Nickname</label>
-                            <input type="text" name="Nickname" class="form-control" value="@Model.Nickname">
+                            <input type="text" name="Nickname" class="form-control" value="@Model.User.Nickname">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Birthdate</label>
-                            <input type="date" name="BirthDate" class="form-control" value="@(Model.BirthDate != default(DateOnly) ? Model.BirthDate.ToString("yyyy-MM-dd") : "")">
+                            <input type="date" name="BirthDate" class="form-control" value="@(Model.User.BirthDate != default(DateOnly) ? Model.User.BirthDate.ToString("yyyy-MM-dd") : "")">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Email</label>
-                            <input type="email" name="Email" class="form-control" value="@Model.Email">
+                            <input type="email" name="Email" class="form-control" value="@Model.User.Email">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Phone</label>
-                            <input type="text" name="PhoneNumber" class="form-control" value="@Model.PhoneNumber">
+                            <input type="text" name="PhoneNumber" class="form-control" value="@Model.User.PhoneNumber">
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
@@ -154,15 +154,15 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Country</label>
-                            <input type="text" name="Country" class="form-control" value="@Model.Country">
+                            <input type="text" name="Country" class="form-control" value="@Model.User.Country">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">City</label>
-                            <input type="text" name="City" class="form-control" value="@Model.City">
+                            <input type="text" name="City" class="form-control" value="@Model.User.City">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Postal Code</label>
-                            <input type="text" name="postalCode" class="form-control" value="@Model.postalCode">
+                            <input type="text" name="postalCode" class="form-control" value="@Model.User.postalCode">
                         </div>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
@@ -184,23 +184,22 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <form id="changePasswordForm">
+                <form id="changePasswordForm" novalidate>
                     <div class="mb-3">
                         <label class="form-label">Current Password <span class="text-danger">*</span></label>
-                        <input type="password" id="currentPassword" name="CurrentPassword" class="form-control" required>
-                        <small class="text-danger d-none" id="currentPasswordError">The current password is incorrect.</small>
+                        <input type="password" id="currentPassword" asp-for="ChangePassword.CurrentPassword" class="form-control" required>
+                        <span asp-validation-for="ChangePassword.CurrentPassword" class="text-danger fs-8 mt-1"></span>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">New Password <span class="text-danger">*</span></label>
-                        <input type="password" id="newPassword" name="NewPassword" class="form-control" required>
-                      
-                        <small class="text-danger d-none" id="passwordLengthError">Password must be at least 6 characters long.</small>
-                        <small class="text-danger d-none" id="newPasswordError">The new password cannot be the same as the current password.</small>
+                        <input type="password" id="newPassword" asp-for="ChangePassword.NewPassword" class="form-control" required minlength="8">
+                        <span asp-validation-for="ChangePassword.NewPassword" class="text-danger fs-8 mt-1"></span>
+
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
-                        <input type="password" id="confirmPassword" name="ConfirmPassword" class="form-control" required>
-                        <small class="text-danger d-none" id="confirmPasswordError">New password and confirm password do not match.</small>
+                        <input type="password" id="confirmPassword" asp-for="ChangePassword.ConfirmPassword" class="form-control" required minlength="8">
+                        <span asp-validation-for="ChangePassword.ConfirmPassword" class="text-danger fs-8 mt-1"></span>
                     </div>
                     <div class="mt-4 d-flex justify-content-end gap-2">
                         <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>

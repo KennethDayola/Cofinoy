@@ -270,6 +270,10 @@ body {
     justify-content: center;
 }
 
+.fs-8 {
+    font-size: 12px;
+}
+
 .btn:focus,
 .btn:active,
 .btn:focus-visible {
