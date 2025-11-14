@@ -29,7 +29,7 @@
                 </button>
             </div>
             <div class="action-buttons">
-                <button class="btn btn-secondary">
+                <button class="btn btn-secondary filter-btn">
                     <svg width="15" height="15" viewBox="0 0 31 21" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M1.83333 20.75C1.34931 20.75 0.943576 20.5863 0.616146 20.2589C0.288715 19.9314 0.125 19.5257 0.125 19.0417C0.125 18.5576 0.288715 18.1519 0.616146 17.8245C0.943576 17.497 1.34931 17.3333 1.83333 17.3333H8.66667C9.15069 17.3333 9.55642 17.497 9.88385 17.8245C10.2113 18.1519 10.375 18.5576 10.375 19.0417C10.375 19.5257 10.2113 19.9314 9.88385 20.2589C9.55642 20.5863 9.15069 20.75 8.66667 20.75H1.83333ZM1.83333 12.2083C1.34931 12.2083 0.943576 12.0446 0.616146 11.7172C0.288715 11.3898 0.125 10.984 0.125 10.5C0.125 10.016 0.288715 9.61024 0.616146 9.28281C0.943576 8.95538 1.34931 8.79167 1.83333 8.79167H18.9167C19.4007 8.79167 19.8064 8.95538 20.1339 9.28281C20.4613 9.61024 20.625 10.016 20.625 10.5C20.625 10.984 20.4613 11.3898 20.1339 11.7172C19.8064 12.0446 19.4007 12.2083 18.9167 12.2083H1.83333ZM1.83333 3.66667C1.34931 3.66667 0.943576 3.50295 0.616146 3.17552C0.288715 2.84809 0.125 2.44236 0.125 1.95833C0.125 1.47431 0.288715 1.06858 0.616146 0.741146C0.943576 0.413715 1.34931 0.25 1.83333 0.25H29.1667C29.6507 0.25 30.0564 0.413715 30.3839 0.741146C30.7113 1.06858 30.875 1.47431 30.875 1.95833C30.875 2.44236 30.7113 2.84809 30.3839 3.17552C30.0564 3.50295 29.6507 3.66667 29.1667 3.66667H1.83333Z" fill="#322708" />
                     </svg>
@@ -64,7 +64,7 @@
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary clear-filters-btn">Clear Filters</button>
-                    <button class="btn btn-primary apply-filters-btn">Apply Filters</button>
+                    <button class="btn btn-primary apply-filters-btn" id="apply-filters-btn">Apply Filters</button>
                 </div>
             </div>
         </div>
@@ -87,7 +87,7 @@
     <div id="addDrinkModal" class="modal-overlay">
         <div class="modal-container">
             <div class="modal-header">
-                <h2>Add new drink</h2>
+                <h2 id="drinkModalTitle">Add new drink</h2>
                 <button class="modal-close" id="closeModal">×</button>
             </div>
 
@@ -144,6 +144,7 @@
                         <div class="form-group">
                             <label class="modal-subheader">Display Order</label>
                             <input type="number" id="drinkDisplayOrder" placeholder="Order in menu (1, 2, 3...)" min="1">
+                            <small class="form-text text-muted" id="displayOrderHelp"></small>
                         </div>
                         <div class="form-group">
                             <label class="modal-subheader">Description</label>

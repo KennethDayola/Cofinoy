@@ -82,6 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
             showLoadingProgress();
             await loadCustomizations();
             setupEventListeners();
+            setupDisplayOrderValidation();
         } catch (error) {
             console.error('Error initializing app:', error);
             showToastMessage('Error initializing application: ' + error.message, 'Error');
@@ -99,6 +100,51 @@ document.addEventListener('DOMContentLoaded', function () {
     function hideLoadingProgress() {
         if (loadingProgress) {
             loadingProgress.style.display = 'none';
+        }
+    }
+
+    // Validate display order for duplicates
+    function validateDisplayOrder(displayOrder, excludeId = null) {
+        const duplicate = allAddons.find(addon => 
+            addon.displayOrder === displayOrder && addon.id !== excludeId
+        );
+        
+        if (duplicate) {
+            return {
+                isValid: false,
+                message: `Display order ${displayOrder} is already used by "${duplicate.name}"`
+            };
+        }
+        
+        return { isValid: true };
+    }
+
+    // Real-time validation for display order
+    function setupDisplayOrderValidation() {
+        const displayOrderInput = document.getElementById('displayOrder');
+        if (displayOrderInput) {
+            displayOrderInput.addEventListener('input', function() {
+                const displayOrder = parseInt(this.value);
+                const helpText = document.getElementById('displayOrderHelp');
+                
+                if (isNaN(displayOrder) || displayOrder < 1) {
+                    helpText.textContent = '';
+                    helpText.classList.remove('validation-error-text', 'validation-success-text');
+                    return;
+                }
+                
+                const validation = validateDisplayOrder(displayOrder, currentEditingId);
+                
+                if (!validation.isValid) {
+                    helpText.textContent = validation.message;
+                    helpText.classList.remove('validation-success-text');
+                    helpText.classList.add('validation-error-text');
+                } else {
+                    helpText.textContent = 'Display order is available';
+                    helpText.classList.remove('validation-error-text');
+                    helpText.classList.add('validation-success-text');
+                }
+            });
         }
     }
 
@@ -220,6 +266,9 @@ document.addEventListener('DOMContentLoaded', function () {
         optionsSection.style.display = 'none';
         document.getElementById('maxQuantity').required = false;
         document.getElementById('pricePerUnit').required = false;
+        const helpText = document.getElementById('displayOrderHelp');
+        helpText.textContent = '';
+        helpText.classList.remove('validation-error-text', 'validation-success-text');
     }
 
     function resetModalState() {
@@ -486,6 +535,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (!validateForm()) {
             // Don't show toast for validation errors, just show the inline error messages
+            return;
+        }
+
+        // Validate display order
+        const displayOrderInput = document.getElementById('displayOrder');
+        const displayOrder = parseInt(displayOrderInput.value);
+        const validation = validateDisplayOrder(displayOrder, currentEditingId);
+        if (!validation.isValid) {
+            const helpText = document.getElementById('displayOrderHelp');
+            helpText.textContent = validation.message;
+            helpText.classList.remove('validation-success-text');
+            helpText.classList.add('validation-error-text');
+            displayOrderInput.focus();
+            displayOrderInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
 

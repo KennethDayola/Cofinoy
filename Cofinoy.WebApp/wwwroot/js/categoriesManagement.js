@@ -26,9 +26,10 @@
     let allCategories = [];
     let currentDeletingRow = null;
     let currentDeletingCategory = null;
+    let isInitialLoad = true; // Track if this is the initial load
 
-    // Show loading progress initially
-    if (loadingProgress) {
+    // Show loading progress only on initial load
+    if (loadingProgress && isInitialLoad) {
         loadingProgress.style.display = 'flex';
     }
 
@@ -76,8 +77,9 @@
 
     function resetForm() {
         form.reset();
-        document.getElementById('displayOrderHelp').textContent = '';
-        document.getElementById('displayOrderHelp').classList.remove('text-danger');
+        const helpText = document.getElementById('displayOrderHelp');
+        helpText.textContent = '';
+        helpText.classList.remove('validation-error-text', 'validation-success-text');
     }
 
     function resetModalState() {
@@ -110,7 +112,7 @@
         
         if (isNaN(displayOrder) || displayOrder < 0) {
             helpText.textContent = '';
-            helpText.classList.remove('text-danger');
+            helpText.classList.remove('validation-error-text', 'validation-success-text');
             return;
         }
         
@@ -118,10 +120,12 @@
         
         if (!validation.isValid) {
             helpText.textContent = validation.message;
-            helpText.classList.add('text-danger');
+            helpText.classList.remove('validation-success-text');
+            helpText.classList.add('validation-error-text');
         } else {
             helpText.textContent = 'Display order is available';
-            helpText.classList.remove('text-danger');
+            helpText.classList.remove('validation-error-text');
+            helpText.classList.add('validation-success-text');
         }
     });
 
@@ -131,12 +135,18 @@
         const submitBtn = document.getElementById('addCategoryBtn');
         const originalBtnContent = submitBtn.innerHTML;
         
-        const displayOrder = parseInt(document.getElementById('categoryDisplayOrder').value) || 0;
+        const displayOrderInput = document.getElementById('categoryDisplayOrder');
+        const displayOrder = parseInt(displayOrderInput.value) || 0;
         
         // Validate display order
         const validation = validateDisplayOrder(displayOrder, currentEditingId);
         if (!validation.isValid) {
-            showToastMessage(validation.message, 'Validation Error');
+            const helpText = document.getElementById('displayOrderHelp');
+            helpText.textContent = validation.message;
+            helpText.classList.remove('validation-success-text');
+            helpText.classList.add('validation-error-text');
+            displayOrderInput.focus();
+            displayOrderInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
             return;
         }
 
@@ -166,7 +176,11 @@
             const result = await response.json();
 
             if (result.success) {
-                showToastMessage(currentEditingId ? 'Category updated successfully!' : 'Category added successfully!');
+                showToast(
+                    currentEditingId ? 'Category updated successfully!' : 'Category added successfully!',
+                    'light',
+                    'Cofinoy'
+                );
                 closeModalFunc();
                 await loadCategories();
             } else {
@@ -175,7 +189,7 @@
 
         } catch (error) {
             console.error('Error saving category:', error);
-            showToastMessage('Error saving category: ' + error.message, 'Error');
+            showToast('Error saving category: ' + error.message, 'light', 'Error');
         } finally {
             submitBtn.innerHTML = originalBtnContent;
             submitBtn.disabled = false;
@@ -184,8 +198,8 @@
 
     async function loadCategories() {
         try {
-            // Show loading progress
-            if (loadingProgress) {
+            // Show loading progress only on initial load
+            if (loadingProgress && isInitialLoad) {
                 loadingProgress.style.display = 'flex';
             }
 
@@ -230,16 +244,17 @@
                 applyFilters(); // Apply any active filters
             } else {
                 console.error('Error loading categories:', result.error);
-                showToastMessage('Error loading categories: ' + result.error, 'Error');
+                showToast('Error loading categories: ' + result.error, 'light', 'Error');
             }
         } catch (error) {
             console.error('Error loading categories:', error);
-            showToastMessage('Error loading categories: ' + error.message, 'Error');
+            showToast('Error loading categories: ' + error.message, 'light', 'Error');
         } finally {
-            // Hide loading progress
+            // Hide loading progress and mark initial load as complete
             if (loadingProgress) {
                 loadingProgress.style.display = 'none';
             }
+            isInitialLoad = false; // After first load, subsequent loads won't show progress bar
         }
     }
 
@@ -323,7 +338,7 @@
             const result = await response.json();
 
             if (result.success) {
-                showToastMessage('Category deleted successfully!');
+                showToast('Category deleted successfully!', 'light', 'Cofinoy');
                 closeDeleteModal();
                 await loadCategories();
             } else {
@@ -332,7 +347,7 @@
 
         } catch (error) {
             console.error('Error deleting category:', error);
-            showToastMessage('Error deleting category: ' + error.message, 'Error');
+            showToast('Error deleting category: ' + error.message, 'light', 'Error');
 
             currentDeletingRow.style.opacity = '1';
             currentDeletingRow.style.pointerEvents = 'auto';
@@ -416,52 +431,6 @@
         } else if (visibleCount > 0 && existingEmptyState) {
             existingEmptyState.remove();
         }
-    }
-
-    function showToastMessage(message, title = 'Success') {
-        const toastContainer = document.getElementById('toastStackContainer');
-        
-        if (!toastContainer) {
-            console.error('Toast container not found');
-            console.log(title + ':', message);
-            return;
-        }
-
-        const toastId = 'toast-' + Date.now();
-        const toast = document.createElement('div');
-        toast.id = toastId;
-        toast.className = 'toast';
-        
-        const iconClass = title === 'Error' || title === 'Validation Error' ? 'fa-exclamation-circle' : 'fa-check-circle';
-        const toastClass = title === 'Error' || title === 'Validation Error' ? 'toast-error' : 'toast-success';
-        
-        toast.classList.add(toastClass);
-        
-        toast.innerHTML = `
-            <div class="toast-content">
-                <i class="fas ${iconClass} toast-icon"></i>
-                <div class="toast-message">
-                    <strong>${title}</strong>
-                    <p>${message}</p>
-                </div>
-                <button class="toast-close" onclick="this.parentElement.parentElement.remove()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        `;
-        
-        toastContainer.appendChild(toast);
-        
-        setTimeout(() => {
-            toast.classList.add('show');
-        }, 10);
-        
-        setTimeout(() => {
-            toast.classList.remove('show');
-            setTimeout(() => {
-                toast.remove();
-            }, 300);
-        }, 5000);
     }
 
     function updateResultsCount(count) {
