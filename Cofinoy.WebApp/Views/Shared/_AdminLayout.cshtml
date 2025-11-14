@@ -18,9 +18,6 @@
         <div class="sidebar-header ">
             <img src="~/images/Cofinoy.png" alt="Cofinoy Logo" class="logo">
             <span class="brand-text">Cofinoy</span>
-            @* <a class="back-button">
-                ←
-            </a> *@
         </div>
 
         <div class="nav-section mt-4 m-2">
@@ -85,32 +82,33 @@
                 Logout
             </a>
         </div>
+    </div>
 
-        <div id="logoutConfirmModal" class="modal-overlay logout-modal">
-            <div class="modal-container logout-modal-container">
-                <div class="modal-header d-flex flex-column align-items-center">
-                    <div class="logout-icon-wrapper mb-2 text-center">
-                        <span class="material-symbols-rounded fs-1">
-                            logout
-                        </span>
-                    </div>
-
+    <!-- MOVED MODAL OUTSIDE SIDEBAR -->
+    <div id="logoutConfirmModal" class="modal-overlay logout-modal">
+        <div class="modal-container logout-modal-container">
+            <div class="modal-header d-flex flex-column align-items-center">
+                <div class="logout-icon-wrapper mb-2 text-center">
+                    <span class="material-symbols-rounded fs-1">
+                        logout
+                    </span>
                 </div>
-                <div class="modal-body justify-content-center align-items-center">
-                    <h4 class="text-center mb-3">Log out?</h4>
-                    <p class="text-secondary text-center m-0">Are you sure you want to log out your account?</p>
-                </div>
-                <div class="modal-footer justify-content-center">
-                    <button class="btn btn-outline-secondary rounded-pill" id="cancelLogoutBtn">Cancel</button>
-                    <form id="logoutForm" asp-controller="Account" asp-action="SignOutUser" method="post">
-                        <button type="submit" class="btn btn-danger rounded-pill" id="confirmLogoutBtn">
-                            Logout
-                        </button>
-                    </form>
-                </div>
+            </div>
+            <div class="modal-body justify-content-center align-items-center">
+                <h4 class="text-center mb-3">Log out?</h4>
+                <p class="text-secondary text-center m-0">Are you sure you want to log out your account?</p>
+            </div>
+            <div class="modal-footer justify-content-center">
+                <button class="btn btn-outline-secondary rounded-pill" id="cancelLogoutBtn">Cancel</button>
+                <form id="logoutForm" asp-controller="Account" asp-action="SignOutUser" method="post">
+                    <button type="submit" class="btn btn-danger rounded-pill" id="confirmLogoutBtn">
+                        Logout
+                    </button>
+                </form>
             </div>
         </div>
     </div>
+
     <div class="main-content">
         <div class="content-wrapper">
             @RenderBody()
