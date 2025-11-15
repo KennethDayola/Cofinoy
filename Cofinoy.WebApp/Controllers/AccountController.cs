@@ -86,7 +86,7 @@ namespace Cofinoy.WebApp.Controllers
         /// <returns> Created response view </returns>
         [HttpPost]
         [AllowAnonymous]
-        public async Task<IActionResult> Login(LoginViewModel model, string returnUrl)
+        public async Task<IActionResult> Login(LoginViewModel model)
         {
             if (!ModelState.IsValid)
             {
@@ -94,13 +94,13 @@ namespace Cofinoy.WebApp.Controllers
                 return View(model);
             }
 
+            //Creates a new session named "HasSession" and sets its value to "Exist"
             this._session.SetString("HasSession", "Exist");
 
             User user = null;
             var loginResult = _userService.AuthenticateUser(model.Email, model.Password, ref user);
-            if (loginResult == LoginResult.Success)
+            if (loginResult == LoginResult.Success) //If _userService.AuthenticateUser returns Success
             {
-                // Authentication OK
                 await this._signInManager.SignInAsync(user);
                 this._session.SetString("UserName", user.Nickname);
 
@@ -133,8 +133,6 @@ namespace Cofinoy.WebApp.Controllers
         {
             if (!ModelState.IsValid)
             {
-                ViewData["ToastMessage"] = "Please fix the errors in the form.";
-                ViewData["ToastType"] = "danger";
                 return View(model);
             }
 
@@ -147,6 +145,7 @@ namespace Cofinoy.WebApp.Controllers
             }
             catch (InvalidDataException ex)
             {
+                //Shows error if user already exists
                 ViewData["ToastMessage"] = ex.Message;
                 ViewData["ToastType"] = "danger";
                 return View(model);
@@ -177,7 +176,7 @@ namespace Cofinoy.WebApp.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> RequestReset(RequestResetViewModel model)
         {
-
+            //Gets the information of the user through email
             var user = _userService.GetUserByEmail(model.Email);
             if (user == null)
             {
