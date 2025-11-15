@@ -7,7 +7,6 @@
     const searchInput = document.querySelector('.search-input');
     const loadingProgress = document.getElementById('loadingProgress');
 
-    // Filter modal elements
     const filterBtn = document.querySelector('.filter-btn');
     const filterModal = document.getElementById('filterModal');
     const closeFilterModalBtn = document.getElementById('closeFilterModal');
@@ -15,7 +14,6 @@
     const clearFiltersBtn = document.querySelector('.clear-filters-btn');
     const applyFiltersBtn = document.querySelector('.apply-filters-btn');
 
-    // Delete modal elements
     const deleteModal = document.getElementById('deleteConfirmModal');
     const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
     const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
@@ -26,9 +24,8 @@
     let allCategories = [];
     let currentDeletingRow = null;
     let currentDeletingCategory = null;
-    let isInitialLoad = true; // Track if this is the initial load
+    let isInitialLoad = true;
 
-    // Show loading progress only on initial load
     if (loadingProgress && isInitialLoad) {
         loadingProgress.style.display = 'flex';
     }
@@ -89,7 +86,6 @@
         currentEditingId = null;
     }
 
-    // Validate display order for duplicates
     function validateDisplayOrder(displayOrder, excludeId = null) {
         const duplicate = allCategories.find(cat => 
             cat.displayOrder === displayOrder && cat.id !== excludeId
@@ -105,7 +101,6 @@
         return { isValid: true };
     }
 
-    // Real-time validation for display order
     document.getElementById('categoryDisplayOrder').addEventListener('input', function() {
         const displayOrder = parseInt(this.value);
         const helpText = document.getElementById('displayOrderHelp');
@@ -138,7 +133,6 @@
         const displayOrderInput = document.getElementById('categoryDisplayOrder');
         const displayOrder = parseInt(displayOrderInput.value) || 0;
         
-        // Validate display order
         const validation = validateDisplayOrder(displayOrder, currentEditingId);
         if (!validation.isValid) {
             const helpText = document.getElementById('displayOrderHelp');
@@ -198,7 +192,6 @@
 
     async function loadCategories() {
         try {
-            // Show loading progress only on initial load
             if (loadingProgress && isInitialLoad) {
                 loadingProgress.style.display = 'flex';
             }
@@ -223,7 +216,6 @@
                         addCategoryToTable(category);
                     });
                 } else {
-                    // Show empty state
                     const emptyStateRow = document.createElement('tr');
                     emptyStateRow.className = 'empty-table-state';
                     emptyStateRow.innerHTML = `
@@ -241,7 +233,7 @@
                 }
 
                 updateResultsCount(allCategories.length);
-                applyFilters(); // Apply any active filters
+                applyFilters(); 
             } else {
                 console.error('Error loading categories:', result.error);
                 showToast('Error loading categories: ' + result.error, 'light', 'Error');
@@ -250,11 +242,10 @@
             console.error('Error loading categories:', error);
             showToast('Error loading categories: ' + error.message, 'light', 'Error');
         } finally {
-            // Hide loading progress and mark initial load as complete
             if (loadingProgress) {
                 loadingProgress.style.display = 'none';
             }
-            isInitialLoad = false; // After first load, subsequent loads won't show progress bar
+            isInitialLoad = false; 
         }
     }
 
@@ -409,7 +400,6 @@
 
         updateResultsCount(visibleCount);
 
-        // Show/hide empty state
         const tbody = document.querySelector('.categories-table tbody');
         const existingEmptyState = tbody.querySelector('.empty-table-state');
         
@@ -444,7 +434,6 @@
         }
     }
 
-    // Event listeners
     addCategoryBtn.addEventListener('click', openModal);
     closeModal.addEventListener('click', closeModalFunc);
     cancelBtn.addEventListener('click', closeModalFunc);
@@ -481,7 +470,6 @@
 
     searchInput.addEventListener('input', applyFilters);
 
-    // Keyboard shortcuts
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape') {
             if (modal.classList.contains('active')) {

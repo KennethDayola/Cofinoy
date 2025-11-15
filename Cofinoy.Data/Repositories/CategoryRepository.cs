@@ -27,25 +27,14 @@ namespace Cofinoy.Data.Repositories
 
         public void AddCategory(Category category)
         {
-            category.Id = Guid.NewGuid().ToString();
-            category.CreatedAt = DateTime.UtcNow;
             this.GetDbSet<Category>().Add(category);
             UnitOfWork.SaveChanges();
         }
 
         public void UpdateCategory(Category category)
         {
-            var existingCategory = GetCategoryById(category.Id);
-            if (existingCategory != null)
-            {
-                existingCategory.Name = category.Name;
-                existingCategory.Description = category.Description;
-                existingCategory.DisplayOrder = category.DisplayOrder;
-                existingCategory.IsActive = category.IsActive;
-
-                this.GetDbSet<Category>().Update(existingCategory);
-                UnitOfWork.SaveChanges();
-            }
+            this.GetDbSet<Category>().Update(category);
+            UnitOfWork.SaveChanges();
         }
 
         public void DeleteCategory(string id)

@@ -176,7 +176,6 @@ namespace Cofinoy.WebApp.Controllers
             {
                 var customizations = _customizationService.GetAllCustomizations();
                 
-                // Map ServiceModel to ViewModel
                 var viewModels = customizations.Select(c => new CustomizationViewModel
                 {
                     Id = c.Id,
@@ -218,7 +217,6 @@ namespace Cofinoy.WebApp.Controllers
                     return Json(new { success = false, error = "Customization not found" });
                 }
 
-                // Map ServiceModel to ViewModel
                 var viewModel = new CustomizationViewModel
                 {
                     Id = customization.Id,
@@ -260,7 +258,6 @@ namespace Cofinoy.WebApp.Controllers
                     return Json(new { success = false, error = "Invalid data" });
                 }
 
-                // Map ViewModel to ServiceModel
                 var serviceModel = new CustomizationServiceModel
                 {
                     Name = model.Name,
@@ -369,7 +366,6 @@ namespace Cofinoy.WebApp.Controllers
                 var products = _productService.GetProductsByCategory(categoryName);
                 _logger.LogInformation("Found {Count} products for category: {CategoryName}", products.Count, categoryName);
                 
-                // Map ServiceModel to ViewModel
                 var viewModels = products.Select(p => new ProductViewModel
                 {
                     Id = p.Id,
@@ -404,7 +400,6 @@ namespace Cofinoy.WebApp.Controllers
             {
                 var products = _productService.GetAllProducts();
                 
-                // Map ServiceModel to ViewModel
                 var viewModels = products.Select(p => new ProductViewModel
                 {
                     Id = p.Id,
@@ -443,7 +438,6 @@ namespace Cofinoy.WebApp.Controllers
                     return Json(new { success = false, error = "Product not found" });
                 }
 
-                // Map ServiceModel to ViewModel
                 var viewModel = new ProductViewModel
                 {
                     Id = product.Id,
@@ -482,7 +476,6 @@ namespace Cofinoy.WebApp.Controllers
                     return Json(new { success = false, error = "Invalid data" });
                 }
 
-                // Map ViewModel to ServiceModel
                 var serviceModel = new ProductServiceModel
                 {
                     Name = model.Name,
@@ -519,7 +512,6 @@ namespace Cofinoy.WebApp.Controllers
                     return Json(new { success = false, error = "Invalid data" });
                 }
 
-                // Map ViewModel to ServiceModel
                 var serviceModel = new ProductServiceModel
                 {
                     Name = model.Name,

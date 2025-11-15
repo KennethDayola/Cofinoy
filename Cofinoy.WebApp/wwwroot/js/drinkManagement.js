@@ -239,7 +239,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function initializeApp() {
         try {
-            // Show loading progress and update drinks count text
             const loadingProgress = document.getElementById('loadingProgress');
             const drinksCountElement = document.querySelector('.drinks-count');
             
@@ -252,21 +251,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 drinksCountElement.textContent = 'Loading drinks...';
             }
 
-            // Load categories and customizations FIRST, then drinks
             await loadCategoriesFromAPI();
             await loadCustomizationsFromAPI();
             
             console.log('Categories loaded:', allCategories.length, allCategories);
             console.log('Customizations loaded:', allCustomizations.length, allCustomizations);
             
-            // Now load drinks after categories are ready
             await loadDrinksFromAPI();
 
             populateFilterCategories();
             setupEventListeners();
             setupDisplayOrderValidation();
 
-            // Hide loading progress after everything is loaded
             if (loadingProgress) {
                 loadingProgress.style.display = 'none';
             }
@@ -278,7 +274,6 @@ document.addEventListener('DOMContentLoaded', function () {
             console.error('Error initializing app:', error);
             showToastMessage('Error initializing application: ' + error.message, 'Error');
             
-            // Hide loading progress on error and reset text
             const loadingProgress = document.getElementById('loadingProgress');
             const drinksCountElement = document.querySelector('.drinks-count');
             
@@ -325,7 +320,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.addEventListener('keydown', handleKeyboardShortcuts);
 
-        // Delete modal event listeners with null checks
         const deleteModal = document.getElementById('deleteConfirmModal');
         const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
         const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
@@ -364,7 +358,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function openFilterModal() {
         filterModal.classList.add('active');
         document.body.style.overflow = 'hidden';
-        // Preserve the filter modal title
     }
 
     function closeFilterModal() {
@@ -396,7 +389,6 @@ document.addEventListener('DOMContentLoaded', function () {
         `;
     }
 
-    // Validate display order for duplicates
     function validateDisplayOrder(displayOrder, excludeId = null) {
         const duplicate = allDrinks.find(drink => 
             drink.displayOrder === displayOrder && drink.id !== excludeId
@@ -412,7 +404,6 @@ document.addEventListener('DOMContentLoaded', function () {
         return { isValid: true };
     }
 
-    // Real-time validation for display order
     function setupDisplayOrderValidation() {
         const displayOrderInput = document.getElementById('drinkDisplayOrder');
         if (displayOrderInput) {
@@ -630,7 +621,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             const drinkName = drink.name.toLowerCase();
 
-            // Only search drink names, not categories or descriptions
             const matchesSearch = !searchTerm || drinkName.includes(searchTerm);
 
             const matchesStatus = !statusFilter || drink.status === statusFilter;
@@ -678,7 +668,6 @@ document.addEventListener('DOMContentLoaded', function () {
             return;
         }
 
-        // Validate display order if provided
         const displayOrderInput = document.getElementById('drinkDisplayOrder');
         const displayOrderValue = displayOrderInput.value;
         if (displayOrderValue) {
@@ -780,7 +769,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             }
 
-            // Reload drinks after successful save
             await loadDrinksFromAPI();
             closeModalFunc();
 
@@ -820,7 +808,6 @@ document.addEventListener('DOMContentLoaded', function () {
             showToastMessage('Error loading drinks: ' + error.message, 'Error');
             displayDrinks([]);
         } finally {
-            // Hide loading progress and update drinks count when drinks are loaded
             const loadingProgress = document.getElementById('loadingProgress');
             if (loadingProgress) {
                 loadingProgress.style.display = 'none';
@@ -828,7 +815,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    // Back-compat shim: some callers may still reference the old Firebase-based loader
     function loadDrinksFromFirebase() {
         return loadDrinksFromAPI();
     }
@@ -915,7 +901,6 @@ document.addEventListener('DOMContentLoaded', function () {
         drinkCard.className = 'drink-card';
         drinkCard.setAttribute('data-firebase-id', firebaseId);
 
-        // Map category IDs to names with better error handling
         let categoryNames = 'No categories';
         if (drinkData.categories && drinkData.categories.length > 0) {
             const names = drinkData.categories.map(catId => {
@@ -935,7 +920,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const imageUrl = drinkData.imageUrl || '/images/placeholder-drink.png';
         
-        // Determine status badge class and text
         const statusClass = drinkData.status === 'Available' ? 'status-available' : 'status-unavailable';
         const statusText = drinkData.status || 'Available';
 
@@ -1015,17 +999,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const drink = allDrinks.find(d => d.id === drinkId);
         const drinkName = card.querySelector('.drink-name').textContent;
 
-        // Store current deleting context
         currentDeletingCard = card;
         currentDeletingDrink = drink;
 
-        // Show delete confirmation modal
         const deleteModal = document.getElementById('deleteConfirmModal');
         const deleteDrinkNameSpan = document.getElementById('deleteDrinkName');
         
         if (!deleteModal || !deleteDrinkNameSpan) {
             console.error('Delete modal elements not found');
-            // Fallback to confirm dialog if modal not found
             if (confirm(`Are you sure you want to delete "${drinkName}"? This action cannot be undone.`)) {
                 await performDelete(card, drink, drinkId);
             }
@@ -1124,7 +1105,6 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function handleKeyboardShortcuts(e) {
-        // Escape key closes modals
         if (e.key === 'Escape') {
             if (modal.classList.contains('active')) {
                 closeModalFunc();
@@ -1138,13 +1118,11 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
 
-        // Ctrl/Cmd + K to focus search
         if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
             e.preventDefault();
             searchInput.focus();
         }
 
-        // Ctrl/Cmd + N to open add drink modal
         if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
             e.preventDefault();
             openModal();

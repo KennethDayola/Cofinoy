@@ -133,6 +133,7 @@ namespace Cofinoy.Services.Services
         {
             var product = new Product
             {
+                Id = Guid.NewGuid().ToString(),
                 Name = model.Name,
                 Description = model.Description ?? string.Empty,
                 BasePrice = model.Price,
@@ -142,24 +143,22 @@ namespace Cofinoy.Services.Services
                 ImagePath = model.ImagePath ?? string.Empty,
                 DisplayOrder = model.DisplayOrder,
                 IsAvailable = model.IsActive,
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
 
             _productRepository.AddProduct(product);
 
-            // Add category relationships
             if (model.Categories != null && model.Categories.Count > 0)
             {
                 _productRepository.AddProductCategories(product.Id, model.Categories);
 
-                // Update category item counts
                 foreach (var categoryId in model.Categories)
                 {
                     UpdateCategoryItemCount(categoryId, true);
                 }
             }
 
-            // Add customization relationships
             if (model.Customizations != null && model.Customizations.Count > 0)
             {
                 _productRepository.AddProductCustomizations(product.Id, model.Customizations);
@@ -168,35 +167,29 @@ namespace Cofinoy.Services.Services
 
         public void UpdateProduct(string id, ProductServiceModel model)
         {
-            if (!_productRepository.ProductExists(id))
+            var existingProduct = _productRepository.GetProductById(id);
+            if (existingProduct == null)
             {
                 throw new InvalidDataException("Product not found");
             }
 
-            var existingProduct = _productRepository.GetProductById(id);
-
-            // Get old categories for count updates
             var oldCategoryIds = existingProduct.ProductCategories
                 .Select(pc => pc.CategoryId)
                 .ToList();
 
-            var product = new Product
-            {
-                Id = id,
-                Name = model.Name,
-                Description = model.Description ?? string.Empty,
-                BasePrice = model.Price,
-                Status = model.Status ?? "Available",
-                Stock = int.TryParse(model.Stock, out int stock) ? stock : 0,
-                ImageUrl = model.ImageUrl ?? existingProduct.ImageUrl,
-                ImagePath = model.ImagePath ?? existingProduct.ImagePath,
-                DisplayOrder = model.DisplayOrder,
-                IsAvailable = model.IsActive
-            };
+            existingProduct.Name = model.Name;
+            existingProduct.Description = model.Description ?? string.Empty;
+            existingProduct.BasePrice = model.Price;
+            existingProduct.Status = model.Status ?? "Available";
+            existingProduct.Stock = int.TryParse(model.Stock, out int stock) ? stock : 0;
+            existingProduct.ImageUrl = model.ImageUrl ?? existingProduct.ImageUrl;
+            existingProduct.ImagePath = model.ImagePath ?? existingProduct.ImagePath;
+            existingProduct.DisplayOrder = model.DisplayOrder;
+            existingProduct.IsAvailable = model.IsActive;
+            existingProduct.UpdatedAt = DateTime.UtcNow;
 
-            _productRepository.UpdateProduct(product);
+            _productRepository.UpdateProduct(existingProduct);
 
-            // Update category relationships
             _productRepository.RemoveProductCategories(id);
 
             if (model.Categories != null && model.Categories.Count > 0)
@@ -204,26 +197,26 @@ namespace Cofinoy.Services.Services
                 _productRepository.AddProductCategories(id, model.Categories);
             }
 
-            // Update category counts
-            // Decrement old categories not in new list
+           
             foreach (var oldCatId in oldCategoryIds)
             {
-                if (!model.Categories.Contains(oldCatId))
+                if (model.Categories == null || !model.Categories.Contains(oldCatId))
                 {
                     UpdateCategoryItemCount(oldCatId, false);
                 }
             }
 
-            // Increment new categories not in old list
-            foreach (var newCatId in model.Categories)
+            if (model.Categories != null)
             {
-                if (!oldCategoryIds.Contains(newCatId))
+                foreach (var newCatId in model.Categories)
                 {
-                    UpdateCategoryItemCount(newCatId, true);
+                    if (!oldCategoryIds.Contains(newCatId))
+                    {
+                        UpdateCategoryItemCount(newCatId, true);
+                    }
                 }
             }
 
-            // Update customization relationships
             _productRepository.RemoveProductCustomizations(id);
 
             if (model.Customizations != null && model.Customizations.Count > 0)
@@ -241,14 +234,12 @@ namespace Cofinoy.Services.Services
 
             var product = _productRepository.GetProductById(id);
 
-            // Get categories before deletion to update counts
             var categoryIds = product.ProductCategories
                 .Select(pc => pc.CategoryId)
                 .ToList();
 
             _productRepository.DeleteProduct(id);
 
-            // Update category item counts
             foreach (var categoryId in categoryIds)
             {
                 UpdateCategoryItemCount(categoryId, false);
@@ -260,10 +251,32 @@ namespace Cofinoy.Services.Services
             return _productRepository.ProductExists(id);
         }
 
-        // Stock management
         public void ReduceStock(string productId, int quantity)
         {
+            var product = _productRepository.GetProductById(productId);
+            if (product == null)
+            {
+                throw new InvalidDataException("Product not found");
+            }
+
+            if (!HasSufficientStock(productId, quantity))
+            {
+                throw new InvalidDataException("Insufficient stock available");
+            }
+
             _productRepository.ReduceStock(productId, quantity);
+
+            product = _productRepository.GetProductById(productId);
+            
+            if (product.Stock <= 0)
+            {
+                product.Stock = 0;
+                product.Status = "Unavailable";
+                product.IsAvailable = false;
+            }
+            
+            product.UpdatedAt = DateTime.UtcNow;
+            _productRepository.UpdateProduct(product);
         }
 
         public bool HasSufficientStock(string productId, int quantity)

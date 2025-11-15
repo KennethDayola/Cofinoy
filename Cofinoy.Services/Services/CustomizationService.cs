@@ -41,7 +41,6 @@ namespace Cofinoy.Services.Services
         {
             var customization = MapToEntity(model);
             
-            // Auto-increment DisplayOrder for options if not set
             if (customization.Options != null && customization.Options.Any())
             {
                 int displayOrder = 1;
@@ -74,14 +73,12 @@ namespace Cofinoy.Services.Services
             existing.MaxQuantity = model.MaxQuantity;
             existing.PricePerUnit = model.PricePerUnit;
 
-            // Clear existing options
             existing.Options.Clear();
 
             if (model.Options != null && model.Options.Any())
             {
                 int displayOrder = 1;
                 
-                // Order by DisplayOrder from the model, then assign auto-increment if needed
                 var orderedOptions = model.Options.OrderBy(o => o.DisplayOrder > 0 ? o.DisplayOrder : int.MaxValue).ToList();
                 
                 foreach (var optionModel in orderedOptions)
@@ -132,7 +129,7 @@ namespace Cofinoy.Services.Services
                     PriceModifier = o.PriceModifier,
                     Description = o.Description ?? string.Empty,
                     Default = o.Default,
-                    DisplayOrder = o.DisplayOrder > 0 ? o.DisplayOrder : 0 // Handle null/0 DisplayOrder
+                    DisplayOrder = o.DisplayOrder > 0 ? o.DisplayOrder : 0 
                 })
                 .ToList() ?? new List<CustomizationOptionServiceModel>();
 
@@ -159,11 +156,12 @@ namespace Cofinoy.Services.Services
                 PriceModifier = o.PriceModifier,
                 Description = o.Description ?? string.Empty,
                 Default = o.Default,
-                DisplayOrder = o.DisplayOrder > 0 ? o.DisplayOrder : (index + 1) // Auto-increment if not set
+                DisplayOrder = o.DisplayOrder > 0 ? o.DisplayOrder : (index + 1) 
             }).ToList() ?? new List<CustomizationOption>();
 
             return new Customization
             {
+                Id = Guid.NewGuid().ToString(),
                 Name = model.Name,
                 Type = model.Type,
                 Required = model.Required,

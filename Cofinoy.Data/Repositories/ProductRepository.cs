@@ -49,33 +49,14 @@ namespace Cofinoy.Data.Repositories
 
         public void AddProduct(Product product)
         {
-            product.Id = Guid.NewGuid().ToString();
-            product.CreatedAt = DateTime.UtcNow;
-            product.UpdatedAt = DateTime.UtcNow;
-
             this.GetDbSet<Product>().Add(product);
             UnitOfWork.SaveChanges();
         }
 
         public void UpdateProduct(Product product)
         {
-            var existingProduct = GetProductById(product.Id);
-            if (existingProduct != null)
-            {
-                existingProduct.Name = product.Name;
-                existingProduct.Description = product.Description;
-                existingProduct.BasePrice = product.BasePrice;
-                existingProduct.Status = product.Status;
-                existingProduct.Stock = product.Stock;
-                existingProduct.ImageUrl = product.ImageUrl;
-                existingProduct.ImagePath = product.ImagePath;
-                existingProduct.DisplayOrder = product.DisplayOrder;
-                existingProduct.IsAvailable = product.IsAvailable;
-                existingProduct.UpdatedAt = DateTime.UtcNow;
-
-                this.GetDbSet<Product>().Update(existingProduct);
-                UnitOfWork.SaveChanges();
-            }
+            this.GetDbSet<Product>().Update(product);
+            UnitOfWork.SaveChanges();
         }
 
         public void DeleteProduct(string id)
@@ -98,7 +79,6 @@ namespace Cofinoy.Data.Repositories
             return this.GetDbSet<Product>().Count();
         }
 
-        // Category relationships
         public void AddProductCategories(string productId, List<string> categoryIds)
         {
             foreach (var categoryId in categoryIds)
@@ -131,7 +111,6 @@ namespace Cofinoy.Data.Repositories
                 .ToList();
         }
 
-        // Customization relationships
         public void AddProductCustomizations(string productId, List<string> customizationIds)
         {
             foreach (var customizationId in customizationIds)
@@ -164,23 +143,12 @@ namespace Cofinoy.Data.Repositories
                 .ToList();
         }
 
-        // Stock management
         public void ReduceStock(string productId, int quantity)
         {
             var product = GetProductById(productId);
             if (product != null)
             {
                 product.Stock -= quantity;
-                
-                // Update status to "Out of Stock" if stock reaches 0
-                if (product.Stock <= 0)
-                {
-                    product.Stock = 0;
-                    product.Status = "Unavailable";
-                    product.IsAvailable = false;
-                }
-                
-                product.UpdatedAt = DateTime.UtcNow;
                 this.GetDbSet<Product>().Update(product);
                 UnitOfWork.SaveChanges();
             }
