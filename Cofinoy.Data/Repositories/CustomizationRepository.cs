@@ -27,7 +27,6 @@ namespace Cofinoy.Data.Repositories
                 .Include(c => c.Options)
                 .FirstOrDefault(c => c.Id == id);
 
-            // Order options by DisplayOrder
             if (customization?.Options != null)
             {
                 customization.Options = customization.Options
@@ -41,7 +40,6 @@ namespace Cofinoy.Data.Repositories
 
         public void AddCustomization(Customization customization)
         {
-            customization.Id = Guid.NewGuid().ToString();
             this.GetDbSet<Customization>().Add(customization);
             UnitOfWork.SaveChanges();
         }

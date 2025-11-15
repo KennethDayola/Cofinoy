@@ -62,9 +62,10 @@ namespace Cofinoy.Services.Services
         {
             var category = new Category
             {
+                Id = Guid.NewGuid().ToString(),
                 Name = model.Name,
                 Description = model.Description ?? string.Empty,
-                ItemsCount = 0, // Default value
+                ItemsCount = 0,
                 DisplayOrder = model.DisplayOrder,
                 IsActive = model.Status == "Active",
                 CreatedAt = DateTime.UtcNow
@@ -75,22 +76,18 @@ namespace Cofinoy.Services.Services
 
         public void UpdateCategory(string id, CategoryServiceModel model)
         {
-            if (!_repository.CategoryExists(id))
+            var existingCategory = _repository.GetCategoryById(id);
+            if (existingCategory == null)
             {
                 throw new InvalidDataException("Category not found");
             }
 
-            var category = new Category
-            {
-                Id = id,
-                Name = model.Name,
-                Description = model.Description ?? string.Empty,
-                DisplayOrder = model.DisplayOrder,
-                IsActive = model.Status == "Active"
-                // ItemsCount and CreatedAt are typically not updated in this scenario
-            };
+            existingCategory.Name = model.Name;
+            existingCategory.Description = model.Description ?? string.Empty;
+            existingCategory.DisplayOrder = model.DisplayOrder;
+            existingCategory.IsActive = model.Status == "Active";
 
-            _repository.UpdateCategory(category);
+            _repository.UpdateCategory(existingCategory);
         }
 
         public void DeleteCategory(string id)

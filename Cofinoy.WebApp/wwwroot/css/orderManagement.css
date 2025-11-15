@@ -109,9 +109,10 @@
         background-color: #fff3cd;
         color: #856404;
     }
+
     .status.pending {
-        background-color: #fff3cd;
-        color: #856404;
+        background-color: #fff3e0;
+        color: #ff9800;
     }
     .status.preparing {
         background: #d1ecf1;
