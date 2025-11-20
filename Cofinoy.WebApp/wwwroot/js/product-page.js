@@ -109,7 +109,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!categoryList) return;
 
         const allItem = document.createElement("li");
-        allItem.innerHTML = '<a href="#" class="category-link" data-category="All">Drinks</a>';
+        allItem.innerHTML = '<a href="#" class="category-link" data-category="All">All Drinks</a>';
         categoryList.appendChild(allItem);
 
         const result = await ProductsService.getAllCategories();
