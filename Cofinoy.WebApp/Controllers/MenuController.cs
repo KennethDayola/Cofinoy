@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Cofinoy.WebApp.Controllers
 {
@@ -68,12 +69,12 @@ namespace Cofinoy.WebApp.Controllers
             try
             {
                 var categories = _categoryService.GetAllCategories();
-                
+
                 if (categories == null)
                 {
                     categories = new List<CategoryServiceModel>();
                 }
-                
+
                 return Json(new { success = true, data = categories });
             }
             catch (Exception ex)
@@ -200,7 +201,7 @@ namespace Cofinoy.WebApp.Controllers
             try
             {
                 var customizations = _customizationService.GetAllCustomizations();
-                
+
                 var viewModels = customizations.Select(c => new CustomizationViewModel
                 {
                     Id = c.Id,
@@ -415,7 +416,7 @@ namespace Cofinoy.WebApp.Controllers
                 _logger.LogInformation("Fetching products for category: {CategoryName}", categoryName);
                 var products = _productService.GetProductsByCategory(categoryName);
                 _logger.LogInformation("Found {Count} products for category: {CategoryName}", products.Count, categoryName);
-                
+
                 var viewModels = products.Select(p => new ProductViewModel
                 {
                     Id = p.Id,
@@ -449,7 +450,7 @@ namespace Cofinoy.WebApp.Controllers
             try
             {
                 var products = _productService.GetAllProducts();
-                
+
                 var viewModels = products.Select(p => new ProductViewModel
                 {
                     Id = p.Id,
@@ -607,6 +608,31 @@ namespace Cofinoy.WebApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting product");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpGet]
+        public JsonResult GetProductStock(string productId)
+        {
+            try
+            {
+                var product = _productService.GetProductById(productId);
+                if (product == null)
+                {
+                    return Json(new { success = false, error = "Product not found" });
+                }
+
+                return Json(new
+                {
+                    success = true,
+                    stock = product.Stock,
+                    productName = product.Name
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting product stock");
                 return Json(new { success = false, error = ex.Message });
             }
         }
