@@ -102,6 +102,18 @@ namespace Cofinoy.Services.Services
             _repository.UpdateCustomization(existing);
         }
 
+        public void UpdateCustomizationDisplayOrder(string id, int displayOrder)
+        {
+            var existingCustomization = _repository.GetCustomizationById(id);
+            if (existingCustomization == null)
+            {
+                throw new InvalidDataException("Customization not found");
+            }
+
+            existingCustomization.DisplayOrder = displayOrder;
+            _repository.UpdateCustomization(existingCustomization);
+        }
+
         public void DeleteCustomization(string id)
         {
             if (!_repository.CustomizationExists(id))

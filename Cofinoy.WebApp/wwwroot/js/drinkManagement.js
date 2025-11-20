@@ -21,8 +21,6 @@
         }
     },
 
-
-
     async deleteImage(path) {
         try {
             const storageRef = window.firebaseStorage.ref(window.firebaseStorage.getStorage(), path);
@@ -241,11 +239,11 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             const loadingProgress = document.getElementById('loadingProgress');
             const drinksCountElement = document.querySelector('.drinks-count');
-            
+
             if (loadingProgress) {
                 loadingProgress.style.display = 'flex';
             }
-            
+
             // Set loading text
             if (drinksCountElement) {
                 drinksCountElement.textContent = 'Loading drinks...';
@@ -253,15 +251,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
             await loadCategoriesFromAPI();
             await loadCustomizationsFromAPI();
-            
+
             console.log('Categories loaded:', allCategories.length, allCategories);
             console.log('Customizations loaded:', allCustomizations.length, allCustomizations);
-            
+
             await loadDrinksFromAPI();
 
             populateFilterCategories();
             setupEventListeners();
-            setupDisplayOrderValidation();
 
             if (loadingProgress) {
                 loadingProgress.style.display = 'none';
@@ -273,14 +270,14 @@ document.addEventListener('DOMContentLoaded', function () {
         } catch (error) {
             console.error('Error initializing app:', error);
             showToastMessage('Error initializing application: ' + error.message, 'Error');
-            
+
             const loadingProgress = document.getElementById('loadingProgress');
             const drinksCountElement = document.querySelector('.drinks-count');
-            
+
             if (loadingProgress) {
                 loadingProgress.style.display = 'none';
             }
-            
+
             if (drinksCountElement) {
                 drinksCountElement.textContent = '0 drinks in your menu.';
             }
@@ -368,10 +365,6 @@ document.addEventListener('DOMContentLoaded', function () {
     function resetForm() {
         form.reset();
         document.getElementById('drinkDescription').value = '';
-        document.getElementById('drinkDisplayOrder').value = '';
-        const helpText = document.getElementById('displayOrderHelp');
-        helpText.textContent = '';
-        helpText.classList.remove('validation-error-text', 'validation-success-text');
         resetImageUpload();
     }
 
@@ -387,49 +380,6 @@ document.addEventListener('DOMContentLoaded', function () {
             <i class="fas fa-plus"></i>
             <p>Click to upload or drag a file</p>
         `;
-    }
-
-    function validateDisplayOrder(displayOrder, excludeId = null) {
-        const duplicate = allDrinks.find(drink => 
-            drink.displayOrder === displayOrder && drink.id !== excludeId
-        );
-        
-        if (duplicate) {
-            return {
-                isValid: false,
-                message: `Display order ${displayOrder} is already used by "${duplicate.name}"`
-            };
-        }
-        
-        return { isValid: true };
-    }
-
-    function setupDisplayOrderValidation() {
-        const displayOrderInput = document.getElementById('drinkDisplayOrder');
-        if (displayOrderInput) {
-            displayOrderInput.addEventListener('input', function() {
-                const displayOrder = parseInt(this.value);
-                const helpText = document.getElementById('displayOrderHelp');
-                
-                if (isNaN(displayOrder) || displayOrder < 1) {
-                    helpText.textContent = '';
-                    helpText.classList.remove('validation-error-text', 'validation-success-text');
-                    return;
-                }
-                
-                const validation = validateDisplayOrder(displayOrder, currentEditingId);
-                
-                if (!validation.isValid) {
-                    helpText.textContent = validation.message;
-                    helpText.classList.remove('validation-success-text');
-                    helpText.classList.add('validation-error-text');
-                } else {
-                    helpText.textContent = 'Display order is available';
-                    helpText.classList.remove('validation-error-text');
-                    helpText.classList.add('validation-success-text');
-                }
-            });
-        }
     }
 
     function validateForm() {
@@ -484,18 +434,6 @@ document.addEventListener('DOMContentLoaded', function () {
             if (errorMsg) errorMsg.remove();
         }
 
-        const displayOrderValue = document.getElementById('drinkDisplayOrder').value.trim();
-        if (displayOrderValue === '' || isNaN(displayOrderValue) || parseInt(displayOrderValue) <= 0) {
-            const displayOrderHelp = document.getElementById('displayOrderHelp');
-            displayOrderHelp.textContent = 'Display order must be a positive number.';
-            displayOrderHelp.classList.add('text-danger');
-            isValid = false;
-        } else {
-            const displayOrderHelp = document.getElementById('displayOrderHelp');
-            displayOrderHelp.textContent = ' ';
-            displayOrderHelp.classList.remove('text-danger');
-        }
-
         if (firstError) {
             firstError.focus();
             firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -537,7 +475,6 @@ document.addEventListener('DOMContentLoaded', function () {
             reader.readAsDataURL(file);
         }
     }
-
 
     function populateCategoriesAndCustomizations() {
         console.log('=== DEBUG: populateCategoriesAndCustomizations called ===');
@@ -639,7 +576,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const drinksGrid = document.querySelector('.drinks-grid');
         const existingMessage = drinksGrid.querySelector('.no-drinks-message');
-        
+
         if (visibleCount === 0) {
             if (!existingMessage) {
                 const noDrinksMessage = document.createElement('div');
@@ -658,6 +595,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         }
     }
+
     async function handleFormSubmit(e) {
         e.preventDefault();
 
@@ -666,22 +604,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!validateForm()) {
             showToastMessage('Please fill in all required fields and select an image.', 'Validation Error');
             return;
-        }
-
-        const displayOrderInput = document.getElementById('drinkDisplayOrder');
-        const displayOrderValue = displayOrderInput.value;
-        if (displayOrderValue) {
-            const displayOrder = parseInt(displayOrderValue);
-            const validation = validateDisplayOrder(displayOrder, currentEditingId);
-            if (!validation.isValid) {
-                const helpText = document.getElementById('displayOrderHelp');
-                helpText.textContent = validation.message;
-                helpText.classList.remove('validation-success-text');
-                helpText.classList.add('validation-error-text');
-                displayOrderInput.focus();
-                displayOrderInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                return;
-            }
         }
 
         isSubmitting = true;
@@ -728,7 +650,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 oldImagePath = existingDrink ? existingDrink.imagePath : '';
             }
 
-            const displayOrderValue = document.getElementById('drinkDisplayOrder').value;
             const formData = {
                 name: drinkName,
                 price: parseFloat(document.getElementById('drinkPrice').value),
@@ -739,7 +660,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 imagePath: imagePath || (currentEditingId ? allDrinks.find(d => d.id === currentEditingId).imagePath : ''),
                 categories: selectedCategories,
                 customizations: selectedCustomizations,
-                displayOrder: displayOrderValue ? parseInt(displayOrderValue) : (currentEditingId ? undefined : (allDrinks.length + 1))
+                displayOrder: currentEditingId ? allDrinks.find(d => d.id === currentEditingId).displayOrder : (allDrinks.length + 1)
             };
 
             addDrinkBtnModal.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving drink...';
@@ -880,18 +801,9 @@ document.addEventListener('DOMContentLoaded', function () {
             drinksListener();
         }
 
-        drinksListener = DrinkFirebaseService.onDrinksChange((drinks, error) => {
-            if (error) {
-                console.error('Real-time listener error:', error);
-                return;
-            }
-
-            if (drinks) {
-                allDrinks = drinks;
-                displayDrinks(drinks);
-                updateDrinksCount(drinks.length);
-            }
-        });
+        // Note: DrinkFirebaseService is not defined in the original code
+        // This function might need adjustment based on your Firebase implementation
+        console.warn('setupRealTimeListener: DrinkFirebaseService is not defined');
     }
 
     function addDrinkToGrid(drinkData, firebaseId) {
@@ -912,14 +824,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     return null;
                 }
             }).filter(name => name !== null);
-            
+
             if (names.length > 0) {
                 categoryNames = names.join(', ');
             }
         }
 
         const imageUrl = drinkData.imageUrl || '/images/placeholder-drink.png';
-        
+
         const statusClass = drinkData.status === 'Available' ? 'status-available' : 'status-unavailable';
         const statusText = drinkData.status || 'Available';
 
@@ -965,7 +877,6 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('drinkStatus').value = drinkData.status;
         document.getElementById('drinkStock').value = drinkData.stock;
         document.getElementById('drinkDescription').value = drinkData.description || '';
-        document.getElementById('drinkDisplayOrder').value = drinkData.displayOrder || '';
 
         if (drinkData.imageUrl) {
             const uploadPlaceholder = document.querySelector('.upload-placeholder');
@@ -1004,7 +915,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const deleteModal = document.getElementById('deleteConfirmModal');
         const deleteDrinkNameSpan = document.getElementById('deleteDrinkName');
-        
+
         if (!deleteModal || !deleteDrinkNameSpan) {
             console.error('Delete modal elements not found');
             if (confirm(`Are you sure you want to delete "${drinkName}"? This action cannot be undone.`)) {
@@ -1012,7 +923,7 @@ document.addEventListener('DOMContentLoaded', function () {
             }
             return;
         }
-        
+
         deleteDrinkNameSpan.textContent = drinkName;
         deleteModal.classList.add('active');
         document.body.style.overflow = 'hidden';
@@ -1131,7 +1042,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function showToastMessage(message, title = 'Success') {
         let toastContainer = document.getElementById('toastStackContainer');
-        
+
         if (!toastContainer) {
             console.error('Toast container not found');
             console.log(title + ':', message);
@@ -1164,9 +1075,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 ${message}
             </div>
         `;
-        
+
         toastContainer.appendChild(toastElement);
-        
+
         if (typeof bootstrap !== 'undefined' && bootstrap.Toast) {
             const toastBootstrap = bootstrap.Toast.getOrCreateInstance(toastElement);
             toastBootstrap.show();

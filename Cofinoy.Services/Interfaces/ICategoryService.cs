@@ -10,6 +10,7 @@ namespace Cofinoy.Services.Interfaces
         void AddCategory(CategoryServiceModel model);
         void UpdateCategory(string id, CategoryServiceModel model);
         void DeleteCategory(string id);
+        void UpdateCategoryDisplayOrder(string id, int displayOrder);
         bool CategoryExists(string id);
     }
 }

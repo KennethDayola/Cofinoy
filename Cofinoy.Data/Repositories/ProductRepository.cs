@@ -21,8 +21,8 @@ namespace Cofinoy.Data.Repositories
                     .ThenInclude(pc => pc.Category)
                 .Include(p => p.ProductCustomizations)
                     .ThenInclude(pc => pc.Customization)
-                .OrderBy(p => p.DisplayOrder)
-                .ThenBy(p => p.CreatedAt);
+                .OrderByDescending(p => p.UpdatedAt)
+                .ThenByDescending(p => p.CreatedAt);
         }
 
         public IQueryable<Product> GetProductsByCategory(string categoryName)
@@ -33,8 +33,8 @@ namespace Cofinoy.Data.Repositories
                 .Include(p => p.ProductCustomizations)
                     .ThenInclude(pc => pc.Customization)
                 .Where(p => p.ProductCategories.Any(pc => pc.Category.Name == categoryName))
-                .OrderBy(p => p.DisplayOrder)
-                .ThenBy(p => p.CreatedAt);
+                .OrderByDescending(p => p.UpdatedAt)
+                .ThenByDescending(p => p.CreatedAt);
         }
 
         public Product GetProductById(string id)
