@@ -32,6 +32,15 @@ const CustomizationAPI = {
             method: 'POST'
         });
         return await response.json();
+    },
+
+    async updateDisplayOrders(updates) {
+        const response = await fetch('/Menu/UpdateCustomizationsDisplayOrder', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(updates)
+        });
+        return await response.json();
     }
 };
 
@@ -74,6 +83,7 @@ document.addEventListener('DOMContentLoaded', function () {
     let allAddons = [];
     let pendingDeleteId = null;
     let pendingDeleteCard = null;
+    let draggedCard = null;
 
     initializeApp();
 
@@ -191,6 +201,11 @@ document.addEventListener('DOMContentLoaded', function () {
     function openModal() {
         modal.classList.add('active');
         document.body.style.overflow = 'hidden';
+
+        if (!currentEditingId) {
+            const nextDisplayOrder = getNextAvailableDisplayOrder();
+            document.getElementById('displayOrder').value = nextDisplayOrder;
+        }
     }
 
     function closeModalFunc() {
@@ -534,7 +549,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (isSubmitting) return;
 
         if (!validateForm()) {
-            // Don't show toast for validation errors, just show the inline error messages
             return;
         }
 
@@ -660,9 +674,15 @@ document.addEventListener('DOMContentLoaded', function () {
             addonsGrid.style.justifyContent = '';
             addonsGrid.style.alignItems = '';
 
-            addons.forEach(addon => {
+            // Sort by display order before displaying
+            const sortedAddons = [...addons].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+            sortedAddons.forEach(addon => {
                 addAddonToGrid(addon);
             });
+
+            // Setup drag and drop after all cards are added
+            setupDragAndDrop();
         }
     }
 
@@ -671,6 +691,7 @@ document.addEventListener('DOMContentLoaded', function () {
         const addonCard = document.createElement('div');
         addonCard.className = 'addon-card';
         addonCard.setAttribute('data-id', addonData.id);
+        addonCard.setAttribute('draggable', 'true');
 
         const sortedOptions = addonData.options ? 
             [...addonData.options].sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0)) : 
@@ -678,6 +699,9 @@ document.addEventListener('DOMContentLoaded', function () {
         const optionsCount = sortedOptions.length;
 
         addonCard.innerHTML = `
+            <div class="drag-handle-wrapper">
+                <i class="fas fa-grip-vertical drag-handle"></i>
+            </div>
             <div class="addon-header">
                 <h3 class="addon-name">${addonData.name}</h3>
                 <span class="addon-type">${formatTypeName(addonData.type)}</span>
@@ -686,7 +710,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <div class="addon-details">
                     <div class="detail-item">
                         <span class="detail-label">Display Order</span>
-                        <span class="detail-value">#${addonData.displayOrder}</span>
+                        <span class="detail-value display-order-value">#${addonData.displayOrder}</span>
                     </div>
                     <div class="detail-item">
                         <span class="detail-label">Type</span>
@@ -738,6 +762,125 @@ document.addEventListener('DOMContentLoaded', function () {
 
         addonsGrid.appendChild(addonCard);
         addActionButtonListeners(addonCard, addonData);
+    }
+
+    function setupDragAndDrop() {
+        const addonsGrid = document.querySelector('.addons-grid');
+        const cards = addonsGrid.querySelectorAll('.addon-card');
+
+        cards.forEach(card => {
+            card.addEventListener('dragstart', handleDragStart);
+            card.addEventListener('dragend', handleDragEnd);
+            card.addEventListener('dragover', handleDragOver);
+            card.addEventListener('drop', handleDrop);
+            card.addEventListener('dragenter', handleDragEnter);
+            card.addEventListener('dragleave', handleDragLeave);
+        });
+    }
+
+    function handleDragStart(e) {
+        draggedCard = this;
+        this.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/html', this.innerHTML);
+    }
+
+    function handleDragEnd(e) {
+        this.classList.remove('dragging');
+        
+        // Remove all drag-over classes
+        const addonsGrid = document.querySelector('.addons-grid');
+        const cards = addonsGrid.querySelectorAll('.addon-card');
+        cards.forEach(card => card.classList.remove('drag-over'));
+    }
+
+    function handleDragOver(e) {
+        if (e.preventDefault) {
+            e.preventDefault();
+        }
+        e.dataTransfer.dropEffect = 'move';
+        return false;
+    }
+
+    function handleDragEnter(e) {
+        if (this !== draggedCard) {
+            this.classList.add('drag-over');
+        }
+    }
+
+    function handleDragLeave(e) {
+        this.classList.remove('drag-over');
+    }
+
+    async function handleDrop(e) {
+        if (e.stopPropagation) {
+            e.stopPropagation();
+        }
+
+        if (draggedCard !== this) {
+            const addonsGrid = document.querySelector('.addons-grid');
+            const allCards = Array.from(addonsGrid.querySelectorAll('.addon-card'));
+            
+            const draggedIndex = allCards.indexOf(draggedCard);
+            const targetIndex = allCards.indexOf(this);
+
+            // Reorder in DOM
+            if (draggedIndex < targetIndex) {
+                this.parentNode.insertBefore(draggedCard, this.nextSibling);
+            } else {
+                this.parentNode.insertBefore(draggedCard, this);
+            }
+
+            // Update display orders in the backend
+            await updateDisplayOrders();
+        }
+
+        this.classList.remove('drag-over');
+        return false;
+    }
+
+    async function updateDisplayOrders() {
+        const addonsGrid = document.querySelector('.addons-grid');
+        const cards = Array.from(addonsGrid.querySelectorAll('.addon-card'));
+        
+        const updates = cards.map((card, index) => {
+            const customizationId = card.getAttribute('data-id');
+            const displayOrder = index + 1;
+            
+            // Update the display in the UI immediately
+            const displayOrderValue = card.querySelector('.display-order-value');
+            if (displayOrderValue) {
+                displayOrderValue.textContent = `#${displayOrder}`;
+            }
+            
+            return {
+                id: customizationId,
+                displayOrder: displayOrder
+            };
+        });
+
+        try {
+            const result = await CustomizationAPI.updateDisplayOrders(updates);
+
+            if (result.success) {
+                // Update local cache
+                updates.forEach(update => {
+                    const addon = allAddons.find(a => a.id === update.id);
+                    if (addon) {
+                        addon.displayOrder = update.displayOrder;
+                    }
+                });
+                
+                showToastMessage('Display order updated successfully!');
+            } else {
+                throw new Error(result.error || 'Failed to update display order');
+            }
+        } catch (error) {
+            console.error('Error updating display order:', error);
+            showToastMessage('Error updating display order: ' + error.message, 'Error');
+            // Reload to revert changes
+            await loadCustomizations();
+        }
     }
 
     function editAddon(card, addonData) {
@@ -884,6 +1027,15 @@ document.addEventListener('DOMContentLoaded', function () {
                 setTimeout(() => toastElement.remove(), 300);
             }, 5000);
         }
+    }
+
+    function getNextAvailableDisplayOrder() {
+        if (allAddons.length === 0) {
+            return 1;
+        }
+
+        const maxDisplayOrder = Math.max(...allAddons.map(addon => addon.displayOrder || 0));
+        return maxDisplayOrder + 1;
     }
 
     function updateNoAddonsMessage() {

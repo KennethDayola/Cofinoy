@@ -100,6 +100,18 @@ namespace Cofinoy.Services.Services
             _repository.DeleteCategory(id);
         }
 
+        public void UpdateCategoryDisplayOrder(string id, int displayOrder)
+        {
+            var existingCategory = _repository.GetCategoryById(id);
+            if (existingCategory == null)
+            {
+                throw new InvalidDataException("Category not found");
+            }
+
+            existingCategory.DisplayOrder = displayOrder;
+            _repository.UpdateCategory(existingCategory);
+        }
+
         public bool CategoryExists(string id)
         {
             return _repository.CategoryExists(id);

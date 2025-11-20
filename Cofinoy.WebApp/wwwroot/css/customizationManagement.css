@@ -137,6 +137,7 @@
     min-height: 400px;
 }
 
+/* Drag and Drop Styles - Matching Categories Management */
 .addon-card {
     background: white;
     border-radius: 10px;
@@ -147,7 +148,57 @@
     max-width: 350px;
     opacity: 0;
     animation: addonAppearMinimal 0.4s ease forwards;
+    cursor: move;
+    cursor: grab;
+    position: relative;
 }
+
+    .addon-card:active {
+        cursor: grabbing;
+    }
+
+    /* Dragging state - matching categories */
+    .addon-card.dragging {
+        opacity: 0.5;
+        background: #e9ecef;
+        cursor: grabbing;
+    }
+
+    /* Drag over state - matching categories */
+    .addon-card.drag-over {
+        border-top: 3px solid #8B4513;
+        background-color: #f8f9fa;
+    }
+
+.drag-handle-wrapper {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 10;
+}
+
+.drag-handle {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 16px;
+    cursor: grab;
+    padding: 5px;
+    transition: color 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+    .drag-handle:hover {
+        color: rgba(255, 255, 255, 1);
+    }
+
+    .drag-handle:active {
+        cursor: grabbing;
+    }
+
+    .addon-card:active .drag-handle {
+        cursor: grabbing;
+    }
 
 /* Minimalistic staggered animation */
 .addon-card:nth-child(1) { animation-delay: 0.03s; }
@@ -919,6 +970,38 @@
     }
 }
 
+/* Form Helper Text */
+.form-text {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+}
+
+.text-muted {
+    color: #6c757d !important;
+}
+
+.text-danger {
+    color: #dc2626 !important;
+}
+
+/* Display Order Validation - Higher Specificity */
+.validation-error-text {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #dc2626 !important;
+    font-weight: 500;
+}
+
+.validation-success-text {
+    display: block;
+    margin-top: 5px;
+    font-size: 12px;
+    color: #059669 !important;
+    font-weight: 500;
+}
+
 @media (max-width: 1400px) {
     .addons-grid {
         grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -1063,37 +1146,3 @@
         font-size: 16px;
     }
 }
-
-/* Form Helper Text */
-.form-text {
-    display: block;
-    margin-top: 5px;
-    font-size: 12px;
-}
-
-.text-muted {
-    color: #6c757d !important;
-}
-
-.text-danger {
-    color: #dc2626 !important;
-}
-
-/* Display Order Validation - Higher Specificity */
-.validation-error-text {
-    display: block;
-    margin-top: 5px;
-    font-size: 12px;
-    color: #dc2626 !important;
-    font-weight: 500;
-}
-
-.validation-success-text {
-    display: block;
-    margin-top: 5px;
-    font-size: 12px;
-    color: #059669 !important;
-    font-weight: 500;
-}
-
-

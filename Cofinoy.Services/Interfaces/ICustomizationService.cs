@@ -11,5 +11,6 @@ namespace Cofinoy.Services.Interfaces
         void UpdateCustomization(string id, CustomizationServiceModel model);
         void DeleteCustomization(string id);
         bool CustomizationExists(string id);
+        void UpdateCustomizationDisplayOrder(string id, int displayOrder);
     }
 }

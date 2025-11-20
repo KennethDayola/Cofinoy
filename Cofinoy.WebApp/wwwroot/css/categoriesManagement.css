@@ -499,9 +499,16 @@
             letter-spacing: 0.5px;
         }
 
+        /* Center the Display Order column header */
+        .categories-table thead th:nth-child(5) {
+            text-align: center;
+        }
+
     .categories-table tbody tr {
         border-bottom: 1px solid #f1f3f4;
         transition: background-color 0.2s ease;
+        cursor: move;
+        cursor: grab;
     }
 
         .categories-table tbody tr:hover {
@@ -510,6 +517,17 @@
 
         .categories-table tbody tr:last-child {
             border-bottom: none;
+        }
+
+        /* Dragging state */
+        .categories-table tbody tr.dragging {
+            opacity: 0.5;
+            background: #e9ecef;
+            cursor: grabbing;
+        }
+
+        .categories-table tbody tr.drag-over {
+            border-top: 3px solid #8B4513;
         }
 
     .categories-table tbody td {
@@ -577,6 +595,43 @@
 .date {
     color: #6c757d;
     font-size: 13px;
+}
+
+/* Display Order Cell Styling */
+.display-order {
+    text-align: center;
+}
+
+.display-order-cell {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.display-order-text {
+    font-weight: 600;
+    color: #495057;
+    font-size: 14px;
+    min-width: 24px;
+}
+
+.drag-handle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #adb5bd;
+    font-size: 16px;
+    cursor: grab;
+    transition: color 0.2s ease;
+}
+
+.drag-handle:hover {
+    color: #6c757d;
+}
+
+.drag-handle:active {
+    cursor: grabbing;
 }
 
 .actions {

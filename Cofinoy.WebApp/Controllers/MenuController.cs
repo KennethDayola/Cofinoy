@@ -165,6 +165,31 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public JsonResult UpdateCategoriesDisplayOrder([FromBody] List<CategoryDisplayOrderUpdate> updates)
+        {
+            try
+            {
+                if (updates == null || !updates.Any())
+                {
+                    return Json(new { success = false, error = "No updates provided" });
+                }
+
+                foreach (var update in updates)
+                {
+                    _categoryService.UpdateCategoryDisplayOrder(update.Id, update.DisplayOrder);
+                }
+
+                return Json(new { success = true, message = "Display orders updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating category display orders");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
         #endregion
 
         #region Customization Methods
@@ -349,6 +374,31 @@ namespace Cofinoy.WebApp.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting customization");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Admin")]
+        public JsonResult UpdateCustomizationsDisplayOrder([FromBody] List<CustomizationDisplayOrderUpdate> updates)
+        {
+            try
+            {
+                if (updates == null || !updates.Any())
+                {
+                    return Json(new { success = false, error = "No updates provided" });
+                }
+
+                foreach (var update in updates)
+                {
+                    _customizationService.UpdateCustomizationDisplayOrder(update.Id, update.DisplayOrder);
+                }
+
+                return Json(new { success = true, message = "Display orders updated successfully" });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating customization display orders");
                 return Json(new { success = false, error = ex.Message });
             }
         }
