@@ -15,6 +15,9 @@ namespace Cofinoy.WebApp.Models
         [StringLength(50, ErrorMessage = "Nickname cannot exceed 50 characters.")]
         public string Nickname { get; set; }
 
+        [DataType(DataType.Date)]
+        [DisplayFormat(DataFormatString = "{0:yyyy-MM-dd}", ApplyFormatInEditMode = true)]
+        [DateNotInFuture(ErrorMessage = "Birth date cannot be in the future.")]
         public DateTime? BirthDate { get; set; }
 
         [Required(ErrorMessage = "Email is required.")]
@@ -26,5 +29,37 @@ namespace Cofinoy.WebApp.Models
         [RegularExpression(@"^\d+$", ErrorMessage = "Phone number must contain only digits.")]
         [StringLength(20, ErrorMessage = "Phone number cannot exceed 20 characters.")]
         public string PhoneNumber { get; set; }
+    }
+
+    public class DateNotInFutureAttribute : ValidationAttribute
+    {
+        protected override ValidationResult IsValid(object value, ValidationContext validationContext)
+        {
+            if (value == null)
+            {
+                // Null is valid (optional field)
+                return ValidationResult.Success;
+            }
+
+            DateTime date;
+
+            // Handle both DateTime and DateTime? types
+            if (value is DateTime dateTime)
+            {
+                date = dateTime;
+            }
+            else
+            {
+                return new ValidationResult("Invalid date format.");
+            }
+
+            // Check if date is in the future
+            if (date.Date > DateTime.Now.Date)
+            {
+                return new ValidationResult(ErrorMessage ?? "Date cannot be in the future.");
+            }
+
+            return ValidationResult.Success;
+        }
     }
 }

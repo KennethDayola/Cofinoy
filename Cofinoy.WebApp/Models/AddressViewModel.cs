@@ -11,6 +11,7 @@ namespace Cofinoy.WebApp.Models
         public string City { get; set; }
 
         [StringLength(20, ErrorMessage = "Postal code cannot exceed 20 characters.")]
+        [RegularExpression(@"^\d+$", ErrorMessage = "Postal code must contain only numbers.")]
         public string PostalCode { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using Cofinoy.Data.Models;
 using Cofinoy.Services.ServiceModels;
+using Cofinoy.WebApp.Models;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cofinoy.WebApp
@@ -26,6 +27,9 @@ namespace Cofinoy.WebApp
             public AutoMapperProfileConfiguration()
             {
                 CreateMap<UserServiceModel, User>();
+                CreateMap<PersonalInfoViewModel, PersonalInfoServiceModel>();
+                CreateMap<AddressViewModel, AddressServiceModel>();
+                CreateMap<ChangePasswordViewModel, ChangePasswordServiceModel>();
             }
         }
     }

@@ -146,6 +146,8 @@
 
         if (value.length > 20) {
             errorElement.text('Postal code cannot exceed 20 characters.');
+        } else if (value && !/^\d+$/.test(value)) {
+            errorElement.text('Postal code must contain only numbers.');
         } else {
             errorElement.text('');
         }

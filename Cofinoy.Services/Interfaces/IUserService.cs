@@ -11,5 +11,11 @@ namespace Cofinoy.Services.Interfaces
         User GetUserByEmail(string email);
         void UpdateUser(User user);
         bool UserExists(string email);
+
+        ProfileDetailsServiceModel GetProfileDetails(string email);
+        UpdatePersonalInfoResult UpdatePersonalInfo(string currentEmail, PersonalInfoServiceModel model);
+        UpdateAddressResult UpdateAddress(string email, AddressServiceModel model);
+        ChangePasswordResult ChangePassword(string email, ChangePasswordServiceModel model);
+
     }
 }
