@@ -79,25 +79,27 @@ body {
         transition: all 0.3s ease;
     }
 
-    .sidebar .category-link.active {
-        color: #4b3d1f;
-        font-weight: 600;
-        background: rgba(75, 61, 31, 0.1);
-        padding: 4px 8px;
-        border-radius: 6px;
-    }
+        .sidebar .category-link.active {
+            color: #4b3d1f;
+            font-weight: 600;
+            background: rgba(75, 61, 31, 0.1);
+            padding: 4px 8px;
+            border-radius: 6px;
+        }
 
-.sidebar .category-link.animating {
-    animation: categoryPulse 0.4s ease-in-out;
-}
+        .sidebar .category-link.animating {
+            animation: categoryPulse 0.4s ease-in-out;
+        }
 
 @keyframes categoryPulse {
     0% {
         transform: scale(1);
     }
+
     50% {
         transform: scale(1.05);
     }
+
     100% {
         transform: scale(1);
     }
@@ -197,9 +199,9 @@ body {
     border-color: #c38244 !important;
 }
 
-.btn.btn-secondary.filter-btn:hover svg path {
-    fill: #c38244 !important;
-}
+    .btn.btn-secondary.filter-btn:hover svg path {
+        fill: #c38244 !important;
+    }
 
 .filter-btn {
     background: white;
@@ -223,9 +225,9 @@ body {
         border-color: #6C4E31;
     }
 
-    .filter-btn:hover svg path {
-        fill: #6C4E31;
-    }
+        .filter-btn:hover svg path {
+            fill: #6C4E31;
+        }
 
     .filter-btn img {
         width: 15px;
@@ -267,9 +269,9 @@ body {
     height: 120px;
 }
 
-.circular-progress svg {
-    transform: rotate(-90deg);
-}
+    .circular-progress svg {
+        transform: rotate(-90deg);
+    }
 
 .progress-circle-bg {
     fill: none;
@@ -291,9 +293,11 @@ body {
     0% {
         stroke-dashoffset: 283;
     }
+
     50% {
         stroke-dashoffset: 70;
     }
+
     100% {
         stroke-dashoffset: 283;
     }
@@ -312,6 +316,7 @@ body {
     0%, 100% {
         opacity: 1;
     }
+
     50% {
         opacity: 0.5;
     }
@@ -336,6 +341,7 @@ body {
     from {
         opacity: 0;
     }
+
     to {
         opacity: 1;
     }
@@ -356,6 +362,7 @@ body {
         transform: translateY(20px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -542,6 +549,7 @@ body {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -565,28 +573,28 @@ body {
     }
 
 
-/* Out of stock product card styles */
-.product-card.product-unavailable {
-    opacity: 0.7;
-    position: relative;
-}
-
-    .product-card.product-unavailable:hover {
-        transform: none;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    /* Out of stock product card styles */
+    .product-card.product-unavailable {
+        opacity: 0.7;
+        position: relative;
     }
+
+        .product-card.product-unavailable:hover {
+            transform: none;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+        }
 
 .product-image-wrapper {
     position: relative;
     width: 100%;
 }
 
-    .product-card img {
-        width: 100%;
-        height: 180px;
-        object-fit: cover;
-        background-color: #fafafa;
-    }
+.product-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background-color: #fafafa;
+}
 
 .product-card.product-unavailable img {
     filter: grayscale(100%);
@@ -721,6 +729,7 @@ body {
         transform: translateY(30px);
         opacity: 0;
     }
+
     to {
         transform: translateY(0);
         opacity: 1;
@@ -900,37 +909,37 @@ body {
         box-shadow: 0 0 0 3px rgba(75, 61, 31, 0.1);
     }
 
-.customize-select.addon-select {
-    width: 100%;
-    padding: 12px 40px 12px 14px;
-    border-radius: 10px;
-    border: 2px solid #e5e7eb;
-    background-color: #fff;
-    font-size: 14px;
-    font-weight: 500;
-    color: #1f2937;
-    -webkit-appearance: none;
-    -moz-appearance: none;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 17px 17px;
-    transition: all 0.2s ease;
-    cursor: pointer;
-}
-
-    .customize-select.addon-select:hover {
-        border-color: #d1d5db;
-        background-color: #f9fafb;
-    }
-
-    .customize-select.addon-select:focus {
-        outline: none;
-        border-color: #4b3d1f;
-        box-shadow: 0 0 0 3px rgba(75, 61, 31, 0.1);
+    .customize-select.addon-select {
+        width: 100%;
+        padding: 12px 40px 12px 14px;
+        border-radius: 10px;
+        border: 2px solid #e5e7eb;
         background-color: #fff;
+        font-size: 14px;
+        font-weight: 500;
+        color: #1f2937;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 14px center;
+        background-size: 17px 17px;
+        transition: all 0.2s ease;
+        cursor: pointer;
     }
+
+        .customize-select.addon-select:hover {
+            border-color: #d1d5db;
+            background-color: #f9fafb;
+        }
+
+        .customize-select.addon-select:focus {
+            outline: none;
+            border-color: #4b3d1f;
+            box-shadow: 0 0 0 3px rgba(75, 61, 31, 0.1);
+            background-color: #fff;
+        }
 
 .options-grid {
     display: grid;
@@ -1202,8 +1211,88 @@ body {
 }
 
 .toast-container {
-    position: absolute !important;
-    z-index: 2000; /* higher than modal dialog (1001) */
+    position: fixed !important;
+    bottom: 20px !important;
+    right: 20px !important;
+    padding: 12px 24px !important;
+    border-radius: 8px !important;
+    z-index: 100000 !important; /* Much higher than modals to appear above backdrop */
+    font-weight: 500 !important;
+    font-size: 14px !important;
+    max-width: 350px !important;
+    word-wrap: break-word !important;
+    pointer-events: auto !important;
+}
+
+
+    /* Success notification style */
+    .toast.success {
+        background: #322708 !important;
+        color: white !important;
+    }
+
+    /* Error notification style */
+    .toast.error {
+    background: #dc2626 !important;
+    color: white !important;
+    }
+
+/* Ensure modals don't block toast interactions */
+.customize-modal,
+.filter-modal {
+    pointer-events: none;
+}
+
+.customize-dialog,
+.filter-dialog {
+    pointer-events: auto;
+}
+
+/* Animation for toast entrance */
+@keyframes slideInFromRight {
+    from {
+        transform: translateX(calc(100% + 20px));
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Animation for toast exit */
+@keyframes slideOutToRight {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(calc(100% + 20px));
+        opacity: 0;
+    }
+}
+
+/* Responsive toast positioning */
+@media (max-width: 768px) {
+    .notification {
+        bottom: 15px !important;
+        right: 15px !important;
+        left: 15px !important;
+        max-width: calc(100% - 30px) !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .notification {
+        bottom: 10px !important;
+        right: 10px !important;
+        left: 10px !important;
+        max-width: calc(100% - 20px) !important;
+        font-size: 13px !important;
+        padding: 10px 16px !important;
+    }
 }
 
 @media (max-width: 480px) {
