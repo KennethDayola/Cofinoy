@@ -564,6 +564,7 @@ body {
         box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
     }
 
+
 /* Out of stock product card styles */
 .product-card.product-unavailable {
     opacity: 0.7;
@@ -1198,6 +1199,11 @@ body {
     .temp-btn {
         padding: 11px 13px;
     }
+}
+
+.toast-container {
+    position: absolute !important;
+    z-index: 2000; /* higher than modal dialog (1001) */
 }
 
 @media (max-width: 480px) {

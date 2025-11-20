@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const addToCartBtn = document.getElementById("addToCartBtn");
     const addonsContainer = document.getElementById("addonsContainer");
     const loadingProgress = document.getElementById("loadingProgress");
-    
+
     // Filter modal elements
     const filterModal = document.getElementById("filterModal");
     const closeFilterModal = document.getElementById("closeFilterModal");
@@ -76,12 +76,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     applyFilterBtn?.addEventListener('click', () => {
         const selectedSort = document.querySelector('input[name="sortOption"]:checked')?.value || 'default';
         currentSort = selectedSort;
-        
+
         // Get price filter values
         const minPrice = minPriceInput.value ? parseFloat(minPriceInput.value) : null;
         const maxPrice = maxPriceInput.value ? parseFloat(maxPriceInput.value) : null;
         priceFilter = { min: minPrice, max: maxPrice };
-        
+
         applyFilters();
         closeFilterModalFunc();
     });
@@ -142,10 +142,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         categoryList?.querySelectorAll('.category-link').forEach(link => {
             link.addEventListener('click', async (e) => {
                 e.preventDefault();
-                
+
                 // Add animation class
                 link.classList.add('animating');
-                
+
                 // Wait for animation to complete before changing category
                 setTimeout(async () => {
                     currentCategory = link.getAttribute('data-category') || 'All';
@@ -195,7 +195,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     function renderProductCard(product, isUnavailable) {
         const card = document.createElement("div");
         card.className = `product-card${isUnavailable ? ' product-unavailable' : ''}`;
-        
+
         const stock = parseInt(product.stock) || 0;
         const unavailableOverlay = isUnavailable ? `
             <div class="unavailable-overlay">
@@ -250,7 +250,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (result.success) {
             currentCategoryProducts = result.data.filter(p => p.isActive);
             console.log("Filtered products:", currentCategoryProducts);
-            
+
             // Quick transition without progress bar for category switches
             if (!isInitialLoad) {
                 productsContainer.style.opacity = '1';
@@ -271,7 +271,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (result.success) {
             allProducts = result.data.filter(p => p.isActive);
             currentCategoryProducts = allProducts;
-            
+
             // Show progress animation for initial load
             setTimeout(() => {
                 hideLoading();
@@ -382,7 +382,15 @@ document.addEventListener("DOMContentLoaded", async () => {
             });
 
             plus.addEventListener('click', () => {
-                const val = Math.min(99, parseInt(valueEl.textContent || '0') + 1);
+                const currentQty = parseInt(valueEl.textContent || '0');
+                const stock = parseInt(currentProduct.stock) || 0;
+
+                if (currentQty >= stock) {
+                    showToast(`Only ${stock} in stock`, "danger", "Cofinoy");
+                    return;
+                }
+
+                const val = currentQty + 1;
                 valueEl.textContent = String(val);
                 recalcTotal();
             });
@@ -501,14 +509,14 @@ document.addEventListener("DOMContentLoaded", async () => {
             if (checkedBoxes && checkedBoxes.length > 0) {
                 const values = [];
                 let totalPrice = 0;
-                
+
                 checkedBoxes.forEach(cb => {
                     const label = body.querySelector(`label[for="${cb.id}"]`);
                     const optionName = label?.querySelector('.option-name')?.textContent || label?.textContent || 'Selected';
                     values.push(optionName);
                     totalPrice += Number(cb.getAttribute('data-price') || '0');
                 });
-                
+
                 customizations.push({
                     name: customizationName,
                     value: values.join(', '),
@@ -523,7 +531,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 const optionText = select.selectedOptions[0].textContent.trim();
                 // Remove price from the option text if it exists (e.g., "Oat Milk (₱30.00)" -> "Oat Milk")
                 const cleanValue = optionText.replace(/\s*\(₱[\d,]+\.?\d*\)\s*$/g, '').trim();
-                
+
                 customizations.push({
                     name: customizationName,
                     value: cleanValue,
@@ -611,9 +619,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         addToCartBtn.addEventListener('click', async function () {
             console.log('Add to cart button clicked');
 
-            if (!validateRequiredCustomizations()) {
-                const firstError = addonsContainer?.querySelector('.addon-validation:not(.hidden)');
-                firstError?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            if (!validateRequiredCustomizations()) return;
+
+            const customizationData = getCustomizationData();
+            const desiredQty = customizationData.quantity;
+            const stock = parseInt(window.currentProduct.stock) || 0;
+
+            if (desiredQty > stock) {
+                showNotification(`Only ${stock} of this item is available.`, 'error');
                 return;
             }
 
@@ -720,7 +733,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     async function loadCustomizations() {
         const result = await ProductsService.getAllCustomizations();
         if (!result.success) return;
-        
+
         allCustomizations = result.data
             .slice()
             .sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0))
@@ -787,11 +800,22 @@ document.addEventListener("DOMContentLoaded", async () => {
                     valueEl.textContent = String(val);
                     recalcTotal();
                 });
-                plus.addEventListener('click', () => {
-                    const val = Math.min(maxQ, parseInt(valueEl.textContent || '0') + 1);
-                    valueEl.textContent = String(val);
-                    recalcTotal();
-                });
+                const currentQty = parseInt(valueEl.textContent || '0');
+                const stock = parseInt(currentProduct.stock) || 0;
+
+                if (stock <= 0) {
+                    showToast("Out of stock", "danger", "Cofinoy");
+                    return;
+                }
+
+                if (currentQty >= stock) {
+                    showToast(`Only ${stock} in stock`, "danger", "Cofinoy");
+                    valueEl.textContent = String(stock);
+                    return;
+                }
+
+                valueEl.textContent = String(currentQty + 1);
+                recalcTotal();
                 body.appendChild(wrapper);
             } else if (type === 'single_select') {
                 const isTemperature = (cz.name || '').trim().toLowerCase() === 'temperature';
