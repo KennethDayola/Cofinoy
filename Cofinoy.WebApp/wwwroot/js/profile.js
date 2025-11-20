@@ -260,7 +260,7 @@
             PostalCode: $('#addressForm input[name="postalCode"]').val().trim()
         };
 
-        // Client-side validation for length
+        // Client-side validation for length and numeric postal code
         let hasError = false;
 
         if (model.Country && model.Country.length > 50) {
@@ -273,15 +273,21 @@
             hasError = true;
         }
 
-        if (model.PostalCode && model.PostalCode.length > 20) {
-            $('#addressForm input[name="postalCode"]').next('.text-danger').text('Postal code cannot exceed 20 characters.');
-            hasError = true;
+        if (model.PostalCode) {
+            if (model.PostalCode.length > 20) {
+                $('#addressForm input[name="postalCode"]').next('.text-danger').text('Postal code cannot exceed 20 characters.');
+                hasError = true;
+            } else if (!/^\d+$/.test(model.PostalCode)) {
+                $('#addressForm input[name="postalCode"]').next('.text-danger').text('Postal code must contain only numbers.');
+                hasError = true;
+            }
         }
 
         if (hasError) {
-            return;
+            return; // Stop submission if any validation failed
         }
 
+        // Submit via AJAX
         $.ajax({
             url: '/Account/UpdateAddress',
             type: 'POST',
@@ -310,6 +316,7 @@
             }
         });
     });
+
 
     // --- Change Password Form ---
     $('#changePasswordForm').on('submit', function (e) {
