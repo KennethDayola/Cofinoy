@@ -225,13 +225,15 @@ namespace Cofinoy.WebApp.Controllers
         [AllowAnonymous]
         public IActionResult SendCode(SendCodeViewModel model)
         {
-            var email = TempData["Email"]?.ToString();
+            // Use Peek so TempData isn't consumed on failed attempts
+            var email = TempData.Peek("Email")?.ToString();
             var user = _userService.GetUserByEmail(email);
-            if (user == null || user.ResetCode != model.ResetCode || user.ResetCodeExpiry < DateTime.UtcNow)
+            if (user == null || user.ResetCode != model.ResetCode || (user.ResetCodeExpiry.HasValue && user.ResetCodeExpiry.Value < DateTime.UtcNow))
             {
                 TempData["ToastMessage"] = "Invalid or expired verification code.";
                 TempData["ToastType"] = "danger";
                 ViewBag.Email = email;
+                TempData.Keep("Email");
                 return View(model);
             }
 

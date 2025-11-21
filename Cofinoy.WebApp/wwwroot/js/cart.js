@@ -1,4 +1,5 @@
-﻿const pendingCartUpdates = new Set();
+﻿// cart.js - Complete fixed version with stock validation
+const pendingCartUpdates = new Set();
 
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Cart initialized with stock validation");
