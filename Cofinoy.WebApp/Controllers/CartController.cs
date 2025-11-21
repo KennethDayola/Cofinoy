@@ -116,20 +116,22 @@ namespace Cofinoy.WebApp.Controllers
             try
             {
                 var userId = GetCurrentUserId();
+
+                await Task.Delay(100);
+
                 await _cartService.UpdateCartItemQuantityAsync(userId, model.CartItemId, model.Quantity);
 
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
                 var updatedItem = cartItems.FirstOrDefault(i => i.CartItemId == model.CartItemId);
-                var subtotal = cartItems.Sum(i => i.TotalPrice);
+                var total = cartItems.Sum(i => i.TotalPrice);
                 var cartCount = cartItems.Sum(i => i.Quantity);
 
                 return Json(new
                 {
                     success = true,
-                    itemTotal = updatedItem?.TotalPrice ?? 0,
-                    subtotal = subtotal,
-                    total = subtotal,
-                    cartCount = cartCount
+                    total = total,
+                    cartCount = cartCount,
+                    newUnitPrice = updatedItem?.UnitPrice ?? 0
                 });
             }
             catch (Exception ex)
@@ -138,6 +140,9 @@ namespace Cofinoy.WebApp.Controllers
                 return Json(new { success = false, error = ex.Message });
             }
         }
+
+
+
 
         [HttpPost]
         public async Task<JsonResult> RemoveFromCart([FromBody] RemoveFromCartModel model)
@@ -148,14 +153,13 @@ namespace Cofinoy.WebApp.Controllers
                 await _cartService.RemoveFromCartAsync(userId, model.CartItemId);
 
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
-                var subtotal = cartItems.Sum(i => i.TotalPrice);
+                var total = cartItems.Sum(i => i.TotalPrice);
                 var cartCount = cartItems.Sum(i => i.Quantity);
 
                 return Json(new
                 {
                     success = true,
-                    subtotal = subtotal,
-                    total = subtotal,
+                    total = total,
                     cartCount = cartCount
                 });
             }
