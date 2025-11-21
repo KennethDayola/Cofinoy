@@ -1,4 +1,5 @@
-﻿// cart.js - Complete fixed version with stock validation
+﻿let pendingRequests = new Map();
+
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Cart initialized with stock validation");
     initializeCart();
@@ -8,6 +9,9 @@ function initializeCart() {
     document.querySelectorAll('.quantity-btn').forEach(btn => {
         btn.addEventListener('click', handleQuantityChange);
     });
+
+    currentOverallTotal = 0;
+    updateOverallTotal(); 
 
     validateCartOnLoad();
 }
@@ -39,25 +43,36 @@ async function handleQuantityChange(event) {
     const productId = cartItemElement.dataset.productId;
     const action = button.querySelector('.material-symbols-rounded').textContent === 'remove' ? 'decrease' : 'increase';
 
-    await updateQuantity(cartItemId, productId, action);
+    if (action === 'increase') {
+        button.style.opacity = '0.7';
+        button.style.pointerEvents = 'none';
+
+        await updateQuantity(cartItemId, productId, action);
+
+        setTimeout(() => {
+            button.style.opacity = '1';
+            button.style.pointerEvents = 'auto';
+        }, 300);
+    } else {
+        updateQuantity(cartItemId, productId, action);
+    }
 }
+
+
+
 
 async function updateQuantity(cartItemId, productId, action, setValue = null) {
     try {
         const quantityElement = document.getElementById(`quantity-${cartItemId}`);
         const totalElement = document.getElementById(`total-${cartItemId}`);
 
-        if (!quantityElement) {
-            console.error('Quantity element not found for:', cartItemId);
-            return;
-        }
+        if (!quantityElement) return;
 
-        let currentQuantity = parseInt(quantityElement.textContent);
+        let currentQuantity = parseInt(quantityElement.textContent) || 1;
         let newQuantity = currentQuantity;
 
-        const stock = await getProductStock(productId);
-
         if (action === 'increase') {
+            const stock = await getProductStock(productId);
             if (currentQuantity >= stock) {
                 showToast(`Only ${stock} in stock`, "danger", "Cofinoy");
                 return;
@@ -66,58 +81,131 @@ async function updateQuantity(cartItemId, productId, action, setValue = null) {
         } else if (action === 'decrease') {
             newQuantity = Math.max(1, currentQuantity - 1);
         } else if (action === 'set' && setValue !== null) {
+            const stock = await getProductStock(productId);
             newQuantity = Math.min(setValue, stock);
         }
 
         if (newQuantity === currentQuantity) return;
 
-        const result = await updateCartItemQuantity(cartItemId, newQuantity);
+        const unitPrice = getUnitPriceFromItem(cartItemId);
+        const oldItemTotal = unitPrice * currentQuantity;
+        const newItemTotal = unitPrice * newQuantity;
 
-        if (result.success) {
-            quantityElement.textContent = newQuantity;
+        const totalDifference = newItemTotal - oldItemTotal;
 
-            const unitPrice = parseFloat(result.newUnitPrice || getUnitPriceFromItem(cartItemId));
-            const newTotal = unitPrice * newQuantity;
-            if (totalElement) {
-                totalElement.textContent = `₱${newTotal.toFixed(2)}`;
-            }
+        quantityElement.textContent = newQuantity;
 
-            updateCartSummary(result.cartCount, result.newTotal);
-
-        } else {
-            if (result.error && result.error.includes('Only') && result.maxAllowed) {
-                quantityElement.textContent = result.maxAllowed;
-                showToast(result.error, "warning", "Stock Limit");
-
-                const unitPrice = parseFloat(result.newUnitPrice || getUnitPriceFromItem(cartItemId));
-                const newTotal = unitPrice * result.maxAllowed;
-                if (totalElement) {
-                    totalElement.textContent = `₱${newTotal.toFixed(2)}`;
-                }
-            } else {
-                throw new Error(result.error || 'Failed to update quantity');
-            }
+        if (totalElement) {
+            totalElement.textContent = `₱${newItemTotal.toFixed(2)}`;
         }
+
+        updateOverallTotal(totalDifference);
+
+        if (pendingRequests.has(cartItemId)) {
+            clearTimeout(pendingRequests.get(cartItemId));
+        }
+
+        const requestTimeout = setTimeout(async () => {
+            try {
+                const result = await updateCartItemQuantity(cartItemId, newQuantity);
+                pendingRequests.delete(cartItemId);
+
+                if (!result.success && result.error && result.error.includes('Only') && result.maxAllowed) {
+                    const serverQuantity = result.maxAllowed;
+                    const serverItemTotal = unitPrice * serverQuantity;
+                    const revertDifference = serverItemTotal - newItemTotal;
+
+                    quantityElement.textContent = serverQuantity;
+                    if (totalElement) {
+                        totalElement.textContent = `₱${serverItemTotal.toFixed(2)}`;
+                    }
+
+                    updateOverallTotal(revertDifference);
+                    showToast(result.error, "warning", "Stock Limit");
+                }
+            } catch (error) {
+                console.error('Background update failed:', error);
+                pendingRequests.delete(cartItemId);
+            }
+        }, 400);
+
+        pendingRequests.set(cartItemId, requestTimeout);
 
     } catch (error) {
-        console.error('Error updating quantity:', error);
-        if (typeof showToast === 'function') {
-            showToast('Error updating quantity: ' + error.message, 'danger', 'Error');
+        console.error('Error in updateQuantity:', error);
+    }
+}
+function updateOverallTotal() {
+    const totalAmountElement = document.getElementById('totalAmount');
+    if (!totalAmountElement) return;
+
+    let overallTotal = 0;
+    let totalItems = 0;
+
+    const cartItems = document.querySelectorAll('.cart-item');
+
+    cartItems.forEach(item => {
+        const totalElement = item.querySelector('[id^="total-"]');
+        const quantityElement = item.querySelector('[id^="quantity-"]');
+
+        if (totalElement && quantityElement) {
+            const priceText = totalElement.textContent.replace('₱', '').replace(',', '').trim();
+            const itemTotal = parseFloat(priceText) || 0;
+
+            const quantity = parseInt(quantityElement.textContent) || 0;
+
+            overallTotal += itemTotal;
+            totalItems += quantity;
         }
+    });
+
+    totalAmountElement.textContent = `₱${overallTotal.toFixed(2)}`;
+
+    const cartSummary = document.getElementById('cartSummary');
+    if (cartSummary) {
+        cartSummary.textContent = `${totalItems} item(s) in your cart`;
+    }
+
+    const cartCountElement = document.querySelector('.cart-count');
+    if (cartCountElement) {
+        cartCountElement.textContent = totalItems;
     }
 }
 
+
 function getUnitPriceFromItem(cartItemId) {
-    const cartItem = document.getElementById(`cartItem-${cartItemId}`);
+    const cartItem = document.querySelector(`[data-cart-item-id="${cartItemId}"]`);
+    if (!cartItem) {
+        console.error('Cart item not found:', cartItemId);
+        return 0;
+    }
+
     const priceElement = cartItem.querySelector('.item-price');
     if (priceElement) {
-        const priceText = priceElement.textContent.replace('₱', '').trim();
-        return parseFloat(priceText) || 0;
+        const priceText = priceElement.textContent.replace('₱', '').replace(',', '').trim();
+        const price = parseFloat(priceText);
+
+        if (isNaN(price)) {
+            console.error('Invalid price format:', priceText);
+            return 0;
+        }
+        return price;
     }
+
+    console.error('Price element not found for cart item:', cartItemId);
     return 0;
 }
 
+const stockCache = new Map();
+
 async function getProductStock(productId) {
+    if (stockCache.has(productId)) {
+        const cached = stockCache.get(productId);
+        if (Date.now() - cached.timestamp < 10000) { 
+            return cached.stock;
+        }
+    }
+
     try {
         const response = await fetch(`/Menu/GetProductStock?productId=${productId}`, {
             method: 'GET',
@@ -127,6 +215,10 @@ async function getProductStock(productId) {
         if (response.ok) {
             const result = await response.json();
             if (result.success) {
+                stockCache.set(productId, {
+                    stock: result.stock,
+                    timestamp: Date.now()
+                });
                 return result.stock;
             }
         }
@@ -136,7 +228,7 @@ async function getProductStock(productId) {
 
     } catch (error) {
         console.error('Error getting product stock:', error);
-        return 999;
+        return 999; 
     }
 }
 
@@ -174,14 +266,17 @@ async function updateCartItemQuantity(cartItemId, newQuantity) {
 }
 
 function updateCartSummary(itemCount, totalAmount) {
+    const totalAmountElement = document.getElementById('totalAmount');
+    if (totalAmountElement && totalAmount !== undefined) {
+        let total = parseFloat(totalAmount);
+        if (!isNaN(total)) {
+            totalAmountElement.textContent = `₱${total.toFixed(2)}`;
+        }
+    }
+
     const cartSummary = document.getElementById('cartSummary');
     if (cartSummary) {
         cartSummary.textContent = `${itemCount} item(s) in your cart`;
-    }
-
-    const totalAmountElement = document.getElementById('totalAmount');
-    if (totalAmountElement) {
-        totalAmountElement.textContent = `₱${parseFloat(totalAmount).toFixed(2)}`;
     }
 
     const cartCountElement = document.querySelector('.cart-count');
@@ -189,6 +284,7 @@ function updateCartSummary(itemCount, totalAmount) {
         cartCountElement.textContent = itemCount;
     }
 }
+
 
 async function removeFromCart(cartItemId) {
     if (!confirm('Are you sure you want to remove this item from your cart?')) {
@@ -223,7 +319,7 @@ async function removeFromCart(cartItemId) {
                 cartItemElement.remove();
             }
 
-            updateCartSummary(result.cartCount, result.newTotal);
+            updateCartSummary(result.cartCount, result.total);
 
             const cartItemsContainer = document.getElementById('cartItemsContainer');
             const existingItems = cartItemsContainer.querySelectorAll('.cart-item');
