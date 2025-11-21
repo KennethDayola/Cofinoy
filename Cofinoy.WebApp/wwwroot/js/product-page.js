@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function renderProductCard(product, isUnavailable) {
-        const card = document.createElement("div");
+            const card = document.createElement("div");
         card.className = `product-card${isUnavailable ? ' product-unavailable' : ''}`;
 
         const stock = parseInt(product.stock) || 0;
@@ -206,21 +206,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             </div>
         ` : '';
 
-        card.innerHTML = `
+            card.innerHTML = `
             <div class="product-image-wrapper">
                 <img src="${product.imageUrl}" alt="${product.name}" />
                 ${unavailableOverlay}
             </div>
-            <div class="product-info">
-                <h3>${product.name}</h3>
-                <p>${product.description}</p>
-                <div class="price-row">
-                    <span class="price">₱${product.price.toFixed(2)}</span>
+                <div class="product-info">
+                    <h3>${product.name}</h3>
+                    <p>${product.description}</p>
+                    <div class="price-row">
+                        <span class="price">₱${product.price.toFixed(2)}</span>
                     <button class="add-btn" ${isUnavailable ? 'disabled' : ''}>+</button>
                 </div>
-            </div>
-        `;
-        productsContainer.appendChild(card);
+                </div>
+            `;
+            productsContainer.appendChild(card);
 
         // Only add click handler if product is available
         if (!isUnavailable) {
@@ -235,9 +235,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!isInitialLoad) {
             productsContainer.style.opacity = '0.5';
         }
-
+        
         console.log("Loading products for category:", categoryName);
-
+        
         let result;
         if (categoryName === "All") {
             result = await ProductsService.getAllProducts();
@@ -275,7 +275,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Show progress animation for initial load
             setTimeout(() => {
                 hideLoading();
-                renderProducts(allProducts);
+            renderProducts(allProducts);
                 isInitialLoad = false; // Mark initial load as complete
             }, 800);
         } else {
@@ -347,16 +347,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (customizeModal) {
             // Force reflow to ensure animation plays
-            customizeModal.style.display = 'flex';
+        customizeModal.style.display = 'flex';
             void customizeModal.offsetWidth;
-            document.body.style.overflow = 'hidden';
+        document.body.style.overflow = 'hidden';
         }
     }
 
     function closeCustomize() {
         if (customizeModal) {
-            customizeModal.style.display = 'none';
-            document.body.style.overflow = '';
+        customizeModal.style.display = 'none';
+        document.body.style.overflow = '';
         }
         currentProduct = null;
         window.currentProduct = null;
@@ -377,9 +377,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             minus.addEventListener('click', () => {
                 const min = type === 'quantity' ? 1 : 0;
                 const val = Math.max(min, parseInt(valueEl.textContent || '0') - 1);
-                valueEl.textContent = String(val);
-                recalcTotal();
-            });
+            valueEl.textContent = String(val);
+            recalcTotal();
+        });
 
             plus.addEventListener('click', () => {
                 const currentQty = parseInt(valueEl.textContent || '0');
@@ -391,9 +391,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 const val = currentQty + 1;
-                valueEl.textContent = String(val);
-                recalcTotal();
-            });
+            valueEl.textContent = String(val);
+            recalcTotal();
+        });
         }
     });
 
@@ -422,7 +422,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const total = (base + addonsDelta) * qty;
         if (totalPriceEl) {
-            totalPriceEl.textContent = `₱${total.toFixed(2)}`;
+        totalPriceEl.textContent = `₱${total.toFixed(2)}`;
         }
     }
 
@@ -705,7 +705,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         showNotification('Item added to cart!', 'success');
                     }
 
-                    closeCustomize();
+        closeCustomize();
 
                     if (result.cartCount !== undefined) {
                         updateCartCount(result.cartCount);
@@ -800,22 +800,11 @@ document.addEventListener("DOMContentLoaded", async () => {
                     valueEl.textContent = String(val);
                     recalcTotal();
                 });
-                const currentQty = parseInt(valueEl.textContent || '0');
-                const stock = parseInt(currentProduct.stock) || 0;
-
-                if (stock <= 0) {
-                    showToast("Out of stock", "danger", "Cofinoy");
-                    return;
-                }
-
-                if (currentQty >= stock) {
-                    showToast(`Only ${stock} in stock`, "danger", "Cofinoy");
-                    valueEl.textContent = String(stock);
-                    return;
-                }
-
-                valueEl.textContent = String(currentQty + 1);
-                recalcTotal();
+                plus.addEventListener('click', () => {
+                    const val = Math.min(maxQ, parseInt(valueEl.textContent || '0') + 1);
+                    valueEl.textContent = String(val);
+                    recalcTotal();
+                });
                 body.appendChild(wrapper);
             } else if (type === 'single_select') {
                 const isTemperature = (cz.name || '').trim().toLowerCase() === 'temperature';

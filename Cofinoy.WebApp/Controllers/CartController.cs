@@ -170,6 +170,7 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
+
         [HttpPost]
         public async Task<IActionResult> Checkout(CheckoutViewModel model)
         {

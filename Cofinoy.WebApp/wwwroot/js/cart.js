@@ -1,4 +1,5 @@
-﻿let pendingRequests = new Map();
+﻿// cart.js - Complete fixed version with stock validation
+const pendingCartUpdates = new Set();
 
 document.addEventListener("DOMContentLoaded", function () {
     console.log("Cart initialized with stock validation");
@@ -63,6 +64,10 @@ async function handleQuantityChange(event) {
 
 async function updateQuantity(cartItemId, productId, action, setValue = null) {
     try {
+        if (pendingCartUpdates.has(cartItemId)) {
+            return;
+        }
+
         const quantityElement = document.getElementById(`quantity-${cartItemId}`);
         const totalElement = document.getElementById(`total-${cartItemId}`);
 
@@ -70,6 +75,9 @@ async function updateQuantity(cartItemId, productId, action, setValue = null) {
 
         let currentQuantity = parseInt(quantityElement.textContent) || 1;
         let newQuantity = currentQuantity;
+        const previousLineTotal = totalElement ? totalElement.textContent : null;
+        const unitPriceFromDom = getUnitPriceFromItem(cartItemId);
+        const canOptimisticallyUpdate = !isNaN(unitPriceFromDom);
 
         if (action === 'increase') {
             const stock = await getProductStock(productId);
@@ -87,45 +95,50 @@ async function updateQuantity(cartItemId, productId, action, setValue = null) {
 
         if (newQuantity === currentQuantity) return;
 
-        const unitPrice = getUnitPriceFromItem(cartItemId);
-        const oldItemTotal = unitPrice * currentQuantity;
-        const newItemTotal = unitPrice * newQuantity;
-
-        const totalDifference = newItemTotal - oldItemTotal;
-
-        quantityElement.textContent = newQuantity;
-
-        if (totalElement) {
-            totalElement.textContent = `₱${newItemTotal.toFixed(2)}`;
+        if (canOptimisticallyUpdate) {
+            quantityElement.textContent = newQuantity;
+            if (totalElement) {
+                totalElement.textContent = `₱${formatNumber(unitPriceFromDom * newQuantity)}`;
+            }
+            refreshCartSummaryFromDom();
         }
+
+        pendingCartUpdates.add(cartItemId);
+        const result = await updateCartItemQuantity(cartItemId, newQuantity);
+
+        if (result.success) {
+            if (!canOptimisticallyUpdate) {
+                quantityElement.textContent = newQuantity;
+            }
+
+            const unitPrice = parseCurrency(result.newUnitPrice) || getUnitPriceFromItem(cartItemId);
+            const newTotal = unitPrice * newQuantity;
+            if (totalElement) {
+                totalElement.textContent = `₱${formatNumber(newTotal)}`;
+            }
 
         updateOverallTotal(totalDifference);
 
-        if (pendingRequests.has(cartItemId)) {
-            clearTimeout(pendingRequests.get(cartItemId));
-        }
+        } else {
+            if (result.error && result.error.includes('Only') && result.maxAllowed) {
+                quantityElement.textContent = result.maxAllowed;
+                showToast(result.error, "warning", "Stock Limit");
 
-        const requestTimeout = setTimeout(async () => {
-            try {
-                const result = await updateCartItemQuantity(cartItemId, newQuantity);
-                pendingRequests.delete(cartItemId);
-
-                if (!result.success && result.error && result.error.includes('Only') && result.maxAllowed) {
-                    const serverQuantity = result.maxAllowed;
-                    const serverItemTotal = unitPrice * serverQuantity;
-                    const revertDifference = serverItemTotal - newItemTotal;
-
-                    quantityElement.textContent = serverQuantity;
-                    if (totalElement) {
-                        totalElement.textContent = `₱${serverItemTotal.toFixed(2)}`;
-                    }
-
-                    updateOverallTotal(revertDifference);
-                    showToast(result.error, "warning", "Stock Limit");
+                const unitPrice = parseCurrency(result.newUnitPrice) || getUnitPriceFromItem(cartItemId);
+                const newTotal = unitPrice * result.maxAllowed;
+                if (totalElement) {
+                    totalElement.textContent = `₱${formatNumber(newTotal)}`;
                 }
-            } catch (error) {
-                console.error('Background update failed:', error);
-                pendingRequests.delete(cartItemId);
+                refreshCartSummaryFromDom();
+            } else {
+                if (canOptimisticallyUpdate) {
+                    quantityElement.textContent = currentQuantity;
+                    if (totalElement && previousLineTotal !== null) {
+                        totalElement.textContent = previousLineTotal;
+                    }
+                    refreshCartSummaryFromDom();
+                }
+                throw new Error(result.error || 'Failed to update quantity');
             }
         }, 400);
 
@@ -157,18 +170,8 @@ function updateOverallTotal() {
             overallTotal += itemTotal;
             totalItems += quantity;
         }
-    });
-
-    totalAmountElement.textContent = `₱${overallTotal.toFixed(2)}`;
-
-    const cartSummary = document.getElementById('cartSummary');
-    if (cartSummary) {
-        cartSummary.textContent = `${totalItems} item(s) in your cart`;
-    }
-
-    const cartCountElement = document.querySelector('.cart-count');
-    if (cartCountElement) {
-        cartCountElement.textContent = totalItems;
+    } finally {
+        pendingCartUpdates.delete(cartItemId);
     }
 }
 
@@ -182,14 +185,7 @@ function getUnitPriceFromItem(cartItemId) {
 
     const priceElement = cartItem.querySelector('.item-price');
     if (priceElement) {
-        const priceText = priceElement.textContent.replace('₱', '').replace(',', '').trim();
-        const price = parseFloat(priceText);
-
-        if (isNaN(price)) {
-            console.error('Invalid price format:', priceText);
-            return 0;
-        }
-        return price;
+        return parseCurrency(priceElement.textContent);
     }
 
     console.error('Price element not found for cart item:', cartItemId);
@@ -277,6 +273,15 @@ function updateCartSummary(itemCount, totalAmount) {
     const cartSummary = document.getElementById('cartSummary');
     if (cartSummary) {
         cartSummary.textContent = `${itemCount} item(s) in your cart`;
+    }
+
+    const totalAmountElement = document.getElementById('totalAmount');
+    if (totalAmountElement) {
+        let parsed = parseCurrency(totalAmount);
+        if (isNaN(parsed)) {
+            parsed = calculateCartTotalFromDom();
+        }
+        totalAmountElement.textContent = `₱${formatNumber(parsed)}`;
     }
 
     const cartCountElement = document.querySelector('.cart-count');
@@ -391,4 +396,50 @@ function showToast(message, type, title = '') {
     setTimeout(() => {
         toast.remove();
     }, 3000);
+}
+
+function formatNumber(value) {
+    const num = Number(value);
+    if (isNaN(num)) return '0.00';
+    return num.toFixed(2);
+}
+
+function parseCurrency(value) {
+    if (value === null || value === undefined) return NaN;
+    if (typeof value === 'number') return value;
+    const normalized = String(value).replace(/[^0-9.\-]/g, '');
+    return normalized ? parseFloat(normalized) : NaN;
+}
+
+function calculateCartTotalFromDom() {
+    let sum = 0;
+    document.querySelectorAll('[id^="total-"]').forEach(el => {
+        const val = parseCurrency(el.textContent);
+        if (!isNaN(val)) {
+            sum += val;
+        }
+    });
+    return sum;
+}
+
+function calculateCartQuantityFromDom() {
+    let total = 0;
+    document.querySelectorAll('[id^="quantity-"]').forEach(el => {
+        const val = parseInt(el.textContent);
+        if (!isNaN(val)) {
+            total += val;
+        }
+    });
+    return total;
+}
+
+function refreshCartSummaryFromDom() {
+    const totalAmountElement = document.getElementById('totalAmount');
+    if (totalAmountElement) {
+        totalAmountElement.textContent = `₱${formatNumber(calculateCartTotalFromDom())}`;
+    }
+    const cartSummary = document.getElementById('cartSummary');
+    if (cartSummary) {
+        cartSummary.textContent = `${calculateCartQuantityFromDom()} item(s) in your cart`;
+    }
 }
