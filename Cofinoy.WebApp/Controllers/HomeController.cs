@@ -49,7 +49,6 @@ namespace Cofinoy.WebApp.Controllers
         {
             try
             {
-                // ✅ Returns YOUR DashboardViewModel - Dashboard.cshtml works as-is!
                 var viewModel = _dashboardService.GetDashboardData();
                 return View(viewModel);
             }
