@@ -1,38 +1,33 @@
 ﻿using AutoMapper;
-using Cofinoy.Data;
+using Cofinoy.Services.Interfaces;
 using Cofinoy.WebApp.Models;
 using Cofinoy.WebApp.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Cofinoy.WebApp.Controllers
 {
     /// <summary>
-    /// Home Controller
+    /// Home Controller - Refactored with proper service layer
+    /// Uses YOUR existing DashboardViewModel
     /// </summary>
     public class HomeController : ControllerBase<HomeController>
     {
-        private readonly CofinoyDbContext _context;
+        private readonly IDashboardService _dashboardService;
 
-        /// <summary>
-        /// Constructor
-        /// </summary>
         public HomeController(
             IHttpContextAccessor httpContextAccessor,
             ILoggerFactory loggerFactory,
             IConfiguration configuration,
             IMapper mapper,
-            CofinoyDbContext context)
+            IDashboardService dashboardService)
             : base(httpContextAccessor, loggerFactory, configuration, mapper)
         {
-            _context = context;
+            _dashboardService = dashboardService;
         }
 
         /// <summary>
@@ -46,98 +41,75 @@ namespace Cofinoy.WebApp.Controllers
 
         /// <summary>
         /// Returns Dashboard View (Admin Dashboard)
+        /// Gets YOUR existing DashboardViewModel from service
+        /// Dashboard.cshtml expects this exact model - no changes needed!
         /// </summary>
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> Dashboard()
+        public IActionResult Dashboard()
         {
             try
             {
-                var today = DateTime.Today;
-                var yesterday = today.AddDays(-1);
-
-                // Get today's orders
-                var todayOrders = await _context.Orders
-                    .Include(o => o.OrderItems)
-                    .Where(o => o.OrderDate.Date == today)
-                    .ToListAsync();
-
-                // Get yesterday's orders for comparison
-                var yesterdayOrders = await _context.Orders
-                    .Where(o => o.OrderDate.Date == yesterday)
-                    .ToListAsync();
-
-                // Get all orders for total revenue
-                var allOrders = await _context.Orders.ToListAsync();
-
-                // ✅ Calculate stats (excluding cancelled orders from revenue)
-                var revenueToday = todayOrders
-                    .Where(o => o.Status != "Cancelled")
-                    .Sum(o => o.TotalPrice);
-
-                var revenueYesterday = yesterdayOrders
-                    .Where(o => o.Status != "Cancelled")
-                    .Sum(o => o.TotalPrice);
-
-                var totalRevenue = allOrders
-                    .Where(o => o.Status != "Cancelled")
-                    .Sum(o => o.TotalPrice);
-
-                var ordersToday = todayOrders.Count;
-                var ordersYesterday = yesterdayOrders.Count;
-
-                var activeOrders = todayOrders.Count(o =>
-                    o.Status != "Served" &&
-                    o.Status != "Cancelled");
-
-                var completedOrdersToday = todayOrders.Count(o => o.Status == "Served");
-                var cancelledOrdersToday = todayOrders.Count(o => o.Status == "Cancelled");
-
-                // Calculate percentage changes
-                var revenueTodayChange = revenueYesterday > 0
-                    ? ((revenueToday - revenueYesterday) / revenueYesterday) * 100
-                    : 0;
-
-                var ordersTodayChange = ordersYesterday > 0
-                    ? ((decimal)(ordersToday - ordersYesterday) / ordersYesterday) * 100
-                    : 0;
-
-                // Get recent orders (last 10)
-                var recentOrders = todayOrders
-                    .OrderByDescending(o => o.OrderDate)
-                    .Take(10)
-                    .Select(o => new DashboardOrderItem
-                    {
-                        Id = o.Id,
-                        InvoiceNumber = o.InvoiceNumber,
-                        CustomerName = !string.IsNullOrEmpty(o.Nickname) ? o.Nickname : "Guest",
-                        OrderTime = o.OrderDate.ToString("h:mm tt"),
-                        ItemCount = o.OrderItems?.Count ?? 0,
-                        TotalPrice = o.TotalPrice,
-                        Status = o.Status
-                    })
-                    .ToList();
-
-                var viewModel = new DashBoardViewModel
-                {
-                    RevenueToday = revenueToday,
-                    TotalRevenue = totalRevenue,
-                    RevenueTodayChange = Math.Round(revenueTodayChange, 1),
-                    TotalOrdersToday = ordersToday,
-                    ActiveOrders = activeOrders,
-                    CompletedOrdersToday = completedOrdersToday,
-                    CancelledOrdersToday = cancelledOrdersToday,
-                    OrdersTodayChange = Math.Round(ordersTodayChange, 1),
-                    RecentOrders = recentOrders
-                };
-
+                // ✅ Returns YOUR DashboardViewModel - Dashboard.cshtml works as-is!
+                var viewModel = _dashboardService.GetDashboardData();
                 return View(viewModel);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading dashboard");
-
-                // Return empty dashboard on error
                 return View(new DashBoardViewModel());
+            }
+        }
+
+        /// <summary>
+        /// API endpoint to get real-time revenue statistics
+        /// Can be used for AJAX refresh without full page reload
+        /// </summary>
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public JsonResult GetRevenueStats()
+        {
+            try
+            {
+                var stats = _dashboardService.GetRevenueStats();
+                return Json(new
+                {
+                    success = true,
+                    revenueToday = stats.today,
+                    revenueYesterday = stats.yesterday,
+                    totalRevenue = stats.total
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching revenue stats");
+                return Json(new { success = false, error = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// API endpoint to get real-time order statistics
+        /// Can be used for AJAX refresh without full page reload
+        /// </summary>
+        [HttpGet]
+        [Authorize(Roles = "Admin")]
+        public JsonResult GetOrderStats()
+        {
+            try
+            {
+                var stats = _dashboardService.GetOrderStats();
+                return Json(new
+                {
+                    success = true,
+                    totalOrders = stats.total,
+                    activeOrders = stats.active,
+                    completedOrders = stats.completed,
+                    cancelledOrders = stats.cancelled
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error fetching order stats");
+                return Json(new { success = false, error = ex.Message });
             }
         }
     }
