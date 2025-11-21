@@ -83,17 +83,7 @@ namespace Cofinoy.Services.Services
                 
                 foreach (var optionModel in orderedOptions)
                 {
-                    var option = new CustomizationOption
-                    {
-                        Id = string.IsNullOrEmpty(optionModel.Id)
-                            ? Guid.NewGuid().ToString()
-                            : optionModel.Id,
-                        Name = optionModel.Name,
-                        PriceModifier = optionModel.PriceModifier,
-                        Description = optionModel.Description ?? string.Empty,
-                        Default = optionModel.Default,
-                        DisplayOrder = optionModel.DisplayOrder > 0 ? optionModel.DisplayOrder : displayOrder
-                    };
+                    var option = MapOptionToEntity(optionModel, displayOrder);
                     existing.Options.Add(option);
                     displayOrder++;
                 }
@@ -134,15 +124,7 @@ namespace Cofinoy.Services.Services
             var options = entity.Options?
                 .OrderBy(o => o.DisplayOrder)
                 .ThenBy(o => o.Name)
-                .Select(o => new CustomizationOptionServiceModel
-                {
-                    Id = o.Id,
-                    Name = o.Name,
-                    PriceModifier = o.PriceModifier,
-                    Description = o.Description ?? string.Empty,
-                    Default = o.Default,
-                    DisplayOrder = o.DisplayOrder > 0 ? o.DisplayOrder : 0 
-                })
+                .Select(o => MapOptionToServiceModel(o))
                 .ToList() ?? new List<CustomizationOptionServiceModel>();
 
             return new CustomizationServiceModel
@@ -161,15 +143,8 @@ namespace Cofinoy.Services.Services
 
         private Customization MapToEntity(CustomizationServiceModel model)
         {
-            var options = model.Options?.Select((o, index) => new CustomizationOption
-            {
-                Id = string.IsNullOrEmpty(o.Id) ? Guid.NewGuid().ToString() : o.Id,
-                Name = o.Name,
-                PriceModifier = o.PriceModifier,
-                Description = o.Description ?? string.Empty,
-                Default = o.Default,
-                DisplayOrder = o.DisplayOrder > 0 ? o.DisplayOrder : (index + 1) 
-            }).ToList() ?? new List<CustomizationOption>();
+            var options = model.Options?.Select((o, index) => MapOptionToEntity(o, index + 1)).ToList() 
+                ?? new List<CustomizationOption>();
 
             return new Customization
             {
@@ -182,6 +157,32 @@ namespace Cofinoy.Services.Services
                 MaxQuantity = model.MaxQuantity,
                 PricePerUnit = model.PricePerUnit,
                 Options = options
+            };
+        }
+
+        private CustomizationOptionServiceModel MapOptionToServiceModel(CustomizationOption entity)
+        {
+            return new CustomizationOptionServiceModel
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                PriceModifier = entity.PriceModifier,
+                Description = entity.Description ?? string.Empty,
+                Default = entity.Default,
+                DisplayOrder = entity.DisplayOrder > 0 ? entity.DisplayOrder : 0
+            };
+        }
+
+        private CustomizationOption MapOptionToEntity(CustomizationOptionServiceModel model, int fallbackDisplayOrder)
+        {
+            return new CustomizationOption
+            {
+                Id = string.IsNullOrEmpty(model.Id) ? Guid.NewGuid().ToString() : model.Id,
+                Name = model.Name,
+                PriceModifier = model.PriceModifier,
+                Description = model.Description ?? string.Empty,
+                Default = model.Default,
+                DisplayOrder = model.DisplayOrder > 0 ? model.DisplayOrder : fallbackDisplayOrder
             };
         }
     }

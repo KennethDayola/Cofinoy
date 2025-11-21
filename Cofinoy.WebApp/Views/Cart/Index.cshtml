@@ -10,11 +10,6 @@
 <link rel="stylesheet" href="~/css/cart.css" />
 
 <div class="cart-container">
-    
-    <div id="cartToast" class="cart-toast">
-     
-    
-    </div>
     <div class="cart-header">
         <h1 class="cart-title">Shopping Bag</h1>
         <div class="cart-summary">
@@ -43,9 +38,8 @@
             }
             else
             {
-                <!-- FIXED: Header with proper grid structure -->
                 <div class="cart-items-header">
-                    <div class="header-image"></div> <!-- Added this empty div for image column -->
+                    <div class="header-image"></div>
                     <div class="header-product">Product</div>
                     <div class="header-price">Price</div>
                     <div class="header-quantity">Quantity</div>
@@ -56,13 +50,14 @@
                 <div class="cart-items-list">
                     @foreach (var item in Model)
                     {
-                        <div class="cart-item" id="cartItem-@item.CartItemId" data-cart-item-id="@item.CartItemId">
-                            <!-- Column 1: Image -->
+                        <div class="cart-item" id="cartItem-@item.CartItemId"
+                             data-cart-item-id="@item.CartItemId"
+                             data-product-id="@item.ProductId">
+
                             <div class="item-image-container">
                                 <img src="@item.ImageUrl" alt="@item.Name" class="item-image" />
                             </div>
 
-                            <!-- Column 2: Product Details -->
                             <div class="item-details">
                                 <div class="item-info">
                                     <h3 class="item-name">@item.Name</h3>
@@ -70,33 +65,27 @@
                                 </div>
                             </div>
 
-                            <!-- Column 3: Price -->
                             <div class="item-price">₱@item.UnitPrice.ToString("N2")</div>
 
-                            <!-- Column 4: Quantity -->
                             <div class="item-quantity">
                                 <div class="quantity-controls">
-                                    <button type="button" class="quantity-btn" onclick="updateQuantity('@item.CartItemId', 'decrease')">
+                                    <button type="button" class="quantity-btn">
                                         <span class="material-symbols-rounded">remove</span>
                                     </button>
                                     <span class="quantity-value" id="quantity-@item.CartItemId">@item.Quantity</span>
-                                    <button type="button" class="quantity-btn" onclick="updateQuantity('@item.CartItemId', 'increase')">
+                                    <button type="button" class="quantity-btn">
                                         <span class="material-symbols-rounded">add</span>
                                     </button>
                                 </div>
                             </div>
 
-                            <!-- Column 5: Total -->
                             <div class="item-total" id="total-@item.CartItemId">₱@((item.UnitPrice * item.Quantity).ToString("N2"))</div>
-
-                            <!-- Column 6: Actions -->
                             <div class="item-actions">
                                 <button type="button" class="remove-btn" onclick="removeFromCart('@item.CartItemId')" title="Remove item">
                                     <span class="material-symbols-rounded">delete</span>
                                 </button>
                             </div>
-                            
-                            <!-- Customizations (spans full width) -->
+
                             @if (item.Customizations != null && item.Customizations.Any())
                             {
                                 <div class="customizations-section">
@@ -110,48 +99,6 @@
                                                 {
                                                     <span class="customization-price">(+₱@customization.Price.ToString("N2"))</span>
                                                 }
-                                            </div>
-                                        }
-                                    </div>
-                                </div>
-                            }
-                            else if (!string.IsNullOrEmpty(item.Size) || !string.IsNullOrEmpty(item.MilkType) || !string.IsNullOrEmpty(item.Temperature) || item.ExtraShots > 0)
-                            {
-                                <div class="customizations-section">
-                                    <div class="customizations-list">
-                                        @if (!string.IsNullOrEmpty(item.Size))
-                                        {
-                                            <div class="customization-item">
-                                                <span class="customization-label">Size:</span>
-                                                <span class="customization-value">@item.Size</span>
-                                            </div>
-                                        }
-                                        @if (!string.IsNullOrEmpty(item.MilkType))
-                                        {
-                                            <div class="customization-item">
-                                                <span class="customization-label">Milk:</span>
-                                                <span class="customization-value">@item.MilkType</span>
-                                            </div>
-                                        }
-                                        @if (!string.IsNullOrEmpty(item.Temperature))
-                                        {
-                                            <div class="customization-item">
-                                                <span class="customization-label">Temperature:</span>
-                                                <span class="customization-value">@item.Temperature</span>
-                                            </div>
-                                        }
-                                        @if (item.ExtraShots > 0)
-                                        {
-                                            <div class="customization-item">
-                                                <span class="customization-label">Extra Shots:</span>
-                                                <span class="customization-value">@item.ExtraShots</span>
-                                            </div>
-                                        }
-                                        @if (!string.IsNullOrEmpty(item.SweetnessLevel))
-                                        {
-                                            <div class="customization-item">
-                                                <span class="customization-label">Sweetness:</span>
-                                                <span class="customization-value">@item.SweetnessLevel</span>
                                             </div>
                                         }
                                     </div>
@@ -208,9 +155,9 @@
                                 </label>
                             </div>
                         </div>
+                    </div>
 
-                   
-                    <div class="order-summary-section">
+                    
                         <h2 class="summary-title">Order Summary</h2>
 
                         @if (Model == null || !Model.Any())
@@ -222,33 +169,19 @@
                         else
                         {
                             var subtotal = Model.Sum(i => i.UnitPrice * i.Quantity);
-                            var total = subtotal; 
-
-                            <div class="summary-details">
-                                <div class="summary-line">
-                                    <span class="summary-label">Subtotal</span>
-                                    <span class="summary-value" id="subtotalAmount">₱@subtotal.ToString("N2")</span>
-                                </div>
-
-                                <div class="summary-line">
-                                    <span class="summary-label">Discount</span>
-                                    <span class="summary-value discount">-₱0.00</span>
-                                </div>
-
-                                <div class="summary-divider"></div>
+                            var total = subtotal;
 
                                 <div class="summary-total">
                                     <span class="total-label">TOTAL</span>
                                     <span class="total-value" id="totalAmount">₱@total.ToString("N2")</span>
                                 </div>
-                            </div>
+                           
                         }
 
                         <button type="submit" class="btn btn-primary w-100 rounded-pill mt-4 @(Model == null || !Model.Any() ? "order-btn-disabled" : "")"
                                 id="placeOrderBtn" @(Model == null || !Model.Any() ? "disabled" : "")>
                             Place Order
-                        </button>
-                    </div>
+                        </button>     
                 </form>
             </div>
         </aside>

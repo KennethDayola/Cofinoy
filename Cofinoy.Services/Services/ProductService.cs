@@ -29,31 +29,7 @@ namespace Cofinoy.Services.Services
 
             foreach (var product in products)
             {
-                var categoryIds = product.ProductCategories
-                    .Select(pc => pc.CategoryId)
-                    .ToList();
-
-                var customizationIds = product.ProductCustomizations
-                    .Select(pc => pc.CustomizationId)
-                    .ToList();
-
-                serviceModels.Add(new ProductServiceModel
-                {
-                    Id = product.Id,
-                    Name = product.Name,
-                    Description = product.Description ?? string.Empty,
-                    Price = product.BasePrice,
-                    Status = product.Status ?? "Available",
-                    Stock = product.Stock.ToString(),
-                    ImageUrl = product.ImageUrl ?? string.Empty,
-                    ImagePath = product.ImagePath ?? string.Empty,
-                    Categories = categoryIds,
-                    Customizations = customizationIds,
-                    DisplayOrder = product.DisplayOrder,
-                    IsActive = product.IsAvailable,
-                    CreatedAt = product.CreatedAt,
-                    UpdatedAt = DateTime.UtcNow
-                });
+                serviceModels.Add(MapToServiceModel(product));
             }
 
             return serviceModels;
@@ -66,31 +42,7 @@ namespace Cofinoy.Services.Services
 
             foreach (var product in products)
             {
-                var categoryIds = product.ProductCategories
-                    .Select(pc => pc.CategoryId)
-                    .ToList();
-
-                var customizationIds = product.ProductCustomizations
-                    .Select(pc => pc.CustomizationId)
-                    .ToList();
-
-                serviceModels.Add(new ProductServiceModel
-                {
-                    Id = product.Id,
-                    Name = product.Name,
-                    Description = product.Description ?? string.Empty,
-                    Price = product.BasePrice,
-                    Status = product.Status ?? "Available",
-                    Stock = product.Stock.ToString(),
-                    ImageUrl = product.ImageUrl ?? string.Empty,
-                    ImagePath = product.ImagePath ?? string.Empty,
-                    Categories = categoryIds,
-                    Customizations = customizationIds,
-                    DisplayOrder = product.DisplayOrder,
-                    IsActive = product.IsAvailable,
-                    CreatedAt = product.CreatedAt,
-                    UpdatedAt = DateTime.UtcNow
-                });
+                serviceModels.Add(MapToServiceModel(product));
             }
 
             return serviceModels;
@@ -99,53 +51,15 @@ namespace Cofinoy.Services.Services
         public ProductServiceModel GetProductById(string id)
         {
             var product = _productRepository.GetProductById(id);
-            if (product == null)
-                return null;
-
-            var categoryIds = product.ProductCategories
-                .Select(pc => pc.CategoryId)
-                .ToList();
-
-            var customizationIds = product.ProductCustomizations
-                .Select(pc => pc.CustomizationId)
-                .ToList();
-
-            return new ProductServiceModel
-            {
-                Id = product.Id,
-                Name = product.Name,
-                Description = product.Description ?? string.Empty,
-                Price = product.BasePrice,
-                Status = product.Status ?? "Available",
-                Stock = product.Stock.ToString(),
-                ImageUrl = product.ImageUrl ?? string.Empty,
-                ImagePath = product.ImagePath ?? string.Empty,
-                Categories = categoryIds,
-                Customizations = customizationIds,
-                DisplayOrder = product.DisplayOrder,
-                IsActive = product.IsAvailable,
-                CreatedAt = product.CreatedAt,
-                UpdatedAt = DateTime.UtcNow
-            };
+            return product == null ? null : MapToServiceModel(product);
         }
 
         public void AddProduct(ProductServiceModel model)
         {
-            var product = new Product
-            {
-                Id = Guid.NewGuid().ToString(),
-                Name = model.Name,
-                Description = model.Description ?? string.Empty,
-                BasePrice = model.Price,
-                Status = model.Status ?? "Available",
-                Stock = int.TryParse(model.Stock, out int stock) ? stock : 0,
-                ImageUrl = model.ImageUrl ?? string.Empty,
-                ImagePath = model.ImagePath ?? string.Empty,
-                DisplayOrder = model.DisplayOrder,
-                IsAvailable = model.IsActive,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+            var product = MapToEntity(model);
+            product.Id = Guid.NewGuid().ToString();
+            product.CreatedAt = DateTime.UtcNow;
+            product.UpdatedAt = DateTime.UtcNow;
 
             _productRepository.AddProduct(product);
 
@@ -299,6 +213,51 @@ namespace Cofinoy.Services.Services
                 }
                 _categoryRepository.UpdateCategory(category);
             }
+        }
+
+        private ProductServiceModel MapToServiceModel(Product entity)
+        {
+            var categoryIds = entity.ProductCategories
+                .Select(pc => pc.CategoryId)
+                .ToList();
+
+            var customizationIds = entity.ProductCustomizations
+                .Select(pc => pc.CustomizationId)
+                .ToList();
+
+            return new ProductServiceModel
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description ?? string.Empty,
+                Price = entity.BasePrice,
+                Status = entity.Status ?? "Available",
+                Stock = entity.Stock.ToString(),
+                ImageUrl = entity.ImageUrl ?? string.Empty,
+                ImagePath = entity.ImagePath ?? string.Empty,
+                Categories = categoryIds,
+                Customizations = customizationIds,
+                DisplayOrder = entity.DisplayOrder,
+                IsActive = entity.IsAvailable,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt
+            };
+        }
+
+        private Product MapToEntity(ProductServiceModel model)
+        {
+            return new Product
+            {
+                Name = model.Name,
+                Description = model.Description ?? string.Empty,
+                BasePrice = model.Price,
+                Status = model.Status ?? "Available",
+                Stock = int.TryParse(model.Stock, out int stock) ? stock : 0,
+                ImageUrl = model.ImageUrl ?? string.Empty,
+                ImagePath = model.ImagePath ?? string.Empty,
+                DisplayOrder = model.DisplayOrder,
+                IsAvailable = model.IsActive
+            };
         }
     }
 }
