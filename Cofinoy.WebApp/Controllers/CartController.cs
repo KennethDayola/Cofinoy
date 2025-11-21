@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ namespace Cofinoy.WebApp.Controllers
                 var userId = GetCurrentUserId();
                 var cartItems = await _cartService.GetCartItemsAsync(userId);
 
-                
+
                 string nickname = null;
                 if (User?.Identity?.IsAuthenticated == true)
                 {
@@ -71,7 +72,7 @@ namespace Cofinoy.WebApp.Controllers
             }
         }
 
-            [HttpPost]
+        [HttpPost]
         public async Task<JsonResult> AddToCart([FromBody] CartItemServiceModel item)
         {
             try
@@ -127,9 +128,27 @@ namespace Cofinoy.WebApp.Controllers
                 {
                     success = true,
                     itemTotal = updatedItem?.TotalPrice ?? 0,
+                    newUnitPrice = updatedItem?.UnitPrice ?? 0,
+                    newTotal = subtotal,
                     subtotal = subtotal,
                     total = subtotal,
                     cartCount = cartCount
+                });
+            }
+            catch (InvalidDataException ex) when (ex.Message.Contains("|"))
+            {
+                // Stock validation error with max allowed quantity
+                var parts = ex.Message.Split('|');
+                var errorMessage = parts[0];
+                var maxAllowed = int.Parse(parts[1]);
+
+                _logger.LogWarning("Stock validation failed: {Message}", errorMessage);
+
+                return Json(new
+                {
+                    success = false,
+                    error = errorMessage,
+                    maxAllowed = maxAllowed
                 });
             }
             catch (Exception ex)
@@ -249,6 +268,6 @@ namespace Cofinoy.WebApp.Controllers
 
     public class RemoveFromCartModel
     {
-        public string CartItemId { get; set; } 
+        public string CartItemId { get; set; }
     }
 }

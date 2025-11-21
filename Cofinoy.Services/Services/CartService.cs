@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 
 namespace Cofinoy.Services.Services
 {
@@ -33,7 +34,7 @@ namespace Cofinoy.Services.Services
 
                 return cart.CartItems.Select(item => new CartItemServiceModel
                 {
-                    CartItemId = item.Id, 
+                    CartItemId = item.Id,
                     ProductId = item.ProductId,
                     Name = item.ProductName,
                     Description = item.Description,
@@ -76,7 +77,7 @@ namespace Cofinoy.Services.Services
                     _logger.LogInformation("Item has {Count} customizations", item.Customizations.Count);
                     foreach (var custom in item.Customizations)
                     {
-                        _logger.LogInformation("  - {Name}: {Value} ({Type}) - Order: {DisplayOrder}, Price: {Price}", 
+                        _logger.LogInformation("  - {Name}: {Value} ({Type}) - Order: {DisplayOrder}, Price: {Price}",
                             custom.Name, custom.Value, custom.Type, custom.DisplayOrder, custom.Price);
                     }
                 }
@@ -175,6 +176,36 @@ namespace Cofinoy.Services.Services
                     }
                     else
                     {
+                        // Get product info and check stock
+                        var productInfo = _productService.GetProductById(item.ProductId);
+                        if (productInfo == null)
+                        {
+                            throw new InvalidDataException("Product not found");
+                        }
+
+                        var stockValue = int.TryParse(productInfo.Stock, out var parsedStock) ? parsedStock : 0;
+
+                        // Calculate total quantity for this product across all cart items (excluding current item)
+                        var existingQuantityInOtherItems = cart.CartItems
+                            .Where(ci => ci.ProductId == item.ProductId && ci.Id != cartItemId)
+                            .Sum(ci => ci.Quantity);
+
+                        var requestedTotal = existingQuantityInOtherItems + quantity;
+
+                        _logger.LogInformation("Stock validation - Product: {ProductId}, Stock: {Stock}, Requested: {Quantity}, Existing in other items: {ExistingQuantity}, Total requested: {TotalRequested}",
+                            item.ProductId, stockValue, quantity, existingQuantityInOtherItems, requestedTotal);
+
+                        if (stockValue > 0 && requestedTotal > stockValue)
+                        {
+                            var maxAllowed = Math.Max(0, stockValue - existingQuantityInOtherItems);
+                            var message = maxAllowed > 0
+                                ? $"Only {stockValue} of {productInfo.Name} available in stock."
+                                : $"{productInfo.Name} is out of stock.";
+
+                            _logger.LogWarning("Stock limit exceeded for product {ProductId}. Max allowed for this item: {MaxAllowed}", item.ProductId, maxAllowed);
+                            throw new InvalidDataException($"{message}|{maxAllowed}");
+                        }
+
                         item.Quantity = quantity;
                         item.TotalPrice = item.UnitPrice * quantity;
                         _logger.LogInformation("Updated item {CartItemId} quantity to {Quantity}", cartItemId, quantity);
@@ -209,7 +240,7 @@ namespace Cofinoy.Services.Services
                     cart.CartItems.Remove(item);
                     cart.UpdatedAt = DateTime.UtcNow;
 
-                    
+
                     _repository.UpdateCart(cart);
                     _logger.LogInformation("Removed item {CartItemId} from cart", cartItemId);
                 }
