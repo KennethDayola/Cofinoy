@@ -1,26 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-namespace Cofinoy.WebApp.Models
+namespace Cofinoy.Services.ServiceModels
 {
-    public class DashBoardViewModel
+    public class DashboardServiceModel
     {
-        // Revenue Stats
         public decimal RevenueToday { get; set; }
         public decimal TotalRevenue { get; set; }
-        public decimal RevenueTodayChange { get; set; } // Percentage change from yesterday
+        public decimal RevenueTodayChange { get; set; }
 
-        // Order Stats
         public int TotalOrdersToday { get; set; }
         public int ActiveOrders { get; set; }
         public int CompletedOrdersToday { get; set; }
         public int CancelledOrdersToday { get; set; }
-        public decimal OrdersTodayChange { get; set; } // Percentage change from yesterday
+        public decimal OrdersTodayChange { get; set; }
 
-        // Recent Orders
         public List<DashboardOrderItem> RecentOrders { get; set; }
 
-        public DashBoardViewModel()
+        public DashboardServiceModel()
         {
             RecentOrders = new List<DashboardOrderItem>();
         }

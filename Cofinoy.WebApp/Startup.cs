@@ -111,7 +111,7 @@ namespace Cofinoy.WebApp
             //Configuration
             services.Configure<TokenAuthentication>(Configuration.GetSection("TokenAuthentication"));
 
-            
+            services.AddScoped<IDashboardService, DashboardService>();
 
             // Session
             services.AddSession(options =>

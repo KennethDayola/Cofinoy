@@ -70,5 +70,76 @@ namespace Cofinoy.Data.Repositories
         {
             return this.GetDbSet<Order>().Count();
         }
+
+        public IQueryable<Order> GetOrdersByDate(DateTime date)
+        {
+            return this.GetDbSet<Order>()
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Customizations)
+                .Where(o => o.OrderDate.Date == date.Date)
+                .OrderByDescending(o => o.OrderDate);
+        }
+
+        public IQueryable<Order> GetOrdersByDateRange(DateTime startDate, DateTime endDate)
+        {
+            return this.GetDbSet<Order>()
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Customizations)
+                .Where(o => o.OrderDate.Date >= startDate.Date && o.OrderDate.Date <= endDate.Date)
+                .OrderByDescending(o => o.OrderDate);
+        }
+
+        public IQueryable<Order> GetOrdersByStatus(string status)
+        {
+            return this.GetDbSet<Order>()
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Customizations)
+                .Where(o => o.Status == status)
+                .OrderByDescending(o => o.OrderDate);
+        }
+
+        public IQueryable<Order> GetOrdersWithFilter(string status, string searchTerm)
+        {
+            var query = this.GetDbSet<Order>()
+                .Include(o => o.OrderItems)
+                    .ThenInclude(oi => oi.Customizations)
+                .AsQueryable();
+
+            if (!string.IsNullOrEmpty(status))
+            {
+                query = query.Where(o => o.Status == status);
+            }
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                searchTerm = searchTerm.ToLower();
+                query = query.Where(o =>
+                    o.InvoiceNumber.ToLower().Contains(searchTerm) ||
+                    (o.Nickname != null && o.Nickname.ToLower().Contains(searchTerm)));
+            }
+
+            return query.OrderByDescending(o => o.OrderDate);
+        }
+
+        public decimal GetTotalRevenue()
+        {
+            return this.GetDbSet<Order>()
+                .Where(o => o.Status != "Cancelled")
+                .Sum(o => (decimal?)o.TotalPrice) ?? 0;
+        }
+
+        public decimal GetRevenueByDate(DateTime date)
+        {
+            return this.GetDbSet<Order>()
+                .Where(o => o.OrderDate.Date == date.Date && o.Status != "Cancelled")
+                .Sum(o => (decimal?)o.TotalPrice) ?? 0;
+        }
+
+        public int GetOrdersCountByDate(DateTime date)
+        {
+            return this.GetDbSet<Order>()
+                .Where(o => o.OrderDate.Date == date.Date)
+                .Count();
+        }
     }
 }
