@@ -193,7 +193,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     function renderProductCard(product, isUnavailable) {
-            const card = document.createElement("div");
+        const card = document.createElement("div");
         card.className = `product-card${isUnavailable ? ' product-unavailable' : ''}`;
 
         const stock = parseInt(product.stock) || 0;
@@ -206,7 +206,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             </div>
         ` : '';
 
-            card.innerHTML = `
+        card.innerHTML = `
             <div class="product-image-wrapper">
                 <img src="${product.imageUrl}" alt="${product.name}" />
                 ${unavailableOverlay}
@@ -220,7 +220,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 </div>
                 </div>
             `;
-            productsContainer.appendChild(card);
+        productsContainer.appendChild(card);
 
         // Only add click handler if product is available
         if (!isUnavailable) {
@@ -235,9 +235,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (!isInitialLoad) {
             productsContainer.style.opacity = '0.5';
         }
-        
+
         console.log("Loading products for category:", categoryName);
-        
+
         let result;
         if (categoryName === "All") {
             result = await ProductsService.getAllProducts();
@@ -275,7 +275,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             // Show progress animation for initial load
             setTimeout(() => {
                 hideLoading();
-            renderProducts(allProducts);
+                renderProducts(allProducts);
                 isInitialLoad = false; // Mark initial load as complete
             }, 800);
         } else {
@@ -347,16 +347,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (customizeModal) {
             // Force reflow to ensure animation plays
-        customizeModal.style.display = 'flex';
+            customizeModal.style.display = 'flex';
             void customizeModal.offsetWidth;
-        document.body.style.overflow = 'hidden';
+            document.body.style.overflow = 'hidden';
         }
     }
 
     function closeCustomize() {
         if (customizeModal) {
-        customizeModal.style.display = 'none';
-        document.body.style.overflow = '';
+            customizeModal.style.display = 'none';
+            document.body.style.overflow = '';
         }
         currentProduct = null;
         window.currentProduct = null;
@@ -377,9 +377,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             minus.addEventListener('click', () => {
                 const min = type === 'quantity' ? 1 : 0;
                 const val = Math.max(min, parseInt(valueEl.textContent || '0') - 1);
-            valueEl.textContent = String(val);
-            recalcTotal();
-        });
+                valueEl.textContent = String(val);
+                recalcTotal();
+            });
 
             plus.addEventListener('click', () => {
                 const currentQty = parseInt(valueEl.textContent || '0');
@@ -391,9 +391,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 }
 
                 const val = currentQty + 1;
-            valueEl.textContent = String(val);
-            recalcTotal();
-        });
+                valueEl.textContent = String(val);
+                recalcTotal();
+            });
         }
     });
 
@@ -422,7 +422,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         const total = (base + addonsDelta) * qty;
         if (totalPriceEl) {
-        totalPriceEl.textContent = `₱${total.toFixed(2)}`;
+            totalPriceEl.textContent = `₱${total.toFixed(2)}`;
         }
     }
 
@@ -705,17 +705,18 @@ document.addEventListener("DOMContentLoaded", async () => {
                         showNotification('Item added to cart!', 'success');
                     }
 
-        closeCustomize();
+                    closeCustomize();
 
                     if (result.cartCount !== undefined) {
                         updateCartCount(result.cartCount);
                     }
                 } else {
-                    // Show error toast
+                    // Show error toast with stock information - only one toast
+                    const errorMsg = result.error || 'Failed to add item to cart';
                     if (typeof showToast === 'function') {
-                        showToast('Failed to add item to cart: ' + result.error, 'danger', 'Error');
+                        showToast(errorMsg, 'danger', 'Cannot Add to Cart');
                     } else {
-                        showNotification('Failed to add item to cart: ' + result.error, 'error');
+                        showNotification(errorMsg, 'error');
                     }
                 }
             } catch (error) {
@@ -885,6 +886,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                         <label for="${id}">
                             <span class="option-name">${opt.name}</span>
                             ${Number(opt.priceModifier || 0) ? `<span class="option-price">(₱${Number(opt.priceModifier).toFixed(2)})</span>` : ''}
+ 
                             ${opt.description ? `<div class="option-desc">${opt.description}</div>` : ''}
                         </label>
                     `;
