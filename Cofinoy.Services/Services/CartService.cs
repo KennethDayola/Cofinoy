@@ -14,11 +14,13 @@ namespace Cofinoy.Services.Services
     {
         private readonly ICartRepository _repository;
         private readonly ILogger<CartService> _logger;
+        private readonly IProductService _productService;
 
-        public CartService(ICartRepository repository, ILogger<CartService> logger)
+        public CartService(ICartRepository repository, ILogger<CartService> logger, IProductService productService)
         {
             _repository = repository;
             _logger = logger;
+            _productService = productService;
         }
 
         public async Task<List<CartItemServiceModel>> GetCartItemsAsync(string userId)
@@ -80,6 +82,26 @@ namespace Cofinoy.Services.Services
                 }
 
                 var cart = await _repository.GetCartByUserIdAsync(userId);
+                var productInfo = _productService.GetProductById(item.ProductId);
+                if (productInfo == null)
+                {
+                    throw new InvalidDataException("Product not found");
+                }
+
+                var stockValue = int.TryParse(productInfo.Stock, out var parsedStock) ? parsedStock : 0;
+                var existingQuantity = cart?.CartItems?
+                    .Where(ci => ci.ProductId == item.ProductId)
+                    .Sum(ci => ci.Quantity) ?? 0;
+                var requestedTotal = existingQuantity + item.Quantity;
+
+                if (stockValue > 0 && !_productService.HasSufficientStock(item.ProductId, requestedTotal))
+                {
+                    var remaining = Math.Max(0, stockValue - existingQuantity);
+                    var message = remaining > 0
+                        ? $"Only {remaining} item(s) of {productInfo.Name} remaining."
+                        : $"{productInfo.Name} is out of stock.";
+                    throw new InvalidDataException(message);
+                }
 
                 if (cart == null)
                 {
@@ -198,6 +220,7 @@ namespace Cofinoy.Services.Services
                 throw;
             }
         }
+
 
         public async Task ClearCartAsync(string userId)
         {
