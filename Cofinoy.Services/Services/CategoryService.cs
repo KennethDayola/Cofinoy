@@ -25,16 +25,7 @@ namespace Cofinoy.Services.Services
 
             foreach (var category in categories)
             {
-                serviceModels.Add(new CategoryServiceModel
-                {
-                    Id = category.Id,
-                    Name = category.Name,
-                    Description = category.Description ?? string.Empty,
-                    ItemsCount = category.ItemsCount,
-                    DisplayOrder = category.DisplayOrder,
-                    Status = category.IsActive ? "Active" : "Inactive",
-                    CreatedAt = category.CreatedAt
-                });
+                serviceModels.Add(MapToServiceModel(category));
             }
 
             return serviceModels;
@@ -43,33 +34,15 @@ namespace Cofinoy.Services.Services
         public CategoryServiceModel GetCategoryById(string id)
         {
             var category = _repository.GetCategoryById(id);
-            if (category == null)
-                return null;
-
-            return new CategoryServiceModel
-            {
-                Id = category.Id,
-                Name = category.Name,
-                Description = category.Description ?? string.Empty,
-                ItemsCount = category.ItemsCount,
-                DisplayOrder = category.DisplayOrder,
-                Status = category.IsActive ? "Active" : "Inactive",
-                CreatedAt = category.CreatedAt
-            };
+            return category == null ? null : MapToServiceModel(category);
         }
 
         public void AddCategory(CategoryServiceModel model)
         {
-            var category = new Category
-            {
-                Id = Guid.NewGuid().ToString(),
-                Name = model.Name,
-                Description = model.Description ?? string.Empty,
-                ItemsCount = 0,
-                DisplayOrder = model.DisplayOrder,
-                IsActive = model.Status == "Active",
-                CreatedAt = DateTime.UtcNow
-            };
+            var category = MapToEntity(model);
+            category.Id = Guid.NewGuid().ToString();
+            category.ItemsCount = 0;
+            category.CreatedAt = DateTime.UtcNow;
 
             _repository.AddCategory(category);
         }
@@ -115,6 +88,31 @@ namespace Cofinoy.Services.Services
         public bool CategoryExists(string id)
         {
             return _repository.CategoryExists(id);
+        }
+
+        private CategoryServiceModel MapToServiceModel(Category entity)
+        {
+            return new CategoryServiceModel
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description ?? string.Empty,
+                ItemsCount = entity.ItemsCount,
+                DisplayOrder = entity.DisplayOrder,
+                Status = entity.IsActive ? "Active" : "Inactive",
+                CreatedAt = entity.CreatedAt
+            };
+        }
+
+        private Category MapToEntity(CategoryServiceModel model)
+        {
+            return new Category
+            {
+                Name = model.Name,
+                Description = model.Description ?? string.Empty,
+                DisplayOrder = model.DisplayOrder,
+                IsActive = model.Status == "Active"
+            };
         }
     }
 }

@@ -38,20 +38,20 @@
             return 1;
         }
         
-        // Get the maximum display order and add 1
         const maxDisplayOrder = Math.max(...allCategories.map(cat => cat.displayOrder || 0));
         return maxDisplayOrder + 1;
     }
 
     function openModal() {
-        modal.classList.add('active');
-        document.body.style.overflow = 'hidden';
-
-        // If this is a new category (not editing), autofill the display order
         if (!currentEditingId) {
+            document.getElementById('categoryModalTitle').textContent = 'Add new category';
+            document.getElementById('addCategoryBtn').innerHTML = '<i class="fas fa-plus"></i> Add Category';
             const nextDisplayOrder = getNextAvailableDisplayOrder();
             document.getElementById('categoryDisplayOrder').value = nextDisplayOrder;
         }
+
+        modal.classList.add('active');
+        document.body.style.overflow = 'hidden';
     }
 
     function closeModalFunc() {
@@ -97,7 +97,7 @@
     }
 
     function resetModalState() {
-        document.querySelector('.modal-header h2').textContent = 'Add new category';
+        document.getElementById('categoryModalTitle').textContent = 'Add new category';
         document.getElementById('addCategoryBtn').innerHTML = '<i class="fas fa-plus"></i> Add Category';
         currentEditingRow = null;
         currentEditingId = null;
@@ -448,7 +448,7 @@
         document.getElementById('categoryStatus').value = categoryStatus.charAt(0).toUpperCase() + categoryStatus.slice(1);
         document.getElementById('categoryDisplayOrder').value = displayOrder;
 
-        document.querySelector('.modal-header h2').textContent = 'Edit Category';
+        document.getElementById('categoryModalTitle').textContent = 'Edit Category';
         document.getElementById('addCategoryBtn').innerHTML = '<i class="fas fa-save"></i> Save Changes';
 
         currentEditingRow = row;
