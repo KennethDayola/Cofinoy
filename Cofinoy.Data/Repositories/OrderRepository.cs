@@ -100,10 +100,7 @@ namespace Cofinoy.Data.Repositories
 
         public IQueryable<Order> GetOrdersWithFilter(string status, string searchTerm)
         {
-            var query = this.GetDbSet<Order>()
-                .Include(o => o.OrderItems)
-                    .ThenInclude(oi => oi.Customizations)
-                .AsQueryable();
+            var query = this.GetDbSet<Order>().AsQueryable();  // No Include!
 
             if (!string.IsNullOrEmpty(status))
             {

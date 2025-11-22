@@ -37,56 +37,26 @@ namespace Cofinoy.Services.Services
         {
             try
             {
-                var query = _orderRepository.GetOrders();
+                // Start with the filtered query - filtering happens in SQL
+                var query = _orderRepository.GetOrdersWithFilter(
+                    status != "All" ? status : null,
+                    searchTerm
+                );
 
-                if (!string.IsNullOrEmpty(status) && status != "All")
-                {
-                    var normalized = status == "Brewing" ? "Pending" : status;
-                    query = query.Where(o => o.Status == normalized);
-                }
-
-                var orders = query.ToList();
-                var users = _userRepository.GetUsers().ToList();
-
-                var list = orders
-                    .Select(o =>
+                // Project to only what we need - no Include() needed
+                var list = query
+                    .Select(o => new OrderServiceModel
                     {
-                        var user = users.FirstOrDefault(u => o.UserId == u.Id.ToString());
-                        var customerName = user != null
-                            ? $"{user.FirstName} {user.LastName}"
-                            : (!string.IsNullOrEmpty(o.Nickname) ? o.Nickname : "Guest");
-
-                        if (!string.IsNullOrEmpty(searchTerm))
-                        {
-                            bool matches =
-                                (o.InvoiceNumber?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                                (customerName?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                                (o.Nickname?.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ?? false);
-
-                            if (!matches) return null;
-                        }
-
-                        return new OrderServiceModel
-                        {
-                            Id = o.Id,
-                            InvoiceNumber = o.InvoiceNumber,
-                            UserId = o.UserId,
-                            Nickname = o.Nickname,
-                            OrderDate = o.OrderDate,
-                            PaymentMethod = o.PaymentMethod,
-                            Status = o.Status,
-                            TotalPrice = o.TotalPrice,
-                            OrderItems = o.OrderItems.Select(oi => new OrderItemServiceModel
-                            {
-                                Id = oi.Id,
-                                ProductName = oi.ProductName,
-                                Quantity = oi.Quantity,
-                                UnitPrice = oi.UnitPrice,
-                                TotalPrice = oi.TotalPrice
-                            }).ToList()
-                        };
+                        Id = o.Id,
+                        InvoiceNumber = o.InvoiceNumber,
+                        UserId = o.UserId,
+                        Nickname = o.Nickname,
+                        OrderDate = o.OrderDate,
+                        PaymentMethod = o.PaymentMethod,
+                        Status = o.Status,
+                        TotalPrice = o.TotalPrice,
+                        ItemCount = o.OrderItems.Count  // Count in SQL, not loading items
                     })
-                    .Where(x => x != null)
                     .ToList();
 
                 return await Task.FromResult(list);

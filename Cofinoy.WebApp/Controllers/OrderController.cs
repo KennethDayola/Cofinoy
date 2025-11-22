@@ -67,7 +67,7 @@ namespace Cofinoy.WebApp.Controllers
                     CustomerName = !string.IsNullOrEmpty(o.Nickname) ? o.Nickname : "Guest",
                     o.Nickname,
                     OrderDate = o.OrderDate.ToString("MM/dd/yy – h:mm tt"),
-                    ItemCount = o.OrderItems.Count,
+                    o.ItemCount,  // Use the pre-calculated count
                     o.TotalPrice,
                     o.Status,
                     o.PaymentMethod

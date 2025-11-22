@@ -12,6 +12,7 @@ namespace Cofinoy.Services.ServiceModels
         public DateTime OrderDate { get; set; }
         public string PaymentMethod { get; set; }
         public string Status { get; set; }
+        public int ItemCount { get; set; }  
         public string AdditionalRequest { get; set; }
         public decimal TotalPrice { get; set; }
         public List<OrderItemServiceModel> OrderItems { get; set; } = new List<OrderItemServiceModel>();

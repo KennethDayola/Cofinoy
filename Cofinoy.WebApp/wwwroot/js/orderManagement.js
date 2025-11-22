@@ -183,3 +183,17 @@ function showStatusFilter() {
         });
     }, 0);
 }
+let searchTimeout;
+document.getElementById('searchOrders').addEventListener('keyup', function () {
+    clearTimeout(searchTimeout);
+    searchTimeout = setTimeout(() => {
+        loadOrders(currentFilter === 'All' ? null : currentFilter);
+    }, 300); // Wait 300ms after user stops typing
+});
+function startAutoRefresh() {
+    autoRefreshInterval = setInterval(() => {
+        // Skip refresh if user is actively searching
+        if (document.getElementById('searchOrders').value.trim()) return;
+        loadOrders(currentFilter === 'All' ? null : currentFilter, null, true);
+    }, 15000); // 15 seconds instead of 5
+}
