@@ -800,9 +800,6 @@ document.addEventListener('DOMContentLoaded', function () {
         if (drinksListener) {
             drinksListener();
         }
-
-        // Note: DrinkFirebaseService is not defined in the original code
-        // This function might need adjustment based on your Firebase implementation
         console.warn('setupRealTimeListener: DrinkFirebaseService is not defined');
     }
 
